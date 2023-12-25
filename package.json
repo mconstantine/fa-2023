@@ -1,0 +1,11 @@
+{
+  "name": "fa-2023",
+  "version": "1.0.0",
+  "description": "Financial Analysis 2023",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "author": "Mauro Constantinescu",
+  "license": "ISC"
+}
