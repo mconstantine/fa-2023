@@ -3,7 +3,7 @@ export class BankEntry {
   public readonly reason: string
   public readonly value: number
 
-  private constructor(date: Date, reason: string, value: number) {
+  protected constructor(date: Date, reason: string, value: number) {
     this.date = date
     this.reason = reason
     this.value = value
