@@ -1,0 +1,376 @@
+﻿Data;Ora;Fuso orario;Descrizione;Valuta;Lordo ;Tariffa ;Netto;Saldo;Codice transazione;Indirizzo email mittente;Nome;Nome banca;Conto bancario;Importo per spedizione e imballaggio;IVA;N. fattura pro-forma;Codice transazione di riferimento
+26/12/2022;01:53:36;Europe/Berlin;Pagamento su sito web;EUR;-30;0;-30;360,14;6MX41457G33027840;copertodeifigini1467@gmail.com;Coperto Dei Figini;;;0;0;e1e1c132-1084-4ef9-81cb-cefe79604042;
+26/12/2022;14:57:31;Europe/Berlin;Pagamento Express Checkout;EUR;-16;0;-16;344,14;4U6195354A9921225;payments@kiwi.com;Kiwi.com s.r.o.;;;0;0;320476431;
+26/12/2022;14:57:31;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;16;0;16;360,14;1T462192TT097402V;;;CheBanca  S.p.A.;1196;0;0;320476431;4U6195354A9921225
+26/12/2022;15:01:46;Europe/Berlin;Pagamento Express Checkout;EUR;-218,4;0;-218,4;141,74;5KT74253B9914440L;payments@kiwi.com;Kiwi.com s.r.o.;;;0;0;320477564;
+26/12/2022;20:07:22;Europe/Berlin;Blocco conto per autorizzazione aperta;EUR;-27;0;-27;114,74;9EL229356J266360S;;;;;0;0;130223764;2BP61363B5940782K
+27/12/2022;02:05:49;Europe/Berlin;Pagamento Express Checkout;EUR;-27;0;-27;87,74;07520267AM873583S;finance.paypal@justeat.it;Just Eat Italy Srl;;;0;0;130223764;2BP61363B5940782K
+27/12/2022;02:05:49;Europe/Berlin;Storno di blocco conto generico;EUR;27;0;27;114,74;6AM12076YG9720923;;;;;0;0;130223764;9EL229356J266360S
+02/01/2023;19:40:52;Europe/Berlin;Conversione di valuta generica;EUR;-3,95;0;-3,95;110,79;9U402753PG595342J;;;;;0;0;P-40469681;6E8034808Y646890Y
+03/01/2023;23:55:56;Europe/Berlin;Pagamento Express Checkout;EUR;-51,59;0;-51,59;59,2;3BA50811L04183645;ecomm_customercare@ticketone.it;TicketOne S.p.a.;;;0;0;1209522874;
+04/01/2023;00:05:02;Europe/Berlin;Pagamento da cellulare;EUR;16;0;16;75,2;5YM68003GP4551523;aconsta7@gmail.com;Andrea Constantinescu;;;0;0;;
+04/01/2023;06:07:21;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-55,57;0;-55,57;19,63;4T154919AL676183B;paypal@register.it;Register spa;;;0;0;;B-73K06445L4035193U
+16/01/2023;00:06:33;Europe/Berlin;Pagamento da cellulare;EUR;-130;0;-130;-110,37;21D800331X157821M;valentinacortese_96@hotmail.it;Valentina Cortese;;;0;0;;
+16/01/2023;00:06:33;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;110,37;0;110,37;0;4EC328210M1871234;;;CheBanca  S.p.A.;1196;0;0;;21D800331X157821M
+18/01/2023;22:36:50;Europe/Berlin;Pagamento Express Checkout;EUR;-12,85;0;-12,85;-12,85;7EG86371BX516840S;paypal_it@fedex.com;Fedex Express Italy S.r.l;;;0;0;86793548;5GD898224B460781K
+18/01/2023;22:36:50;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;12,85;0;12,85;0;0KU6928568489942M;;;CheBanca  S.p.A.;1196;0;0;86793548;7EG86371BX516840S
+19/01/2023;15:52:49;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-47,4;0;-47,4;-47,4;7FD40509WR274062W;paypal@register.it;Register spa;;;0;0;;B-73K06445L4035193U
+19/01/2023;15:52:49;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;47,4;0;47,4;0;7HV89000KU841235E;;;CheBanca  S.p.A.;1196;0;0;;7FD40509WR274062W
+20/01/2023;09:48:18;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-27,99;0;-27,99;-27,99;2TS665020J8684536;PayPal-GCLGPIL-PL-EUR@google.com;Google Payment Ireland Ltd.;;;0;0;882894578781484338;B-5RK1221886007091D
+20/01/2023;09:48:18;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;27,99;0;27,99;0;50H97175437431612;;;CheBanca  S.p.A.;1196;0;0;882894578781484338;2TS665020J8684536
+20/01/2023;12:15:10;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-6,99;0;-6,99;-6,99;6LY38031YM278114Y;digitalshop@mail.wind.it;Very Mobile;;;0;0;20230120111502692-905-8852;B-4JL38423N6974482J
+20/01/2023;12:15:10;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;6,99;0;6,99;0;7YS49310KF355011K;;;CheBanca  S.p.A.;1196;0;0;20230120111502692-905-8852;6LY38031YM278114Y
+22/01/2023;02:13:36;Europe/Berlin;Pagamento Express Checkout;EUR;-61,4;0;-61,4;-61,4;6HV26094GR4436628;finance.paypal@justeat.it;Just Eat Italy Srl;;;3;0;132319205;096302422N936702N
+22/01/2023;02:13:36;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;61,4;0;61,4;0;0M132987W4242930C;;;CheBanca  S.p.A.;1196;3;0;132319205;6HV26094GR4436628
+23/01/2023;12:29:48;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-11,99;0;-11,99;-11,99;5K270812FY483981N;EUorders@fastspring.com;Fastspring BV;;;0;0;;0CD31542DX888262Y
+23/01/2023;12:29:48;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;11,99;0;11,99;0;3FG94179MW076963P;;;CheBanca  S.p.A.;1196;0;0;;5K270812FY483981N
+24/01/2023;13:24:46;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-3,09;0;-3,09;-3,09;7MX03227TG125741Y;PayPal-GPIL-PL-EUR@google.com;Google Payment Ireland Limited;;;0;0;816437193277918442;B-5RK1221886007091D
+24/01/2023;13:24:46;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;3,09;0;3,09;0;98L56374P81186246;;;CheBanca  S.p.A.;1196;0;0;816437193277918442;7MX03227TG125741Y
+24/01/2023;19:25:41;Europe/Berlin;Pagamento da cellulare;EUR;-60;0;-60;-60;2JL42533AH709261H;matteo.bonanno91@gmail.com;IANUA di Bonanno Matteo;;;0;0;;
+24/01/2023;19:25:41;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;60;0;60;0;9EP854966Y914405X;;;CheBanca  S.p.A.;1196;0;0;;2JL42533AH709261H
+02/02/2023;19:51:05;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;3,87;0;3,87;3,87;3846943888414871W;;;CheBanca  S.p.A.;1196;0;0;P-41859972;5CW20472P5914102K
+02/02/2023;19:51:05;Europe/Berlin;Conversione di valuta generica;EUR;-3,87;0;-3,87;0;997131086W751064M;;;;;0;0;P-41859972;5CW20472P5914102K
+03/02/2023;17:44:29;Europe/Berlin;Pagamento Express Checkout;EUR;-81,85;0;-81,85;-81,85;8E769370P08355219;norma.rossetti@mysecretcase.com;MYSECRETCASE S.R.L;;;0;0;c31967772901559.1;
+03/02/2023;17:44:29;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;81,85;0;81,85;0;7BL38986YJ676954S;;;CheBanca  S.p.A.;1196;0;0;c31967772901559.1;8E769370P08355219
+06/02/2023;17:26:40;Europe/Berlin;Pagamento Express Checkout;EUR;-29,67;0;-29,67;-29,67;0VK03503D26270424;info@bestbuying.it;BESTBUYING SRL;;;4,02;0;VPB00847301;
+06/02/2023;17:26:40;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;29,67;0;29,67;0;3XG58874GN621910E;;;CheBanca  S.p.A.;1196;4,02;0;VPB00847301;0VK03503D26270424
+12/02/2023;10:06:24;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-11,99;0;-11,99;-11,99;4UD28463G9748752U;PayPal-GPIL-PL-EUR@google.com;Google Payment Ireland Limited;;;0;0;795708626936036639;B-5RK1221886007091D
+12/02/2023;10:06:24;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;11,99;0;11,99;0;9LB85625VN563642N;;;CheBanca  S.p.A.;1196;0;0;795708626936036639;4UD28463G9748752U
+19/02/2023;18:52:02;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-69,99;0;-69,99;-69,99;71N4445092103301J;steamgameseea@valvesoftware.com;www.steampowered.com;;;0;0;3524666526238496392;B-37U45163A2023822U
+19/02/2023;18:52:02;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;69,99;0;69,99;0;7JN09759C4601693X;;;CheBanca  S.p.A.;1196;0;0;3524666526238496392;71N4445092103301J
+20/02/2023;13:42:18;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-10;0;-10;-10;2CH89278LX946322J;digitalshop@mail.wind.it;Very Mobile;;;0;0;177257831;B-4JL38423N6974482J
+20/02/2023;13:42:18;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;10;0;10;0;67V09946604879947;;;CheBanca  S.p.A.;1196;0;0;177257831;2CH89278LX946322J
+21/02/2023;13:05:00;Europe/Berlin;Pagamento Express Checkout;EUR;-70,65;0;-70,65;-70,65;3DU399755V3118509;Paypal@trenitalia.it;Trenitalia SPA;;;0;0;96ba31d2-c1f0-44de-8f51-7d94c98d9472;4UD780502K4248447
+21/02/2023;13:05:00;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;70,65;0;70,65;0;8T8663472T471705K;;;CheBanca  S.p.A.;1196;0;0;96ba31d2-c1f0-44de-8f51-7d94c98d9472;3DU399755V3118509
+24/02/2023;13:24:46;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-3,09;0;-3,09;-3,09;3SV6611543418315P;PayPal-GPIL-PL-EUR@google.com;Google Payment Ireland Limited;;;0;0;866333783836613048;B-5RK1221886007091D
+24/02/2023;13:24:46;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;3,09;0;3,09;0;83P68506AS259193T;;;CheBanca  S.p.A.;1196;0;0;866333783836613048;3SV6611543418315P
+25/02/2023;16:37:59;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;30,4;0;30,4;30,4;6VB92908WP381630T;;;CheBanca  S.p.A.;1196;0;0;;42230062W2718413E
+25/02/2023;16:37:59;Europe/Berlin;Conversione di valuta generica;EUR;-30,4;0;-30,4;0;50J1913072450660T;;;;;0;0;;42230062W2718413E
+26/02/2023;15:45:19;Europe/Berlin;Pagamento da cellulare;EUR;-12;0;-12;-12;22F00338G5348103B;matteo.bonanno91@gmail.com;IANUA di Bonanno Matteo;;;0;0;;
+26/02/2023;15:45:19;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;12;0;12;0;0RS703601W369390J;;;CheBanca  S.p.A.;1196;0;0;;22F00338G5348103B
+27/02/2023;17:01:09;Europe/Berlin;Pagamento Express Checkout;EUR;-70,65;0;-70,65;-70,65;0BR05809R9210673T;Paypal@trenitalia.it;Trenitalia SPA;;;0;0;279fca4f-4af6-45bb-8f45-72a433415ee2;26762712SM313020K
+27/02/2023;17:01:09;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;70,65;0;70,65;0;2E280085W2885302J;;;CheBanca  S.p.A.;1196;0;0;279fca4f-4af6-45bb-8f45-72a433415ee2;0BR05809R9210673T
+02/03/2023;19:01:18;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;3,98;0;3,98;3,98;9UJ32511BC8157338;;;CheBanca  S.p.A.;1196;0;0;P-43120797;7U5551603V711494M
+02/03/2023;19:01:18;Europe/Berlin;Conversione di valuta generica;EUR;-3,98;0;-3,98;0;6P237662M13989618;;;;;0;0;P-43120797;7U5551603V711494M
+12/03/2023;10:06:21;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-11,99;0;-11,99;-11,99;1W1310674U574105N;PayPal-GCLGPIL-PL-EUR@google.com;Google Payment Ireland Ltd.;;;0;0;898658640328195184;B-5RK1221886007091D
+12/03/2023;10:06:21;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;11,99;0;11,99;0;6MF33461JF7392101;;;CheBanca  S.p.A.;1196;0;0;898658640328195184;1W1310674U574105N
+21/03/2023;21:13:32;Europe/Berlin;Pagamento da cellulare;EUR;-15;0;-15;-15;0PN83525A55590939;giuliasantamaria89@gmail.com;Giulia Santamaria;;;0;0;;
+21/03/2023;21:13:32;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;15;0;15;0;3UA175494X900804P;;;CheBanca  S.p.A.;1196;0;0;;0PN83525A55590939
+23/03/2023;17:31:44;Europe/Berlin;Pagamento da cellulare;EUR;-15;0;-15;-15;6G565912MY039350H;giuliasantamaria89@gmail.com;Giulia Santamaria;;;0;0;;
+23/03/2023;17:31:44;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;15;0;15;0;9LC49944LB564994F;;;CheBanca  S.p.A.;1196;0;0;;6G565912MY039350H
+24/03/2023;12:57:19;Europe/Berlin;Pagamento Express Checkout;EUR;-32,56;0;-32,56;-32,56;0R192923EG693425W;info@bestbuying.it;BESTBUYING SRL;;;4,02;0;VPB00870908;
+24/03/2023;12:57:19;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;32,56;0;32,56;0;2PA62139078052914;;;CheBanca  S.p.A.;1196;4,02;0;VPB00870908;0R192923EG693425W
+24/03/2023;13:24:46;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-3,09;0;-3,09;-3,09;8VU15892G7847954R;PayPal-GPIL-PL-EUR@google.com;Google Payment Ireland Limited;;;0;0;041751844536269434;B-5RK1221886007091D
+24/03/2023;13:24:46;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;3,09;0;3,09;0;9EL27641MN2745429;;;CheBanca  S.p.A.;1196;0;0;041751844536269434;8VU15892G7847954R
+31/03/2023;02:04:08;Europe/Berlin;Pagamento Express Checkout;EUR;-20,5;0;-20,5;-20,5;29Y76591TR649272X;finance.paypal@justeat.it;Just Eat Italy Srl;;;1;0;137671205;78L351217G930083U
+31/03/2023;02:04:08;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;20,5;0;20,5;0;512190467T5443412;;;CheBanca  S.p.A.;1196;1;0;137671205;29Y76591TR649272X
+02/04/2023;18:37:11;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;3,88;0;3,88;3,88;5C940244J93556232;;;CheBanca  S.p.A.;1196;0;0;P-43827047;2H187637MM551315N
+02/04/2023;18:37:11;Europe/Berlin;Conversione di valuta generica;EUR;-3,88;0;-3,88;0;8EX14487VS994534P;;;;;0;0;P-43827047;2H187637MM551315N
+08/04/2023;17:32:25;Europe/Berlin;Pagamento da cellulare;EUR;-25;0;-25;-25;2AL9826210959734J;matteo.bonanno91@gmail.com;IANUA di Bonanno Matteo;;;0;0;;
+08/04/2023;17:32:25;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;25;0;25;0;1DP33211CD3003354;;;CheBanca  S.p.A.;1196;0;0;;2AL9826210959734J
+12/04/2023;11:06:19;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-11,99;0;-11,99;-11,99;22W63136M38421330;PayPal-GPIL-PL-EUR@google.com;Google Payment Ireland Limited;;;0;0;477703907581793239;B-5RK1221886007091D
+12/04/2023;11:06:19;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;11,99;0;11,99;0;8L948506SG828852J;;;CheBanca  S.p.A.;1196;0;0;477703907581793239;22W63136M38421330
+17/04/2023;15:13:39;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-35,99;0;-35,99;-35,99;0XV70942R8583602N;finance@asanarebel.com;Asana Rebel GmbH;;;0;0;2287486;B-04R04332ST9356918
+17/04/2023;15:13:39;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;35,99;0;35,99;0;1H908704YH642352T;;;CheBanca  S.p.A.;1196;0;0;2287486;0XV70942R8583602N
+20/04/2023;12:42:52;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-6,99;0;-6,99;-6,99;4CG40056R6583601A;digitalshop@mail.wind.it;Very Mobile;;;0;0;20230420104251304-905-3428;B-4JL38423N6974482J
+20/04/2023;12:42:52;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;6,99;0;6,99;0;62690260MD012445V;;;CheBanca  S.p.A.;1196;0;0;20230420104251304-905-3428;4CG40056R6583601A
+24/04/2023;14:24:46;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-3,09;0;-3,09;-3,09;9A815084W7795825E;PayPal-GPIL-PL-EUR@google.com;Google Payment Ireland Limited;;;0;0;092940323566446634;B-5RK1221886007091D
+24/04/2023;14:24:46;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;3,09;0;3,09;0;6HJ39120RT645933W;;;CheBanca  S.p.A.;1196;0;0;092940323566446634;9A815084W7795825E
+26/04/2023;12:45:29;Europe/Berlin;Pagamento da cellulare;EUR;-16;0;-16;-16;0KK90248R4491113X;daniele.constantinescu@gmail.com;Daniele Constantinescu;;;0;0;;
+26/04/2023;12:45:29;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;16;0;16;0;3E637369A53377925;;;CheBanca  S.p.A.;1196;0;0;;0KK90248R4491113X
+29/04/2023;15:24:39;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-69,99;0;-69,99;-69,99;0SB73511JX203432F;siee.psn.paypal.eu@sony.com;Sony Interactive Entertainment Network Europe Limited;;;0;0;408241452833;B-8K538768E8670621B
+29/04/2023;15:24:39;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;69,99;0;69,99;0;9U798679WB787535W;;;CheBanca  S.p.A.;1196;0;0;408241452833;0SB73511JX203432F
+02/05/2023;15:56:14;Europe/Berlin;Pagamento Express Checkout;EUR;-33,8;0;-33,8;-33,8;22U42955X9360891X;info@bestbuying.it;BESTBUYING SRL;;;4,02;0;VPB00890403;
+02/05/2023;15:56:14;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;33,8;0;33,8;0;59H29053CL722652M;;;CheBanca  S.p.A.;1196;4,02;0;VPB00890403;22U42955X9360891X
+02/05/2023;18:43:14;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;3,83;0;3,83;3,83;9BS170084T057323E;;;CheBanca  S.p.A.;1196;0;0;P-44599815;0G2646052R6025828
+02/05/2023;18:43:14;Europe/Berlin;Conversione di valuta generica;EUR;-3,83;0;-3,83;0;1RM47109PU4389240;;;;;0;0;P-44599815;0G2646052R6025828
+07/05/2023;20:58:16;Europe/Berlin;Pagamento da cellulare;EUR;15;0;15;15;3RB41915GM421633N;pier.n4@gmail.com;Pierfrancesco Sozzo;;;0;0;;
+12/05/2023;11:06:20;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-11,99;0;-11,99;3,01;97A94509VP608330M;PayPal-GPIL-PL-EUR@google.com;Google Payment Ireland Limited;;;0;0;192075823901617013;B-5RK1221886007091D
+14/05/2023;17:32:50;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-11,89;0;-11,89;-8,88;0EA746198V281953W;PayPal-GPIL-PL-EUR@google.com;Google Payment Ireland Limited;;;0;0;880275883977795296;B-5RK1221886007091D
+14/05/2023;17:32:50;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;8,88;0;8,88;0;4TT96271TG8889617;;;CheBanca  S.p.A.;1196;0;0;880275883977795296;0EA746198V281953W
+16/05/2023;23:20:43;Europe/Berlin;Pagamento Express Checkout;EUR;-32,89;0;-32,89;-32,89;66C997784D6199442;norma.rossetti@mysecretcase.com;MYSECRETCASE S.R.L;;;5,9;0;c41447005782358.1;
+16/05/2023;23:20:43;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;32,89;0;32,89;0;0DN684614B4040442;;;CheBanca  S.p.A.;1196;5,9;0;c41447005782358.1;66C997784D6199442
+21/05/2023;00:03:45;Europe/Berlin;Pagamento Express Checkout;EUR;-156,4;0;-156,4;-156,4;43N142817K560021F;payments@kiwi.com;Kiwi.com s.r.o.;;;0;0;388010733;
+21/05/2023;00:03:45;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;156,4;0;156,4;0;6AT410656N913525A;;;CheBanca  S.p.A.;1196;0;0;388010733;43N142817K560021F
+21/05/2023;13:59:56;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-20;0;-20;-20;6W38687709007070D;digitalshop@mail.wind.it;Very Mobile;;;0;0;182228023;B-4JL38423N6974482J
+21/05/2023;13:59:56;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;20;0;20;0;69T96829UE650633S;;;CheBanca  S.p.A.;1196;0;0;182228023;6W38687709007070D
+24/05/2023;14:24:45;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-3,09;0;-3,09;-3,09;6XA929684U2992704;PayPal-GPIL-PL-EUR@google.com;Google Payment Ireland Limited;;;0;0;076337535979697809;B-5RK1221886007091D
+24/05/2023;14:24:45;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;3,09;0;3,09;0;976870921P313362P;;;CheBanca  S.p.A.;1196;0;0;076337535979697809;6XA929684U2992704
+28/05/2023;18:23:00;Europe/Berlin;Pagamento Express Checkout;EUR;-209;0;-209;-209;4W7443535S199454P;payments@kiwi.com;Kiwi.com s.r.o.;;;0;0;391429258;
+28/05/2023;18:23:00;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;209;0;209;0;6PP07332DT524911K;;;CheBanca  S.p.A.;1196;0;0;391429258;4W7443535S199454P
+30/05/2023;22:23:51;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-8,99;0;-8,99;-8,99;9JB05163F82947233;CORP.DL-DSSIT@disney.com;DisneyPlus;;;0;0;urn:dss:disney:orders:067c8bb3-6dcc-499b-8cb0-234a760cd2ad;B-6TX91726T55549941
+30/05/2023;22:23:51;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;8,99;0;8,99;0;67S521420B758410D;;;CheBanca  S.p.A.;1196;0;0;urn:dss:disney:orders:067c8bb3-6dcc-499b-8cb0-234a760cd2ad;9JB05163F82947233
+02/06/2023;18:55:30;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;3,94;0;3,94;3,94;1VH823747P866373L;;;CheBanca  S.p.A.;1196;0;0;P-45524928;6KF20048812998138
+02/06/2023;18:55:30;Europe/Berlin;Conversione di valuta generica;EUR;-3,94;0;-3,94;0;7UL11982KM3276124;;;;;0;0;P-45524928;6KF20048812998138
+09/06/2023;13:00:31;Europe/Berlin;Pagamento Express Checkout;EUR;-30,97;0;-30,97;-30,97;52A177132S606201L;info@bestbuying.it;BESTBUYING SRL;;;4,02;0;VPB00908410;
+09/06/2023;13:00:31;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;30,97;0;30,97;0;4XD096368J0398437;;;CheBanca  S.p.A.;1196;4,02;0;VPB00908410;52A177132S606201L
+11/06/2023;16:33:09;Europe/Berlin;Pagamento da cellulare;EUR;-50;0;-50;-50;2X968899CM0923200;valentinacortese_96@hotmail.it;Valentina Cortese;;;0;0;;
+11/06/2023;16:33:09;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;50;0;50;0;7F519472YU609561N;;;CheBanca  S.p.A.;1196;0;0;;2X968899CM0923200
+12/06/2023;11:06:21;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-11,99;0;-11,99;-11,99;2BC7702780831554S;PayPal-GPIL-PL-EUR@google.com;Google Payment Ireland Limited;;;0;0;561597201271908891;B-5RK1221886007091D
+12/06/2023;11:06:21;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;11,99;0;11,99;0;61U9319969905584C;;;CheBanca  S.p.A.;1196;0;0;561597201271908891;2BC7702780831554S
+13/06/2023;20:38:54;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-37,99;0;-37,99;-37,99;9MP83895CK5821022;steamgameseea@valvesoftware.com;www.steampowered.com;;;0;0;3550572177001864412;B-37U45163A2023822U
+13/06/2023;20:38:54;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;37,99;0;37,99;0;1S72532474852725E;;;CheBanca  S.p.A.;1196;0;0;3550572177001864412;9MP83895CK5821022
+14/06/2023;17:31:16;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-16,99;0;-16,99;-16,99;42W24064GC2741532;PayPal-GPIL-PL-EUR@google.com;Google Payment Ireland Limited;;;0;0;684002074304614775;B-5RK1221886007091D
+14/06/2023;17:31:16;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;16,99;0;16,99;0;478161517N769293B;;;CheBanca  S.p.A.;1196;0;0;684002074304614775;42W24064GC2741532
+20/06/2023;20:32:30;Europe/Berlin;Pagamento da cellulare;EUR;-31,1;0;-31,1;-31,1;97S208250T2661036;zibo.camito@gmail.com;Simone Camito;;;0;0;;
+20/06/2023;20:32:30;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;31,1;0;31,1;0;0K575785L8235470E;;;CheBanca  S.p.A.;1196;0;0;;97S208250T2661036
+24/06/2023;14:24:45;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-3,09;0;-3,09;-3,09;3K457798AC417844K;PayPal-GCLGPIL-PL-EUR@google.com;Google Payment Ireland Ltd.;;;0;0;271301979354319161;B-5RK1221886007091D
+24/06/2023;14:24:45;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;3,09;0;3,09;0;4GK54932FE6266936;;;CheBanca  S.p.A.;1196;0;0;271301979354319161;3K457798AC417844K
+30/06/2023;22:24:19;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-8,99;0;-8,99;-8,99;2GU473193E1769103;CORP.DL-DSSIT@disney.com;DisneyPlus;;;0;0;176f5318e6c0ccf507fa9967e93a3572;B-6TX91726T55549941
+30/06/2023;22:24:19;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;8,99;0;8,99;0;35H46640XV047610G;;;CheBanca  S.p.A.;1196;0;0;176f5318e6c0ccf507fa9967e93a3572;2GU473193E1769103
+02/07/2023;19:04:17;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;3,88;0;3,88;3,88;1YX18790AG0667945;;;CheBanca  S.p.A.;1196;0;0;P-46405142;7TA154473K505104T
+02/07/2023;19:04:17;Europe/Berlin;Conversione di valuta generica;EUR;-3,88;0;-3,88;0;39B17038B2678870U;;;;;0;0;P-46405142;7TA154473K505104T
+08/07/2023;11:01:22;Europe/Berlin;Pagamento Express Checkout;EUR;-75,7;0;-75,7;-75,7;5R283338AR1750426;EtsyPaymentsIE@etsy.com;PAYPAL ETSY IRELAND;;;5,73;0;;5K071362PU215060X
+08/07/2023;11:01:22;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;75,7;0;75,7;0;0F7311447Y295112H;;;CheBanca  S.p.A.;1196;5,73;0;;5R283338AR1750426
+12/07/2023;11:06:20;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-11,99;0;-11,99;-11,99;8VT560313S134491B;PayPal-GCLGPIL-PL-EUR@google.com;Google Payment Ireland Ltd.;;;0;0;024657891647333103;B-5RK1221886007091D
+12/07/2023;11:06:20;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;11,99;0;11,99;0;2KV39702HB304900F;;;CheBanca  S.p.A.;1196;0;0;024657891647333103;8VT560313S134491B
+14/07/2023;17:31:18;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-16,99;0;-16,99;-16,99;4604737933069362L;PayPal-GPIL-PL-EUR@google.com;Google Payment Ireland Limited;;;0;0;731575555521120384;B-5RK1221886007091D
+14/07/2023;17:31:18;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;16,99;0;16,99;0;6BU16302KN406981M;;;CheBanca  S.p.A.;1196;0;0;731575555521120384;4604737933069362L
+18/07/2023;09:21:30;Europe/Berlin;Pagamento da cellulare;EUR;-10;0;-10;-10;3CB12982DV732174W;valentinacortese_96@hotmail.it;Valentina Cortese;;;0;0;;
+18/07/2023;09:21:30;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;10;0;10;0;11265423D0545894E;;;CheBanca  S.p.A.;1196;0;0;;3CB12982DV732174W
+20/07/2023;10:48:18;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-27,99;0;-27,99;-27,99;2VS610232B8370749;PayPal-GPIL-PL-EUR@google.com;Google Payment Ireland Limited;;;0;0;980253325318386813;B-5RK1221886007091D
+20/07/2023;10:48:18;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;27,99;0;27,99;0;41C75779S3488354K;;;CheBanca  S.p.A.;1196;0;0;980253325318386813;2VS610232B8370749
+20/07/2023;12:37:27;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-6,99;0;-6,99;-6,99;6FW621677Y224144T;digitalshop@mail.wind.it;Very Mobile;;;0;0;20230720103725945-905-9948;B-4JL38423N6974482J
+20/07/2023;12:37:27;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;6,99;0;6,99;0;8NB73264YC410425D;;;CheBanca  S.p.A.;1196;0;0;20230720103725945-905-9948;6FW621677Y224144T
+20/07/2023;21:43:08;Europe/Berlin;Pagamento Express Checkout;EUR;-27,95;0;-27,95;-27,95;0LP639968H695174H;chaimaejdid2@gmail.com;Smilly LTD;;;0;0;rgugNimTf5HCZ8ZFezeVuoIeE;
+20/07/2023;21:43:08;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;27,95;0;27,95;0;1GY361771B870653W;;;CheBanca  S.p.A.;1196;0;0;rgugNimTf5HCZ8ZFezeVuoIeE;0LP639968H695174H
+24/07/2023;14:24:45;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-3,09;0;-3,09;-3,09;85A572359B565990Y;PayPal-GCLGPIL-PL-EUR@google.com;Google Payment Ireland Ltd.;;;0;0;684806808463397569;B-5RK1221886007091D
+24/07/2023;14:24:45;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;3,09;0;3,09;0;5MM91240LT053734W;;;CheBanca  S.p.A.;1196;0;0;684806808463397569;85A572359B565990Y
+30/07/2023;13:45:18;Europe/Berlin;Pagamento Express Checkout;EUR;-32,5;0;-32,5;-32,5;7DS10579X59814510;info@bestbuying.it;BESTBUYING SRL;;;4,02;0;VPB00928989;
+30/07/2023;13:45:18;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;32,5;0;32,5;0;64U22285G7848742P;;;CheBanca  S.p.A.;1196;4,02;0;VPB00928989;7DS10579X59814510
+30/07/2023;22:24:19;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-8,99;0;-8,99;-8,99;42Y39732VN149794R;CORP.DL-DSSIT@disney.com;DisneyPlus;;;0;0;8b534f750419bcf9dee0df309b20584a;B-6TX91726T55549941
+30/07/2023;22:24:19;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;8,99;0;8,99;0;71F52996PC4771800;;;CheBanca  S.p.A.;1196;0;0;8b534f750419bcf9dee0df309b20584a;42Y39732VN149794R
+02/08/2023;18:59:51;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;3,84;0;3,84;3,84;4GN9906127356884C;;;CheBanca  S.p.A.;1196;0;0;P-47321462;2LK38487TN730452G
+02/08/2023;18:59:51;Europe/Berlin;Conversione di valuta generica;EUR;-3,84;0;-3,84;0;2V7946500F0060102;;;;;0;0;P-47321462;2LK38487TN730452G
+06/08/2023;17:44:57;Europe/Berlin;Pagamento Express Checkout;EUR;-2,2;0;-2,2;-2,2;5NJ61512WB9637252;paypal@atm.it;AZIENDA TRASPORTI MILANESI SPA;;;0;0;d320a23ceef34b51bd293ac937df55ca;
+06/08/2023;17:44:57;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;2,2;0;2,2;0;0D634539TL6735150;;;CheBanca  S.p.A.;1196;0;0;d320a23ceef34b51bd293ac937df55ca;5NJ61512WB9637252
+07/08/2023;13:01:19;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-509;0;-509;-509;3VK13930UL138601T;paypal-gpl-hw-eur@google.com;Google Payment Limited;;;0;0;498032131078838346;63W37882305924822
+07/08/2023;13:01:19;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;509;0;509;0;0FE071537W223760T;;;CheBanca  S.p.A.;1196;0;0;498032131078838346;3VK13930UL138601T
+10/08/2023;11:04:37;Europe/Berlin;Pagamento da cellulare;EUR;-50;0;-50;-50;9EA860481V6643622;valentinacortese_96@hotmail.it;Valentina Cortese;;;0;0;;
+10/08/2023;11:04:37;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;50;0;50;0;53J07274WT3670444;;;CheBanca  S.p.A.;1196;0;0;;9EA860481V6643622
+12/08/2023;09:34:13;Europe/Berlin;Pagamento Express Checkout;EUR;-2,2;0;-2,2;-2,2;9H804309EC637560R;paypal@atm.it;AZIENDA TRASPORTI MILANESI SPA;;;0;0;9b41847a6f984709b99bf97b2947f7a1;
+12/08/2023;09:34:13;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;2,2;0;2,2;0;0L3769386H9533011;;;CheBanca  S.p.A.;1196;0;0;9b41847a6f984709b99bf97b2947f7a1;9H804309EC637560R
+12/08/2023;11:06:20;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-11,99;0;-11,99;-11,99;35R377122Y970980G;PayPal-GPIL-PL-EUR@google.com;Google Payment Ireland Limited;;;0;0;555217664708172686;B-5RK1221886007091D
+12/08/2023;11:06:20;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;11,99;0;11,99;0;60H344351R287603T;;;CheBanca  S.p.A.;1196;0;0;555217664708172686;35R377122Y970980G
+14/08/2023;17:31:17;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-16,99;0;-16,99;-16,99;13S50236FG701424P;PayPal-GCLGPIL-PL-EUR@google.com;Google Payment Ireland Ltd.;;;0;0;894005954000523410;B-5RK1221886007091D
+14/08/2023;17:31:17;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;16,99;0;16,99;0;6EA60512434938525;;;CheBanca  S.p.A.;1196;0;0;894005954000523410;13S50236FG701424P
+15/08/2023;20:41:18;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;4,83;0;4,83;4,83;17067880ER189761K;;;CheBanca  S.p.A.;1196;0;0;40623953;2D81142732566274V
+15/08/2023;20:41:18;Europe/Berlin;Conversione di valuta generica;EUR;-4,83;0;-4,83;0;8PU541752S389464E;;;;;0;0;40623953;2D81142732566274V
+15/08/2023;20:55:15;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;1,88;0;1,88;1,88;2FV346780M1250158;;;CheBanca  S.p.A.;1196;0;0;40624158;65226717CG249280C
+15/08/2023;20:55:15;Europe/Berlin;Conversione di valuta generica;EUR;-1,88;0;-1,88;0;8R022507MK121030X;;;;;0;0;40624158;65226717CG249280C
+20/08/2023;12:23:04;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-6,99;0;-6,99;-6,99;55E34765L97775030;digitalshop@mail.wind.it;Very Mobile;;;0;0;20230820102302627-905-7780;B-4JL38423N6974482J
+20/08/2023;12:23:04;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;6,99;0;6,99;0;2KA20862X6922574Y;;;CheBanca  S.p.A.;1196;0;0;20230820102302627-905-7780;55E34765L97775030
+20/08/2023;13:05:25;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-69,74;0;-69,74;-69,74;1BB82519WD669380S;steamgameseea@valvesoftware.com;www.steampowered.com;;;0;0;3630517413109122280;B-37U45163A2023822U
+20/08/2023;13:05:25;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;69,74;0;69,74;0;5XD37030GP3262745;;;CheBanca  S.p.A.;1196;0;0;3630517413109122280;1BB82519WD669380S
+24/08/2023;14:24:44;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-3,09;0;-3,09;-3,09;09847034EU302241C;PayPal-GCLGPIL-PL-EUR@google.com;Google Payment Ireland Ltd.;;;0;0;987468828920920555;B-5RK1221886007091D
+24/08/2023;14:24:44;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;3,09;0;3,09;0;725174837E809480T;;;CheBanca  S.p.A.;1196;0;0;987468828920920555;09847034EU302241C
+24/08/2023;18:11:51;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-72,9;0;-72,9;-72,9;2SN15589A70493713;Paypal@trenitalia.it;Trenitalia SPA;;;0;0;74d5de77-c395-4103-b69f-fe5fbc306bff;4BR95430E28694847
+24/08/2023;18:11:51;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;72,9;0;72,9;0;11793606XE0648424;;;CheBanca  S.p.A.;1196;0;0;74d5de77-c395-4103-b69f-fe5fbc306bff;2SN15589A70493713
+27/08/2023;17:20:34;Europe/Berlin;Pagamento Express Checkout;EUR;-2,2;0;-2,2;-2,2;2V981853T0591332H;paypal@atm.it;AZIENDA TRASPORTI MILANESI SPA;;;0;0;d4542cdf1fe84d89b72ae569a243b589;
+27/08/2023;17:20:34;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;2,2;0;2,2;0;0X4146738B456921C;;;CheBanca  S.p.A.;1196;0;0;d4542cdf1fe84d89b72ae569a243b589;2V981853T0591332H
+29/08/2023;15:08:38;Europe/Berlin;Pagamento donazione;EUR;10;0;10;10;85955535L50789813;theironplayer@gmail.com;francesco chiarelli;;;0;0;;
+29/08/2023;15:09:16;Europe/Berlin;Transazione per articoli digitali;EUR;-10;0;-10;0;9TN29973BA497572C;;;;;0;0;;
+29/08/2023;15:10:44;Europe/Berlin;Pagamento donazione;EUR;10;0;10;10;3T654819E3722272N;lucagarutti1@gmail.com;Luca Garutti;;;0;0;;
+29/08/2023;15:11:23;Europe/Berlin;Transazione per articoli digitali;EUR;-10;0;-10;0;2SF49829RL2764256;;;;;0;0;;
+29/08/2023;15:14:15;Europe/Berlin;Pagamento donazione;EUR;10;0;10;10;9RU89729MB8464113;matteo_sanna@outlook.com;Matteo Sanna;;;0;0;;
+29/08/2023;15:14:26;Europe/Berlin;Pagamento donazione;EUR;10;0;10;20;97R341640D712150N;giuliasantamaria89@gmail.com;Giulia Santamaria;;;0;0;;
+29/08/2023;15:14:29;Europe/Berlin;Pagamento donazione;EUR;10;0;10;30;09C73894AS564063K;marcocasaccio96@gmail.com;Marco Casaccio;;;0;0;;
+29/08/2023;15:14:32;Europe/Berlin;Transazione per articoli digitali;EUR;-10;0;-10;20;0BE75384H20458108;;;;;0;0;;
+29/08/2023;15:14:34;Europe/Berlin;Transazione per articoli digitali;EUR;-10;0;-10;10;0TN76217PH073005W;;;;;0;0;;
+29/08/2023;15:14:35;Europe/Berlin;Pagamento donazione;EUR;10;0;10;20;92V15416U02031332;cami.marchesi@gmail.com;Camilla Marchesi;;;0;0;;
+29/08/2023;15:14:40;Europe/Berlin;Transazione per articoli digitali;EUR;-10;0;-10;10;5LS3198695206810E;;;;;0;0;;
+29/08/2023;15:14:54;Europe/Berlin;Transazione per articoli digitali;EUR;-10;0;-10;0;2H24890755805970H;;;;;0;0;;
+29/08/2023;15:15:40;Europe/Berlin;Pagamento donazione;EUR;10;0;10;10;7K304717KV587025E;villa.alice11@yahoo.com;ALICE CAROL VILLA;;;0;0;;
+29/08/2023;15:16:19;Europe/Berlin;Transazione per articoli digitali;EUR;-10;0;-10;0;5G643923X6450220T;;;;;0;0;;
+29/08/2023;15:16:35;Europe/Berlin;Pagamento donazione;EUR;10;0;10;10;3PR81213FF065050P;mariaritacolicchio997@gmail.com;Mariarita Colicchio;;;0;0;;
+29/08/2023;15:17:15;Europe/Berlin;Transazione per articoli digitali;EUR;-10;0;-10;0;5FR86471YD934002M;;;;;0;0;;
+29/08/2023;15:22:15;Europe/Berlin;Pagamento donazione;EUR;10;0;10;10;5EW40989R4086323G;simone.ferrara91@gmail.com;Simone Ferrara;;;0;0;;
+29/08/2023;15:22:54;Europe/Berlin;Transazione per articoli digitali;EUR;-10;0;-10;0;9DG67657H72416702;;;;;0;0;;
+29/08/2023;15:23:31;Europe/Berlin;Pagamento donazione;EUR;10;0;10;10;1H3445462H532323G;francesco.dischiena94@gmail.com;Francesco Di Schiena;;;0;0;;
+29/08/2023;15:24:10;Europe/Berlin;Transazione per articoli digitali;EUR;-10;0;-10;0;5W372695WH4692740;;;;;0;0;;
+29/08/2023;15:39:15;Europe/Berlin;Pagamento donazione;EUR;10;0;10;10;71262993MJ6261549;xjose95@gmail.com;Giuseppe Romano;;;0;0;;
+29/08/2023;15:39:54;Europe/Berlin;Transazione per articoli digitali;EUR;-10;0;-10;0;98G61592WU8040400;;;;;0;0;;
+29/08/2023;15:52:31;Europe/Berlin;Pagamento donazione;EUR;10;0;10;10;4DA73371PR450470K;g.uursino3@gmail.com;Giulia Ursino;;;0;0;;
+29/08/2023;15:53:11;Europe/Berlin;Transazione per articoli digitali;EUR;-10;0;-10;0;0SY12654SD900453J;;;;;0;0;;
+29/08/2023;15:54:17;Europe/Berlin;Pagamento donazione;EUR;20;0;20;20;5RH481795P422140X;pier.n4@gmail.com;Pierfrancesco Sozzo;;;0;0;;
+29/08/2023;15:54:56;Europe/Berlin;Transazione per articoli digitali;EUR;-20;0;-20;0;57043575KJ7555602;;;;;0;0;;
+29/08/2023;15:58:32;Europe/Berlin;Pagamento donazione;EUR;10;0;10;10;0A938064JF388500T;ns.seidita@gmail.com;Niccolò Seidita;;;0;0;;
+29/08/2023;15:59:11;Europe/Berlin;Transazione per articoli digitali;EUR;-10;0;-10;0;9VW14959KX1943203;;;;;0;0;;
+29/08/2023;16:04:19;Europe/Berlin;Pagamento donazione;EUR;20;0;20;20;7BU51239JD358781E;zibo.camito@gmail.com;Simone Camito;;;0;0;;
+29/08/2023;16:04:58;Europe/Berlin;Transazione per articoli digitali;EUR;-20;0;-20;0;86495685MD011502L;;;;;0;0;;
+29/08/2023;16:06:39;Europe/Berlin;Pagamento donazione;EUR;10;0;10;10;6F426443UC5868816;iannellojessica@gmail.com;Jessica Iannello;;;0;0;;
+29/08/2023;16:07:19;Europe/Berlin;Transazione per articoli digitali;EUR;-10;0;-10;0;3U69202619275991Y;;;;;0;0;;
+29/08/2023;16:24:45;Europe/Berlin;Pagamento donazione;EUR;10;0;10;10;4NL51871666462936;matteo.bonanno91@gmail.com;IANUA di Bonanno Matteo;;;0;0;;
+29/08/2023;16:25:26;Europe/Berlin;Transazione per articoli digitali;EUR;-10;0;-10;0;5GN35277AE927702K;;;;;0;0;;
+29/08/2023;16:30:22;Europe/Berlin;Pagamento donazione;EUR;10;0;10;10;92E20727PG514474T;carmelo.finozzi@gmail.com;carmelo finozzi;;;0;0;;
+29/08/2023;16:31:02;Europe/Berlin;Transazione per articoli digitali;EUR;-10;0;-10;0;3XD063084A386225F;;;;;0;0;;
+29/08/2023;16:46:07;Europe/Berlin;Pagamento donazione;EUR;10;0;10;10;8RP545635L053592A;iannellojessica@gmail.com;Jessica Iannello;;;0;0;;
+29/08/2023;16:46:47;Europe/Berlin;Transazione per articoli digitali;EUR;-10;0;-10;0;94Y91348P79493139;;;;;0;0;;
+29/08/2023;17:04:03;Europe/Berlin;Pagamento donazione;EUR;30;0;30;30;22G91535BF3468448;lucamatteucci@outlook.it;Luca Matteucci;;;0;0;;
+29/08/2023;17:04:43;Europe/Berlin;Transazione per articoli digitali;EUR;-30;0;-30;0;3S609024LB569845H;;;;;0;0;;
+29/08/2023;17:50:00;Europe/Berlin;Pagamento donazione;EUR;10;0;10;10;36476141L2792625K;coscos43@yahoo.it;cosimo cosentino;;;0;0;;
+29/08/2023;17:50:39;Europe/Berlin;Transazione per articoli digitali;EUR;-10;0;-10;0;81C234824U100125V;;;;;0;0;;
+30/08/2023;08:58:58;Europe/Berlin;Pagamento donazione;EUR;10;0;10;10;46G18996U8748212E;deborapelucchi@outlook.it;Debora Pelucchi;;;0;0;;
+30/08/2023;08:59:38;Europe/Berlin;Transazione per articoli digitali;EUR;-10;0;-10;0;8L409901KK781953T;;;;;0;0;;
+30/08/2023;10:57:49;Europe/Berlin;Pagamento donazione;EUR;10;0;10;10;1M1657542A4141404;danteovidiolorenzi718@gmail.com;dante ovidio lorenzi;;;0;0;;
+30/08/2023;10:58:28;Europe/Berlin;Transazione per articoli digitali;EUR;-10;0;-10;0;8GS90207W83811413;;;;;0;0;;
+30/08/2023;15:10:47;Europe/Berlin;Pagamento donazione;EUR;20;0;20;20;0J34271374376953W;faby583@gmail.com;Fabiana Ferrera;;;0;0;;
+30/08/2023;15:11:27;Europe/Berlin;Transazione per articoli digitali;EUR;-20;0;-20;0;39448637LY935414D;;;;;0;0;;
+30/08/2023;22:24:31;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-8,99;0;-8,99;-8,99;6F978265AS844073C;CORP.DL-DSSIT@disney.com;DisneyPlus;;;0;0;ed2ce266317046976e2a84514e4a9b59;B-6TX91726T55549941
+30/08/2023;22:24:31;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;8,99;0;8,99;0;8F713906GK0625436;;;CheBanca  S.p.A.;1196;0;0;ed2ce266317046976e2a84514e4a9b59;6F978265AS844073C
+31/08/2023;11:51:51;Europe/Berlin;Pagamento donazione;EUR;7;0;7;7;0LA3624991641312W;christian.nigretti1998@gmail.com;Christian nigretti;;;0;0;;
+31/08/2023;11:52:31;Europe/Berlin;Transazione per articoli digitali;EUR;-7;0;-7;0;5SJ8812636714903U;;;;;0;0;;
+31/08/2023;15:10:49;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-64,9;0;-64,9;-64,9;5G199736GL934642X;Paypal@trenitalia.it;Trenitalia SPA;;;0;0;19f6cfd4-bf55-47af-8ec2-28f01c0c7a58;7LN01930MF526351W
+31/08/2023;15:10:49;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;64,9;0;64,9;0;37E551102G800531X;;;CheBanca  S.p.A.;1196;0;0;19f6cfd4-bf55-47af-8ec2-28f01c0c7a58;5G199736GL934642X
+01/09/2023;12:31:01;Europe/Berlin;Pagamento donazione;EUR;10;0;10;10;4P142183S9902454K;mariaritacolicchio997@gmail.com;Mariarita Colicchio;;;0;0;;
+01/09/2023;12:31:41;Europe/Berlin;Transazione per articoli digitali;EUR;-10;0;-10;0;95149388GV461330R;;;;;0;0;;
+02/09/2023;18:39:06;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;3,9;0;3,9;3,9;9W507183HH460682P;;;CheBanca  S.p.A.;1196;0;0;P-48240340;25M1790061477522G
+02/09/2023;18:39:06;Europe/Berlin;Conversione di valuta generica;EUR;-3,9;0;-3,9;0;9MW75197DF3307232;;;;;0;0;P-48240340;25M1790061477522G
+02/09/2023;19:09:59;Europe/Berlin;Transazione per articoli digitali;EUR;307;0;307;307;63K16262CX125914J;;;;;0;0;;
+02/09/2023;19:11:16;Europe/Berlin;Pagamento donazione;EUR;-320;0;-320;-13;43R357387W473115E;donazionipaypal@airc.it;Fondazione AIRC per la Ricerca sul Cancro ETS;;;0;0;;
+02/09/2023;19:11:16;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;13;0;13;0;2H529445R43293347;;;CheBanca  S.p.A.;1196;0;0;;43R357387W473115E
+03/09/2023;14:38:01;Europe/Berlin;Pagamento Express Checkout;EUR;-2,2;0;-2,2;-2,2;4LD33994VS272281B;paypal@atm.it;AZIENDA TRASPORTI MILANESI SPA;;;0;0;aac1af9804024d6d96e90a7b231c405f;
+03/09/2023;14:38:01;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;2,2;0;2,2;0;8LX02861Y99585800;;;CheBanca  S.p.A.;1196;0;0;aac1af9804024d6d96e90a7b231c405f;4LD33994VS272281B
+08/09/2023;12:04:26;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-19,99;0;-19,99;-19,99;5Y348785T7339112W;PayPal-GCLGPIL-PL-EUR@google.com;Google Payment Ireland Ltd.;;;0;0;699158679956361111;B-5RK1221886007091D
+08/09/2023;12:04:26;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;19,99;0;19,99;0;76W108019F882242R;;;CheBanca  S.p.A.;1196;0;0;699158679956361111;5Y348785T7339112W
+12/09/2023;11:06:20;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-11,99;0;-11,99;-11,99;07G48253BJ3681212;PayPal-GPIL-PL-EUR@google.com;Google Payment Ireland Limited;;;0;0;494047057519616023;B-5RK1221886007091D
+12/09/2023;11:06:20;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;11,99;0;11,99;0;7T442839W23372057;;;CheBanca  S.p.A.;1196;0;0;494047057519616023;07G48253BJ3681212
+14/09/2023;17:31:19;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-16,99;0;-16,99;-16,99;7LE38866BC358514T;PayPal-GCLGPIL-PL-EUR@google.com;Google Payment Ireland Ltd.;;;0;0;992044281139752593;B-5RK1221886007091D
+14/09/2023;17:31:19;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;16,99;0;16,99;0;5RL278045T209744R;;;CheBanca  S.p.A.;1196;0;0;992044281139752593;7LE38866BC358514T
+14/09/2023;20:33:21;Europe/Berlin;Pagamento Express Checkout;EUR;-32,97;0;-32,97;-32,97;62U00903K5017345A;info@bestbuying.it;BESTBUYING SRL;;;4,02;0;VPB00948148;
+14/09/2023;20:33:21;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;32,97;0;32,97;0;64B97758CT8007057;;;CheBanca  S.p.A.;1196;4,02;0;VPB00948148;62U00903K5017345A
+20/09/2023;12:33:57;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-6,99;0;-6,99;-6,99;1M003573DP2598944;digitalshop@mail.wind.it;Very Mobile;;;0;0;20230920103355746-905-3625;B-4JL38423N6974482J
+20/09/2023;12:33:57;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;6,99;0;6,99;0;8NX5599449649730D;;;CheBanca  S.p.A.;1196;0;0;20230920103355746-905-3625;1M003573DP2598944
+24/09/2023;14:24:45;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-3,09;0;-3,09;-3,09;4A940352S25983224;PayPal-GPIL-PL-EUR@google.com;Google Payment Ireland Limited;;;0;0;849573523292752051;B-5RK1221886007091D
+24/09/2023;14:24:45;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;3,09;0;3,09;0;3XK72114BW580364C;;;CheBanca  S.p.A.;1196;0;0;849573523292752051;4A940352S25983224
+25/09/2023;16:27:15;Europe/Berlin;Pagamento Express Checkout;EUR;-258;0;-258;-258;7314772032265405W;payments@kiwi.com;Kiwi.com s.r.o.;;;0;0;446419798;
+25/09/2023;16:27:15;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;258;0;258;0;6A634052MD5967807;;;CheBanca  S.p.A.;1196;0;0;446419798;7314772032265405W
+27/09/2023;16:09:17;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-3,69;0;-3,69;-3,69;05V38152DF722152U;PayPal-GPIL-PL-EUR@google.com;Google Payment Ireland Limited;;;0;0;566689758028497822;B-5RK1221886007091D
+27/09/2023;16:09:17;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;3,69;0;3,69;0;4RN767896X840463T;;;CheBanca  S.p.A.;1196;0;0;566689758028497822;05V38152DF722152U
+28/09/2023;22:36:20;Europe/Berlin;Pagamento Express Checkout;EUR;-19,99;0;-19,99;-19,99;6EP005396A962711N;steamgameseea@valvesoftware.com;www.steampowered.com;;;0;0;3288247646351266574;
+28/09/2023;22:36:20;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;19,99;0;19,99;0;5BJ69240VJ5304526;;;CheBanca  S.p.A.;1196;0;0;3288247646351266574;6EP005396A962711N
+29/09/2023;15:21:34;Europe/Berlin;Pagamento Express Checkout;EUR;-73,14;0;-73,14;-73,14;14V755796F4100425;paypal@ticketmaster.it;Ticketmaster Italia Srl;;;0;0;1587996;
+29/09/2023;15:21:34;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;73,14;0;73,14;0;3PR25262SL973632R;;;CheBanca  S.p.A.;1196;0;0;1587996;14V755796F4100425
+29/09/2023;16:40:09;Europe/Berlin;Pagamento Express Checkout;EUR;-319,98;0;-319,98;-319,98;8DE16837E1527852T;atlanticpaypaleuSARL@digitalriver.com;Digital River Ireland, Ltd.;;;0;0;35b7764b-1adb-44f5-8121-12434cfa35f7;
+29/09/2023;16:40:09;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;319,98;0;319,98;0;7XE54016DW489124D;;;CheBanca  S.p.A.;1196;0;0;35b7764b-1adb-44f5-8121-12434cfa35f7;8DE16837E1527852T
+30/09/2023;22:24:20;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-8,99;0;-8,99;-8,99;8MD89858DL748264G;CORP.DL-DSSIT@disney.com;DisneyPlus;;;0;0;6bad478c67dc269e689a6519755fcd83;B-6TX91726T55549941
+30/09/2023;22:24:20;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;8,99;0;8,99;0;98G325607U728403L;;;CheBanca  S.p.A.;1196;0;0;6bad478c67dc269e689a6519755fcd83;8MD89858DL748264G
+02/10/2023;18:56:52;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;3,98;0;3,98;3,98;8NE03811WY556335T;;;CheBanca  S.p.A.;1196;0;0;P-49176381;07689853UN0910839
+02/10/2023;18:56:52;Europe/Berlin;Conversione di valuta generica;EUR;-3,98;0;-3,98;0;23654055JF6364234;;;;;0;0;P-49176381;07689853UN0910839
+06/10/2023;21:05:56;Europe/Berlin;Pagamento Express Checkout;EUR;-49,99;0;-49,99;-49,99;9SV40440D0824483M;;Ubisoft EMEA SAS;;;0;0;205314907;
+06/10/2023;21:05:56;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;49,99;0;49,99;0;4PS2859337154671L;;;CheBanca  S.p.A.;1196;0;0;205314907;9SV40440D0824483M
+12/10/2023;11:06:21;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-11,99;0;-11,99;-11,99;1HN723131L655805C;PayPal-GPIL-PL-EUR@google.com;Google Payment Ireland Limited;;;0;0;245102709931361739;B-5RK1221886007091D
+12/10/2023;11:06:21;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;11,99;0;11,99;0;3AF60230673571716;;;CheBanca  S.p.A.;1196;0;0;245102709931361739;1HN723131L655805C
+14/10/2023;17:31:17;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-16,99;0;-16,99;-16,99;3ER286175R5055212;PayPal-GCLGPIL-PL-EUR@google.com;Google Payment Ireland Ltd.;;;0;0;053039850106364345;B-5RK1221886007091D
+14/10/2023;17:31:17;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;16,99;0;16,99;0;73V78367WN7422207;;;CheBanca  S.p.A.;1196;0;0;053039850106364345;3ER286175R5055212
+16/10/2023;22:04:52;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-19,99;0;-19,99;-19,99;0RP18697U4226030E;steamgameseea@valvesoftware.com;www.steampowered.com;;;0;0;7249164878773152362;B-37U45163A2023822U
+16/10/2023;22:04:52;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;19,99;0;19,99;0;3Y749772KT412134P;;;CheBanca  S.p.A.;1196;0;0;7249164878773152362;0RP18697U4226030E
+18/10/2023;23:19:09;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-14,99;0;-14,99;-14,99;7J371550PK007384F;steamgameseea@valvesoftware.com;www.steampowered.com;;;0;0;3624893620871762222;B-37U45163A2023822U
+18/10/2023;23:19:09;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;14,99;0;14,99;0;6EM64289YK262833T;;;CheBanca  S.p.A.;1196;0;0;3624893620871762222;7J371550PK007384F
+20/10/2023;12:35:35;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-6,99;0;-6,99;-6,99;408354702M740591W;digitalshop@mail.wind.it;Very Mobile;;;0;0;20231020103533849-905-2626;B-4JL38423N6974482J
+20/10/2023;12:35:35;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;6,99;0;6,99;0;279189160H645450J;;;CheBanca  S.p.A.;1196;0;0;20231020103533849-905-2626;408354702M740591W
+21/10/2023;15:26:10;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-225,8;0;-225,8;-225,8;3MS79919NR3425731;Paypal@trenitalia.it;Trenitalia SPA;;;0;0;c29c8720-9423-4f94-aa1c-db8388400eaa;90J72502NL643591X
+21/10/2023;15:26:10;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;225,8;0;225,8;0;80E09711DX046451W;;;CheBanca  S.p.A.;1196;0;0;c29c8720-9423-4f94-aa1c-db8388400eaa;3MS79919NR3425731
+24/10/2023;14:24:45;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-3,09;0;-3,09;-3,09;8WP629069Y345301N;PayPal-GPIL-PL-EUR@google.com;Google Payment Ireland Limited;;;0;0;465703564981738382;B-5RK1221886007091D
+24/10/2023;14:24:45;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;3,09;0;3,09;0;8FV63033KR0645155;;;CheBanca  S.p.A.;1196;0;0;465703564981738382;8WP629069Y345301N
+27/10/2023;11:42:44;Europe/Berlin;Pagamento Express Checkout;EUR;-2,2;0;-2,2;-2,2;8PF70684CN935672E;paypal@atm.it;AZIENDA TRASPORTI MILANESI SPA;;;0;0;db979347620e4528a375ad83eafe19a1;
+27/10/2023;11:42:44;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;2,2;0;2,2;0;9DA545561U812710T;;;CheBanca  S.p.A.;1196;0;0;db979347620e4528a375ad83eafe19a1;8PF70684CN935672E
+29/10/2023;19:04:37;Europe/Berlin;Pagamento Express Checkout;EUR;-2,2;0;-2,2;-2,2;9FR05445V7412781C;paypal@atm.it;AZIENDA TRASPORTI MILANESI SPA;;;0;0;dc98e672db5d41a29d5c2fa076d0a1d2;
+29/10/2023;19:04:37;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;2,2;0;2,2;0;0K895208RE653515H;;;CheBanca  S.p.A.;1196;0;0;dc98e672db5d41a29d5c2fa076d0a1d2;9FR05445V7412781C
+30/10/2023;12:21:23;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-17,99;0;-17,99;-17,99;29P37410VF813241K;wallet-disputes-eu@google.com;Google;;;0;0;980653841640110996;B-5RK1221886007091D
+30/10/2023;12:21:23;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;17,99;0;17,99;0;4AN382505M2931400;;;CheBanca  S.p.A.;1196;0;0;980653841640110996;29P37410VF813241K
+30/10/2023;15:41:20;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-14,62;0;-14,62;-14,62;35T22318VR9329346;steamgameseea@valvesoftware.com;www.steampowered.com;;;0;0;3269109883822887986;B-37U45163A2023822U
+30/10/2023;15:41:20;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;14,62;0;14,62;0;4FM70984B0847913R;;;CheBanca  S.p.A.;1196;0;0;3269109883822887986;35T22318VR9329346
+30/10/2023;21:28:08;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-8,99;0;-8,99;-8,99;8ML12389UW518534W;CORP.DL-DSSIT@disney.com;DisneyPlus;;;0;0;a364e633ad085c20d83cadedd70a1b33;B-6TX91726T55549941
+30/10/2023;21:28:08;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;8,99;0;8,99;0;8MA096763Y427803M;;;CheBanca  S.p.A.;1196;0;0;a364e633ad085c20d83cadedd70a1b33;8ML12389UW518534W
+31/10/2023;17:10:55;Europe/Berlin;Pagamento Express Checkout;EUR;-32,96;0;-32,96;-32,96;4NM59947W74914349;info@bestbuying.it;BESTBUYING SRL;;;4,02;0;VPB00966711;
+31/10/2023;17:10:55;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;32,96;0;32,96;0;8BT506425B7862152;;;CheBanca  S.p.A.;1196;4,02;0;VPB00966711;4NM59947W74914349
+01/11/2023;18:15:30;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-29,99;0;-29,99;-29,99;8RH87549UG078013A;steamgameseea@valvesoftware.com;www.steampowered.com;;;0;0;3341168112386243415;B-37U45163A2023822U
+01/11/2023;18:15:30;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;29,99;0;29,99;0;6PK98345ME379551U;;;CheBanca  S.p.A.;1196;0;0;3341168112386243415;8RH87549UG078013A
+03/11/2023;19:02:11;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;3,98;0;3,98;3,98;3VJ147213S661802Y;;;CheBanca  S.p.A.;1196;0;0;P-50141560;0F181495AH598443B
+03/11/2023;19:02:11;Europe/Berlin;Conversione di valuta generica;EUR;-3,98;0;-3,98;0;6NA62358FV144041J;;;;;0;0;P-50141560;0F181495AH598443B
+04/11/2023;18:22:27;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-44,98;0;-44,98;-44,98;33R01976H34949318;steamgameseea@valvesoftware.com;www.steampowered.com;;;0;0;3341168112409177803;B-37U45163A2023822U
+04/11/2023;18:22:27;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;44,98;0;44,98;0;4GY02430GG393153J;;;CheBanca  S.p.A.;1196;0;0;3341168112409177803;33R01976H34949318
+06/11/2023;00:17:49;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;51,43;0;51,43;51,43;16T286944T503000P;;;CheBanca  S.p.A.;1196;0;0;625d41fd588a4c81b7369d101ff48195;0L136358SW660303D
+06/11/2023;00:17:49;Europe/Berlin;Conversione di valuta generica;EUR;-51,43;0;-51,43;0;6J340406EG110523P;;;;;0;0;625d41fd588a4c81b7369d101ff48195;0L136358SW660303D
+06/11/2023;00:32:50;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-1,85;0;-1,85;-1,85;84L46671YP532345S;PayPal-GPIL-PL-EUR@google.com;Google Payment Ireland Limited;;;0;0;260922268750968285;B-5RK1221886007091D
+06/11/2023;00:32:50;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;1,85;0;1,85;0;3MT061533L538373V;;;CheBanca  S.p.A.;1196;0;0;260922268750968285;84L46671YP532345S
+06/11/2023;00:56:26;Europe/Berlin;Pagamento da cellulare;EUR;10;0;10;10;7V5828325N141322J;pier.n4@gmail.com;Pierfrancesco Sozzo;;;0;0;;
+07/11/2023;10:06:08;Europe/Berlin;Pagamento da cellulare;EUR;-18;0;-18;-8;8JH05285D1475060X;daniele.constantinescu@gmail.com;Daniele Constantinescu;;;0;0;;
+07/11/2023;10:06:08;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;18;0;18;10;3T838943S9895081F;;;CheBanca  S.p.A.;1196;0;0;;8JH05285D1475060X
+09/11/2023;14:55:18;Europe/Berlin;Blocco conto per autorizzazione aperta;EUR;-10;0;-10;0;5LR99475DG354070U;;;;;0;0;2ef16b72-2c9b-4e39-b94c-3e7b5d58e8a2;8GC1804806989281V
+09/11/2023;14:55:21;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-64,1;0;-64,1;-64,1;22643557PH750351N;Paypal@trenitalia.it;Trenitalia SPA;;;0;0;2ef16b72-2c9b-4e39-b94c-3e7b5d58e8a2;8GC1804806989281V
+09/11/2023;14:55:21;Europe/Berlin;Storno di blocco conto generico;EUR;10;0;10;-54,1;10J72022AV4174135;;;;;0;0;2ef16b72-2c9b-4e39-b94c-3e7b5d58e8a2;5LR99475DG354070U
+09/11/2023;14:55:21;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;54,1;0;54,1;0;11P187187M4729608;;;CheBanca  S.p.A.;1196;0;0;2ef16b72-2c9b-4e39-b94c-3e7b5d58e8a2;22643557PH750351N
+14/11/2023;16:31:18;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-16,99;0;-16,99;-16,99;4H803531UB684461V;PayPal-GCLGPIL-PL-EUR@google.com;Google Payment Ireland Ltd.;;;0;0;213178639039687520;B-5RK1221886007091D
+14/11/2023;16:31:18;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;16,99;0;16,99;0;4NJ951119F4640437;;;CheBanca  S.p.A.;1196;0;0;213178639039687520;4H803531UB684461V
+20/11/2023;12:31:01;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-6,99;0;-6,99;-6,99;8DU07601UH3883309;digitalshop@mail.wind.it;Very Mobile;;;0;0;20231120113059647-905-6282;B-4JL38423N6974482J
+20/11/2023;12:31:01;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;6,99;0;6,99;0;2VJ316366F9443458;;;CheBanca  S.p.A.;1196;0;0;20231120113059647-905-6282;8DU07601UH3883309
+21/11/2023;10:12:13;Europe/Berlin;Pagamento Express Checkout;EUR;-2,2;0;-2,2;-2,2;9BT218001F068231N;paypal@atm.it;AZIENDA TRASPORTI MILANESI SPA;;;0;0;1aa67850542d44589d4e9932ab9c9975;
+21/11/2023;10:12:13;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;2,2;0;2,2;0;29R29257KY9768358;;;CheBanca  S.p.A.;1196;0;0;1aa67850542d44589d4e9932ab9c9975;9BT218001F068231N
+23/11/2023;09:56:31;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-96,9;0;-96,9;-96,9;5PB856796X0613417;Paypal@trenitalia.it;Trenitalia SPA;;;0;0;70d7f9cc-3388-492b-9386-cc7d5c654b02;17D53559TG206974S
+23/11/2023;09:56:31;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;96,9;0;96,9;0;6X2864699S492643S;;;CheBanca  S.p.A.;1196;0;0;70d7f9cc-3388-492b-9386-cc7d5c654b02;5PB856796X0613417
+24/11/2023;13:24:47;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-5,99;0;-5,99;-5,99;23L69983226119419;PayPal-GPIL-PL-EUR@google.com;Google Payment Ireland Limited;;;0;0;129345163086108552;B-5RK1221886007091D
+24/11/2023;13:24:47;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;5,99;0;5,99;0;9MG45837N6605041U;;;CheBanca  S.p.A.;1196;0;0;129345163086108552;23L69983226119419
+28/11/2023;15:41:50;Europe/Berlin;Pagamento Express Checkout;EUR;-2,2;0;-2,2;-2,2;5XK57512405419228;paypal@atm.it;AZIENDA TRASPORTI MILANESI SPA;;;0;0;b8a74eeb519d4f96b9303c26b6a9772d;
+28/11/2023;15:41:50;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;2,2;0;2,2;0;6PG78114HL740215F;;;CheBanca  S.p.A.;1196;0;0;b8a74eeb519d4f96b9303c26b6a9772d;5XK57512405419228
+30/11/2023;12:16:14;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-17,99;0;-17,99;-17,99;9X98951995744742T;wallet-disputes-eu@google.com;Google;;;0;0;338761126899017049;B-5RK1221886007091D
+30/11/2023;12:16:14;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;17,99;0;17,99;0;37G34553R6995453S;;;CheBanca  S.p.A.;1196;0;0;338761126899017049;9X98951995744742T
+30/11/2023;21:26:07;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-8,99;0;-8,99;-8,99;8KH68764TX945401B;CORP.DL-DSSIT@disney.com;DisneyPlus;;;0;0;cd4008d2e67dcf4ec81912796d01a560;B-6TX91726T55549941
+30/11/2023;21:26:07;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;8,99;0;8,99;0;436587928B147400L;;;CheBanca  S.p.A.;1196;0;0;cd4008d2e67dcf4ec81912796d01a560;8KH68764TX945401B
+01/12/2023;11:58:54;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;19,04;0;19,04;19,04;1CH359687D586713U;;;CheBanca  S.p.A.;1196;0;0;;5ED21819428215531
+01/12/2023;11:58:54;Europe/Berlin;Conversione di valuta generica;EUR;-19,04;0;-19,04;0;3JY09254JH256441S;;;;;0;0;;5ED21819428215531
+02/12/2023;18:56:19;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;3,88;0;3,88;3,88;88473631NJ443150G;;;CheBanca  S.p.A.;1196;0;0;P-51097704;1CJ8017272459571C
+02/12/2023;18:56:19;Europe/Berlin;Conversione di valuta generica;EUR;-3,88;0;-3,88;0;20A66265AD0278143;;;;;0;0;P-51097704;1CJ8017272459571C
+03/12/2023;11:39:29;Europe/Berlin;Pagamento da cellulare;EUR;-22;0;-22;-22;6P252984TC9991708;jasone.mb@outlook.com;Marco Bellezza;;;0;0;;
+03/12/2023;11:39:29;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;22;0;22;0;7P577208TP549620K;;;CheBanca  S.p.A.;1196;0;0;;6P252984TC9991708
+04/12/2023;16:05:25;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;30,24;0;30,24;30,24;9BV06147KV573343P;;;CheBanca  S.p.A.;1196;0;0;364db52c63b34676abf978b163ad8e36;5GJ72470R8328132F
+04/12/2023;16:05:25;Europe/Berlin;Conversione di valuta generica;EUR;-30,24;0;-30,24;0;0XW68498UR006712X;;;;;0;0;364db52c63b34676abf978b163ad8e36;5GJ72470R8328132F
+05/12/2023;21:03:28;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-51,04;0;-51,04;-51,04;6LN54549M7111433F;steamgameseea@valvesoftware.com;www.steampowered.com;;;0;0;3723976888449534933;B-37U45163A2023822U
+05/12/2023;21:03:28;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;51,04;0;51,04;0;0GT05742XW4414304;;;CheBanca  S.p.A.;1196;0;0;3723976888449534933;6LN54549M7111433F
+14/12/2023;16:31:17;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-16,99;0;-16,99;-16,99;6DY54508S6170345V;PayPal-GPIL-PL-EUR@google.com;Google Payment Ireland Limited;;;0;0;866284607838374440;B-5RK1221886007091D
+14/12/2023;16:31:17;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;16,99;0;16,99;0;5LS53947KF944150X;;;CheBanca  S.p.A.;1196;0;0;866284607838374440;6DY54508S6170345V
+18/12/2023;11:58:17;Europe/Berlin;Pagamento Express Checkout;EUR;-32,96;0;-32,96;-32,96;7JV25159UC679481K;info@bestbuying.it;BESTBUYING SRL;;;4,02;0;VPB00984355;
+18/12/2023;11:58:17;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;32,96;0;32,96;0;0MB450417C5553930;;;CheBanca  S.p.A.;1196;4,02;0;VPB00984355;7JV25159UC679481K
+19/12/2023;10:40:39;Europe/Berlin;Pagamento Express Checkout;EUR;-28,5;0;-28,5;-28,5;88E13942Y1701293P;ordini@lush.it;Lush Italia S.R.L.;;;0;0;X5R4TGJHL3699VB2;1VW47563V0441453F
+19/12/2023;10:40:39;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;28,5;0;28,5;0;0KX80023DV1866237;;;CheBanca  S.p.A.;1196;0;0;X5R4TGJHL3699VB2;88E13942Y1701293P
+20/12/2023;12:54:55;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-6,99;0;-6,99;-6,99;5LC0964287961771V;digitalshop@mail.wind.it;Very Mobile;;;0;0;20231220115454284-905-8166;B-4JL38423N6974482J
+20/12/2023;12:54:55;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;6,99;0;6,99;0;06J29486DA794231F;;;CheBanca  S.p.A.;1196;0;0;20231220115454284-905-8166;5LC0964287961771V
+24/12/2023;13:24:46;Europe/Berlin;Pagamento preautorizzato utenza;EUR;-5,99;0;-5,99;-5,99;2UY099886B663140L;PayPal-GPIL-PL-EUR@google.com;Google Payment Ireland Limited;;;0;0;401707448566535976;B-5RK1221886007091D
+24/12/2023;13:24:46;Europe/Berlin;Bonifico bancario sul conto PayPal;EUR;5,99;0;5,99;0;5Y449868UA8197239;;;CheBanca  S.p.A.;1196;0;0;401707448566535976;2UY099886B663140L
+02/01/2023;19:40:52;Europe/Berlin;Pagamento preautorizzato utenza;USD;-4;0;-4;-4;6E8034808Y646890Y;ar@github.com;GitHub, Inc.;;;0;0;P-40469681;B-7772155060921430G
+02/01/2023;19:40:52;Europe/Berlin;Conversione di valuta generica;USD;4;0;4;0;36826517H97612831;;;;;0;0;P-40469681;6E8034808Y646890Y
+02/02/2023;19:51:05;Europe/Berlin;Pagamento preautorizzato utenza;USD;-4;0;-4;-4;5CW20472P5914102K;ar@github.com;GitHub, Inc.;;;0;0;P-41859972;B-7772155060921430G
+02/02/2023;19:51:05;Europe/Berlin;Conversione di valuta generica;USD;4;0;4;0;5P672536DM282522D;;;;;0;0;P-41859972;5CW20472P5914102K
+25/02/2023;16:37:59;Europe/Berlin;Pagamento abbonamento;USD;-30,5;0;-30,5;-30,5;42230062W2718413E;ingmar@inkarnate.com;Inkarnate Entertainment LLC;;;0;0;;I-JJ46D783G0CX
+25/02/2023;16:37:59;Europe/Berlin;Conversione di valuta generica;USD;30,5;0;30,5;0;29A27081N0866481G;;;;;0;0;;42230062W2718413E
+02/03/2023;19:01:18;Europe/Berlin;Pagamento preautorizzato utenza;USD;-4;0;-4;-4;7U5551603V711494M;ar@github.com;GitHub, Inc.;;;0;0;P-43120797;B-7772155060921430G
+02/03/2023;19:01:18;Europe/Berlin;Conversione di valuta generica;USD;4;0;4;0;6YR724008S692962U;;;;;0;0;P-43120797;7U5551603V711494M
+02/04/2023;18:37:11;Europe/Berlin;Pagamento preautorizzato utenza;USD;-4;0;-4;-4;2H187637MM551315N;ar@github.com;GitHub, Inc.;;;0;0;P-43827047;B-7772155060921430G
+02/04/2023;18:37:11;Europe/Berlin;Conversione di valuta generica;USD;4;0;4;0;41057512V9219890V;;;;;0;0;P-43827047;2H187637MM551315N
+02/05/2023;18:43:14;Europe/Berlin;Pagamento preautorizzato utenza;USD;-4;0;-4;-4;0G2646052R6025828;ar@github.com;GitHub, Inc.;;;0;0;P-44599815;B-7772155060921430G
+02/05/2023;18:43:14;Europe/Berlin;Conversione di valuta generica;USD;4;0;4;0;46897031U53559905;;;;;0;0;P-44599815;0G2646052R6025828
+02/06/2023;18:55:30;Europe/Berlin;Pagamento preautorizzato utenza;USD;-4;0;-4;-4;6KF20048812998138;ar@github.com;GitHub, Inc.;;;0;0;P-45524928;B-7772155060921430G
+02/06/2023;18:55:30;Europe/Berlin;Conversione di valuta generica;USD;4;0;4;0;0WM807676K2958346;;;;;0;0;P-45524928;6KF20048812998138
+02/07/2023;19:04:17;Europe/Berlin;Pagamento preautorizzato utenza;USD;-4;0;-4;-4;7TA154473K505104T;ar@github.com;GitHub, Inc.;;;0;0;P-46405142;B-7772155060921430G
+02/07/2023;19:04:17;Europe/Berlin;Conversione di valuta generica;USD;4;0;4;0;3MS43292WM0344910;;;;;0;0;P-46405142;7TA154473K505104T
+02/08/2023;18:59:51;Europe/Berlin;Pagamento preautorizzato utenza;USD;-4;0;-4;-4;2LK38487TN730452G;ar@github.com;GitHub, Inc.;;;0;0;P-47321462;B-7772155060921430G
+02/08/2023;18:59:51;Europe/Berlin;Conversione di valuta generica;USD;4;0;4;0;45R14200KA4833233;;;;;0;0;P-47321462;2LK38487TN730452G
+15/08/2023;20:41:18;Europe/Berlin;Pagamento Express Checkout;USD;-5;0;-5;-5;2D81142732566274V;paypalmicro@onebookshelf.com;OneBookShelf;;;0;0;40623953;
+15/08/2023;20:41:18;Europe/Berlin;Conversione di valuta generica;USD;5;0;5;0;0CW35671NH875824L;;;;;0;0;40623953;2D81142732566274V
+15/08/2023;20:55:15;Europe/Berlin;Pagamento Express Checkout;USD;-1,95;0;-1,95;-1,95;65226717CG249280C;paypalmicro@onebookshelf.com;OneBookShelf;;;0;0;40624158;
+15/08/2023;20:55:15;Europe/Berlin;Conversione di valuta generica;USD;1,95;0;1,95;0;23P00899VN829930D;;;;;0;0;40624158;65226717CG249280C
+02/09/2023;18:39:06;Europe/Berlin;Pagamento preautorizzato utenza;USD;-4;0;-4;-4;25M1790061477522G;ar@github.com;GitHub, Inc.;;;0;0;P-48240340;B-7772155060921430G
+02/09/2023;18:39:06;Europe/Berlin;Conversione di valuta generica;USD;4;0;4;0;8E1198477D667890L;;;;;0;0;P-48240340;25M1790061477522G
+02/10/2023;18:56:52;Europe/Berlin;Pagamento preautorizzato utenza;USD;-4;0;-4;-4;07689853UN0910839;ar@github.com;GitHub, Inc.;;;0;0;P-49176381;B-7772155060921430G
+02/10/2023;18:56:52;Europe/Berlin;Conversione di valuta generica;USD;4;0;4;0;1CC077757Y801811T;;;;;0;0;P-49176381;07689853UN0910839
+03/11/2023;19:02:11;Europe/Berlin;Pagamento preautorizzato utenza;USD;-4;0;-4;-4;0F181495AH598443B;ar@github.com;GitHub, Inc.;;;0;0;P-50141560;B-7772155060921430G
+03/11/2023;19:02:11;Europe/Berlin;Conversione di valuta generica;USD;4;0;4;0;2VP58179M4932444H;;;;;0;0;P-50141560;0F181495AH598443B
+06/11/2023;00:17:49;Europe/Berlin;Pagamento preautorizzato utenza;USD;-51,99;0;-51,99;-51,99;0L136358SW660303D;paypal@curse.com;Wizards of the Coast, Inc.;;;0;0;625d41fd588a4c81b7369d101ff48195;B-1KJ96030WL891533B
+06/11/2023;00:17:49;Europe/Berlin;Conversione di valuta generica;USD;51,99;0;51,99;0;04542750CM8611745;;;;;0;0;625d41fd588a4c81b7369d101ff48195;0L136358SW660303D
+01/12/2023;11:58:54;Europe/Berlin;Pagamento Express Checkout;USD;-19,73;0;-19,73;-19,73;5ED21819428215531;paypal@digitalocean.com;DigitalOcean;;;0;0;;
+01/12/2023;11:58:54;Europe/Berlin;Conversione di valuta generica;USD;19,73;0;19,73;0;13335051KM156241C;;;;;0;0;;5ED21819428215531
+02/12/2023;18:56:19;Europe/Berlin;Pagamento preautorizzato utenza;USD;-4;0;-4;-4;1CJ8017272459571C;ar@github.com;GitHub, Inc.;;;0;0;P-51097704;B-7772155060921430G
+02/12/2023;18:56:19;Europe/Berlin;Conversione di valuta generica;USD;4;0;4;0;7W787067WV3284739;;;;;0;0;P-51097704;1CJ8017272459571C
+04/12/2023;16:05:25;Europe/Berlin;Pagamento preautorizzato utenza;USD;-31,19;0;-31,19;-31,19;5GJ72470R8328132F;paypal@curse.com;Wizards of the Coast, Inc.;;;0;0;364db52c63b34676abf978b163ad8e36;B-1KJ96030WL891533B
+04/12/2023;16:05:25;Europe/Berlin;Conversione di valuta generica;USD;31,19;0;31,19;0;1TE23655W2373263X;;;;;0;0;364db52c63b34676abf978b163ad8e36;5GJ72470R8328132F
