@@ -6,7 +6,9 @@
   "scripts": {
     "start": "nodemon --watch \"./src/**\" --ext \"ts, json\" --ignore \"./src/**/*.test.ts\" --exec \"ts-node --swc ./src/index.ts\"",
     "build": "tsc",
-    "test": "node --require ts-node/register --test --watch ./src/**/*.test.ts"
+    "test": "node --require ts-node/register --test --watch ./src/**/*.test.ts",
+    "typeorm": "typeorm-ts-node-commonjs",
+    "migration:generate": "f() { typeorm-ts-node-commonjs migration:generate -d ./src/AppDataSource.ts \"./src/migrations/$@\"; }; f"
   },
   "author": "Mauro Constantinescu",
   "license": "ISC",
@@ -27,6 +29,7 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
+    "class-validator": "^0.14.0",
     "pg": "^8.11.3",
     "routing-controllers": "^0.10.4",
     "typeorm": "^0.3.17"
