@@ -6,9 +6,13 @@ import { ErrorHandler } from "./ErrorHandler"
 AppDataSource.initialize()
   .then(() => {
     const app = createExpressServer({
+      routePrefix: "/api",
       controllers: [CategoryController],
       defaultErrorHandler: false,
       middlewares: [ErrorHandler],
+      cors: {
+        origin: "http://127.0.0.1:5173",
+      },
     })
 
     app.listen(5000, () => {

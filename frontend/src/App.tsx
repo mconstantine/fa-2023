@@ -1,7 +1,15 @@
-import "./App.css"
+import { CssBaseline } from "@mui/material"
+import Header from "./components/Header"
+import Categories from "./components/categories/Categories"
 
 function App() {
-  return null
+  return (
+    <>
+      <CssBaseline />
+      <Header />
+      <Categories />
+    </>
+  )
 }
 
 export default App
