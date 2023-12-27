@@ -1,9 +1,11 @@
-import { Box, Typography } from "@mui/material"
+import { Box } from "@mui/material"
+import NonBlankInput from "./NonBlankInput"
+import { InputProps } from "./validators"
 
-export function StringArrayInput() {
+export function StringArrayInput(props: InputProps<string>) {
   return (
     <Box>
-      <Typography variant="h6">StringArrayInput here</Typography>
+      <NonBlankInput {...props} />
     </Box>
   )
 }

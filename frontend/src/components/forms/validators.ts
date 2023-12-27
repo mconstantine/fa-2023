@@ -90,11 +90,32 @@ class ValidatorWithErrorMessage<T> extends Validator<T> {
   }
 }
 
-export interface InputProps<T> {
+interface BaseInputProps<T> {
   name: string
-  value: string
+  label: string
+  input: string
   validator: ValidatorWithErrorMessage<T>
+  onChange: (value: string) => void
 }
+
+interface UntouchedInputProps<T> extends BaseInputProps<T> {
+  type: "untouched"
+}
+
+interface InvalidInputProps<T> extends BaseInputProps<T> {
+  type: "invalid"
+  error: string
+}
+
+interface ValidInputProps<T> extends BaseInputProps<T> {
+  type: "valid"
+  value: T
+}
+
+export type InputProps<T> =
+  | UntouchedInputProps<T>
+  | InvalidInputProps<T>
+  | ValidInputProps<T>
 
 export const NonBlankString = Validator.fromPredicate(
   (input) => input.trim() !== "",
