@@ -22,6 +22,7 @@ export const Default: Story = {
           name: "Taxes",
           keywords: ["f24", "agenzia delle entrate"],
         }}
+        onEditButtonClick={() => {}}
       />
     )
   },

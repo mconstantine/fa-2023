@@ -1,8 +1,7 @@
 import {
-  Box,
   IconButton,
   InputAdornment,
-  SxProps,
+  Stack,
   Tooltip,
   Typography,
 } from "@mui/material"
@@ -18,8 +17,6 @@ interface Props {
   errorMessageWhenBlank: string
   onChange(value: string[]): void
 }
-
-const inputStyle: SxProps = { display: "block", mt: 0.5 }
 
 export function StringArrayInput(props: Props) {
   const [insertingValue, setInsertingValue] = useState<string | null>(null)
@@ -55,7 +52,7 @@ export function StringArrayInput(props: Props) {
   }
 
   return (
-    <Box>
+    <Stack spacing={1.5}>
       <Typography variant="overline">{props.title}</Typography>
       {props.value.map((value, index) => (
         <NonBlankInput
@@ -66,7 +63,8 @@ export function StringArrayInput(props: Props) {
           onChange={(newValue) => onChange(newValue, index)}
           errorMessageWhenBlank={props.errorMessageWhenBlank}
           fieldProps={{
-            sx: inputStyle,
+            sx: { display: "block" },
+            onKeyUp,
             InputProps: {
               endAdornment: (
                 <InputAdornment position="end">
@@ -91,8 +89,8 @@ export function StringArrayInput(props: Props) {
         onChange={setInsertingValue}
         errorMessageWhenBlank={props.errorMessageWhenBlank}
         fieldProps={{
+          sx: { display: "block" },
           onKeyUp,
-          sx: inputStyle,
           InputProps: {
             endAdornment: (
               <InputAdornment position="end">
@@ -109,6 +107,6 @@ export function StringArrayInput(props: Props) {
           },
         }}
       />
-    </Box>
+    </Stack>
   )
 }

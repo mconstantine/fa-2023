@@ -39,6 +39,26 @@ export class NetworkResponse<O> {
       return cases.whenIdle()
     }
   }
+
+  public getOrElse(defaultValue: O): O {
+    return this.match({
+      whenIdle: () => defaultValue,
+      whenLoading: () => defaultValue,
+      whenFailed: () => defaultValue,
+      whenSuccessful: (response) => response.data,
+    })
+  }
+
+  public map<T>(mapFn: (data: O) => T): NetworkResponse<T> {
+    return this.match({
+      whenIdle: () => new NetworkResponse(),
+      whenLoading: () => new LoadingResponse(),
+      whenFailed: (response) =>
+        new FailedResponse<T>(response.status, response.message),
+      whenSuccessful: (response) =>
+        new SuccessfulResponse(mapFn(response.data)),
+    })
+  }
 }
 
 class LoadingResponse<O> extends NetworkResponse<O> {

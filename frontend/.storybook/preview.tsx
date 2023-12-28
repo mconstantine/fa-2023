@@ -3,9 +3,11 @@ import "@fontsource/roboto/300.css"
 import "@fontsource/roboto/400.css"
 import "@fontsource/roboto/500.css"
 import "@fontsource/roboto/700.css"
+import "../src/index.css"
 import React, { PropsWithChildren, useEffect } from "react"
 import { CssBaseline, PaletteMode } from "@mui/material"
 import { ThemeProvider, useTheme } from "../src/contexts/ThemeContext"
+import { MemoryRouter } from "react-router-dom"
 
 function ThemedStory(props: PropsWithChildren<{ theme: PaletteMode }>) {
   const { setMode } = useTheme()
@@ -28,6 +30,10 @@ const withTheme: Decorator = (story, context) => {
   )
 }
 
+const withRouter: Decorator = (story) => {
+  return <MemoryRouter>{story()}</MemoryRouter>
+}
+
 const preview: Preview = {
   parameters: {
     actions: { argTypesRegex: "^on[A-Z].*" },
@@ -38,7 +44,7 @@ const preview: Preview = {
       },
     },
   },
-  decorators: [withTheme],
+  decorators: [withTheme, withRouter],
   globalTypes: {
     theme: {
       name: "Theme",

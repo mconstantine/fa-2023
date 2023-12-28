@@ -1,4 +1,4 @@
-import { IsArray, IsNotEmpty, IsOptional } from "class-validator"
+import { IsArray, IsNotEmpty, IsOptional, IsUUID } from "class-validator"
 import {
   Body,
   Delete,
@@ -11,7 +11,7 @@ import {
 import { Category } from "../models/Category"
 import type { DeepPartial } from "typeorm"
 
-class CategoryBody {
+class CategoryCreationBody {
   @IsNotEmpty()
   // @ts-expect-error doesn't need initialization
   public name: string
@@ -28,10 +28,23 @@ class CategoryBody {
   }
 }
 
+class CategoryUpdateBody extends CategoryCreationBody {
+  @IsUUID()
+  // @ts-expect-error doesn't need initialization
+  public id: string
+
+  override toCategory(): Omit<DeepPartial<Category>, "id"> & { id: string } {
+    return {
+      ...super.toCategory(),
+      id: this.id,
+    }
+  }
+}
+
 @JsonController("/categories")
 export class CategoryController {
   @Post("/")
-  async create(@Body() body: CategoryBody): Promise<Category> {
+  async create(@Body() body: CategoryCreationBody): Promise<Category> {
     return await Category.create(body.toCategory()).save()
   }
 
@@ -45,13 +58,11 @@ export class CategoryController {
     return await Category.find()
   }
 
-  @Put("/:id")
-  async update(
-    @Param("id") id: string,
-    @Body() body: CategoryBody,
-  ): Promise<Category> {
-    const category = await Category.findOneByOrFail({ id })
-    return await Category.merge(category, body.toCategory()).save()
+  @Put("/")
+  async update(@Body() body: CategoryUpdateBody): Promise<Category> {
+    const data = body.toCategory()
+    const category = await Category.findOneByOrFail({ id: data.id })
+    return await Category.merge(category, data).save()
   }
 
   @Delete("/:id")

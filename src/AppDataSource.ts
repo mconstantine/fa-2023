@@ -1,4 +1,3 @@
-import "reflect-metadata"
 import { DataSource } from "typeorm"
 import { Category } from "./models/Category"
 

@@ -34,6 +34,7 @@ export const Default: Story = {
             keywords: ["esselunga", "amazon it"],
           },
         ]}
+        onEditButtonClick={() => {}}
       />
     )
   },
