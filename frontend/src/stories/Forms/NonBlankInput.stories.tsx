@@ -1,6 +1,6 @@
 import { Meta, StoryObj } from "@storybook/react"
 import { useState } from "react"
-import NonBlankInput from "../components/forms/NonBlankInput"
+import NonBlankInput from "../../components/input/NonBlankInput"
 
 const meta: Meta<typeof NonBlankInput> = {
   title: "Forms/NonBlankInput",
@@ -13,6 +13,11 @@ const meta: Meta<typeof NonBlankInput> = {
       type: "string",
       control: "text",
     },
+    errorMessageWhenBlank: {
+      type: "string",
+      name: "Error message for blank fields",
+      control: "text",
+    },
   },
 }
 
@@ -22,6 +27,7 @@ type Story = StoryObj<typeof NonBlankInput>
 export const Default: Story = {
   args: {
     label: "Label",
+    errorMessageWhenBlank: "Error: this field cannot be blank",
   },
   render: function NonBlankInputStory(props) {
     const [value, setValue] = useState("")
@@ -32,6 +38,7 @@ export const Default: Story = {
         label={props.label}
         value={value}
         onChange={setValue}
+        errorMessageWhenBlank={props.errorMessageWhenBlank}
       />
     )
   },

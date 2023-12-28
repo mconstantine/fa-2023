@@ -1,5 +1,5 @@
 import { Meta, StoryObj } from "@storybook/react"
-import { StringArrayInput } from "../components/forms/StringArrayInput"
+import { StringArrayInput } from "../../components/input/StringArrayInput"
 import { useState } from "react"
 
 const meta: Meta<typeof StringArrayInput> = {

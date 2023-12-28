@@ -13,7 +13,7 @@ interface Props {
 
 export default function CategoryCard(props: Props) {
   return (
-    <Card sx={{ m: 1.5, maxWidth: 512 }}>
+    <Card sx={{ mt: 1.5 }}>
       <CardContent>
         <Typography variant="h5" component="div">
           {props.category.name}
