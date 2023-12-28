@@ -33,8 +33,9 @@ export function StringArrayInput(props: Props) {
     )
   }
 
-  function onKeyUp(e: KeyboardEvent<HTMLDivElement>): void {
+  function onKeyDown(e: KeyboardEvent<HTMLDivElement>): void {
     if (insertingValue !== null && e.key === "Enter") {
+      e.preventDefault()
       props.onChange([...props.value, insertingValue])
       setInsertingValue(null)
     }
@@ -64,7 +65,7 @@ export function StringArrayInput(props: Props) {
           errorMessageWhenBlank={props.errorMessageWhenBlank}
           fieldProps={{
             sx: { display: "block" },
-            onKeyUp,
+            onKeyDown,
             InputProps: {
               endAdornment: (
                 <InputAdornment position="end">
@@ -90,7 +91,7 @@ export function StringArrayInput(props: Props) {
         errorMessageWhenBlank={props.errorMessageWhenBlank}
         fieldProps={{
           sx: { display: "block" },
-          onKeyUp,
+          onKeyDown,
           InputProps: {
             endAdornment: (
               <InputAdornment position="end">
