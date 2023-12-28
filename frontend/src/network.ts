@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { NetworkResponse } from "./network/NetworkResponse"
 
 if (!("VITE_API_URL" in import.meta.env)) {
   throw new ReferenceError('Unable to find environment variable "VITE_API_URL"')
@@ -11,80 +12,46 @@ interface ApiError {
   message: string
 }
 
-interface LoadingResponse {
-  type: "loading"
-}
+async function sendNetworkRequest<O>(
+  path: string,
+): Promise<NetworkResponse<O>> {
+  try {
+    const response = await window.fetch(`${apiUrl}/api${path}`)
+    const status = response.status
 
-interface FailedResponse {
-  type: "failure"
-  error: {
-    status: number
-    message: string
+    try {
+      const content = await response.json()
+
+      if (Math.floor(status / 100) === 2) {
+        return NetworkResponse.fromSuccess(content as O)
+      } else {
+        const error = content as ApiError
+        return NetworkResponse.fromFailure(status, error.message)
+      }
+    } catch (e) {
+      return NetworkResponse.fromFailure(500, "Unable to parse server response")
+    }
+  } catch (e) {
+    return NetworkResponse.fromFailure(500, "Unable to reach the server")
   }
 }
 
-interface SuccessfulResponse<O> {
-  type: "success"
-  data: O
-}
-
-export type Response<O> =
-  | LoadingResponse
-  | FailedResponse
-  | SuccessfulResponse<O>
-
-export function useQuery<O>(path: string): Response<O> {
-  const [state, setState] = useState<Response<O>>({ type: "loading" })
+export function useQuery<O>(path: string): NetworkResponse<O> {
+  const [state, setState] = useState<NetworkResponse<O>>(
+    new NetworkResponse<O>().load(),
+  )
 
   useEffect(() => {
-    window
-      .fetch(`${apiUrl}/api${path}`)
-      .then((response): Promise<void> => {
-        const status = response.status
+    setState((state) =>
+      state.match({
+        whenIdle: () => state.load(),
+        whenLoading: () => state,
+        whenFailed: (response) => response.retry(),
+        whenSuccessful: (response) => response.refresh(),
+      }),
+    )
 
-        return response
-          .json()
-          .then((response) => ({
-            status,
-            response,
-          }))
-          .catch(() => {
-            return {
-              status: 500,
-              response: {
-                name: "ParsingError",
-                message: "Unable to parse server response",
-              } satisfies ApiError,
-            }
-          })
-          .then((result) => {
-            if (Math.floor(result.status / 100) !== 2) {
-              const error = result.response as ApiError
-
-              setState({
-                type: "failure",
-                error: {
-                  status: result.status,
-                  message: error.message,
-                },
-              })
-            } else {
-              setState({
-                type: "success",
-                data: result.response as O,
-              })
-            }
-          })
-      })
-      .catch(() => {
-        setState({
-          type: "failure",
-          error: {
-            status: 500,
-            message: "Unable to reach the server",
-          },
-        })
-      })
+    sendNetworkRequest<O>(path).then(setState)
   }, [path])
 
   return state
