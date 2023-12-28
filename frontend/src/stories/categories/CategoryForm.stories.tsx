@@ -16,11 +16,8 @@ const meta: Meta<CategoryFormStory> = {
     mode: {
       name: "Mode",
       control: { type: "select" },
-      options: {
-        Create: "create",
-        Update: "update",
-      },
-      defaultValue: "Create",
+      options: ["create", "update"],
+      defaultValue: "create",
     },
   },
 }
@@ -33,7 +30,9 @@ export const Default: Story = {
   render: function CategoryFormStory(props) {
     const category: Category | null = (() => {
       switch (props.mode) {
+        // Storybook control defaultValue may not work and set undefined
         case "create":
+        default:
           return null
         case "update":
           return {

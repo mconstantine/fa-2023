@@ -1,18 +1,15 @@
 import { Meta, StoryObj } from "@storybook/react"
-import { StringArrayInput } from "../../components/input/StringArrayInput"
 import { useState } from "react"
+import NonBlankInput from "../../components/forms/inputs/NonBlankInput"
 
-const meta: Meta<typeof StringArrayInput> = {
-  title: "Forms/StringArrayInput",
-  component: StringArrayInput,
+const meta: Meta<typeof NonBlankInput> = {
+  title: "Forms/NonBlankInput",
+  component: NonBlankInput,
   parameters: {},
   tags: ["autodocs"],
   argTypes: {
-    title: {
-      type: "string",
-      control: "text",
-    },
     label: {
+      name: "Label",
       type: "string",
       control: "text",
     },
@@ -25,20 +22,18 @@ const meta: Meta<typeof StringArrayInput> = {
 }
 
 export default meta
-type Story = StoryObj<typeof StringArrayInput>
+type Story = StoryObj<typeof NonBlankInput>
 
 export const Default: Story = {
   args: {
-    title: "List of strings",
     label: "Label",
     errorMessageWhenBlank: "Error: this field cannot be blank",
   },
-  render: function StringArrayInputStory(props) {
-    const [value, setValue] = useState<string[]>(["a list", "of strings"])
+  render: function NonBlankInputStory(props) {
+    const [value, setValue] = useState("")
 
     return (
-      <StringArrayInput
-        title={props.title}
+      <NonBlankInput
         name="name"
         label={props.label}
         value={value}

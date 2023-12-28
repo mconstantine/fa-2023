@@ -1,5 +1,5 @@
 import { TextField, TextFieldProps } from "@mui/material"
-import { InputProps } from "./validators"
+import { InputProps } from "../validators"
 
 export default function TextInput(
   props: InputProps<string> & { fieldProps?: TextFieldProps },
