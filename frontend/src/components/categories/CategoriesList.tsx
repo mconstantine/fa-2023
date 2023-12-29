@@ -12,6 +12,7 @@ import { useState } from "react"
 import { NetworkResponse } from "../../network/NetworkResponse"
 import Query from "../Query"
 import CategoryForm from "./CategoryForm"
+import { useConfirmation } from "../../hooks/useConfirmation"
 
 interface ReadingMode {
   type: "reading"
@@ -32,14 +33,23 @@ interface Props {
   readingResponse: NetworkResponse<Category[]>
   creationResponse: NetworkResponse<Category>
   updateResponse: NetworkResponse<Category>
-  // deleteResponse: NetworkResponse<Category>
+  deletionResponse: NetworkResponse<Category>
   onCategoryCreate(category: Category): Promise<boolean>
   onCategoryUpdate(category: Category): Promise<boolean>
-  // onCategoryDelete(category: Category): void
+  onCategoryDelete(category: Category): Promise<boolean>
 }
 
 export default function CategoriesList(props: Props) {
   const [mode, setMode] = useState<Mode>({ type: "reading" })
+  const [deletingCategory, setDeletingCategory] = useState<Category | null>(
+    null,
+  )
+
+  const [onCategoryDeleteButtonClick, deleteConfirmationDialog] =
+    useConfirmation(onCategoryDelete, (category) => ({
+      title: "Warning! One way decision",
+      message: `Are you sure you want delete category "${category.name}"? The category will be lost forever!`,
+    }))
 
   const isBackdropOpen: boolean = (() => {
     switch (mode.type) {
@@ -84,6 +94,11 @@ export default function CategoriesList(props: Props) {
     }
   }
 
+  function onCategoryDelete(category: Category) {
+    setDeletingCategory(category)
+    props.onCategoryDelete(category)
+  }
+
   return (
     <Container>
       <Stack spacing={1.5} sx={{ mt: 1.5 }}>
@@ -103,13 +118,35 @@ export default function CategoriesList(props: Props) {
           response={props.readingResponse}
           render={(categories) => (
             <Stack spacing={1.5}>
-              {categories.map((category) => (
-                <CategoryCard
-                  key={category.id}
-                  category={category}
-                  onEditButtonClick={() => onCategoryEditButtonClick(category)}
-                />
-              ))}
+              {categories.map((category) => {
+                const card = (
+                  <CategoryCard
+                    key={category.id}
+                    category={category}
+                    onEditButtonClick={() =>
+                      onCategoryEditButtonClick(category)
+                    }
+                    onDeleteButtonClick={() =>
+                      onCategoryDeleteButtonClick(category)
+                    }
+                  />
+                )
+
+                if (
+                  deletingCategory !== null &&
+                  deletingCategory.id === category.id
+                ) {
+                  return (
+                    <Query
+                      key={category.id}
+                      response={props.deletionResponse}
+                      render={() => card}
+                    />
+                  )
+                } else {
+                  return card
+                }
+              })}
             </Stack>
           )}
         />
@@ -142,6 +179,7 @@ export default function CategoriesList(props: Props) {
           />
         </Paper>
       </Backdrop>
+      {deleteConfirmationDialog}
     </Container>
   )
 }

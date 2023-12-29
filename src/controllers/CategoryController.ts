@@ -65,9 +65,10 @@ export class CategoryController {
     return await Category.merge(category, data).save()
   }
 
-  @Delete("/:id")
-  async delete(@Param("id") id: string): Promise<Category> {
-    const category = await Category.findOneByOrFail({ id })
+  @Delete("/")
+  async delete(@Body() body: CategoryUpdateBody): Promise<Category> {
+    const data = body.toCategory()
+    const category = await Category.findOneByOrFail({ id: data.id })
     return await category.remove()
   }
 }

@@ -2,6 +2,7 @@ import { Meta, StoryObj } from "@storybook/react"
 import CategoriesList from "../../components/categories/CategoriesList"
 import { useMockNetworkResponse } from "../useMockNetworkResponse"
 import { Category } from "../../components/categories/domain"
+import { v4 } from "uuid"
 
 interface CategoriesStoryListArgs {
   shouldFail: boolean
@@ -32,17 +33,17 @@ export const Default: Story = {
       Category[]
     >([
       {
-        id: "abcd",
+        id: v4(),
         name: "Miscellanea",
         keywords: [],
       },
       {
-        id: "efgh",
+        id: v4(),
         name: "Taxes",
         keywords: ["f24", "agenzia delle entrate"],
       },
       {
-        id: "ijkl",
+        id: v4(),
         name: "Groceries",
         keywords: ["esselunga", "amazon it"],
       },
@@ -54,11 +55,18 @@ export const Default: Story = {
     const [updateResponse, triggerUpdate, failUpdate] =
       useMockNetworkResponse<Category>()
 
+    const [deletionResponse, triggerDeletion, failDeletion] =
+      useMockNetworkResponse<Category>()
+
     async function onCategoryCreate(category: Category): Promise<boolean> {
       if (props.shouldFail) {
         await failCreation(500, "Error!")
       } else {
-        await triggerCreation(category)
+        await triggerCreation({
+          ...category,
+          id: v4(),
+        })
+
         updateCategories((categories) => [category, ...categories])
       }
 
@@ -85,13 +93,29 @@ export const Default: Story = {
       return !props.shouldFail
     }
 
+    async function onCategoryDelete(deleted: Category): Promise<boolean> {
+      if (props.shouldFail) {
+        await failDeletion(500, "Error!")
+      } else {
+        await triggerDeletion(deleted)
+
+        updateCategories((categories) =>
+          categories.filter((category) => category.id !== deleted.id),
+        )
+      }
+
+      return !props.shouldFail
+    }
+
     return (
       <CategoriesList
         readingResponse={readingResponse}
         creationResponse={creationResponse}
         updateResponse={updateResponse}
+        deletionResponse={deletionResponse}
         onCategoryCreate={onCategoryCreate}
         onCategoryUpdate={onCategoryUpdate}
+        onCategoryDelete={onCategoryDelete}
       />
     )
   },

@@ -23,6 +23,7 @@ export const Default: Story = {
           keywords: ["f24", "agenzia delle entrate"],
         }}
         onEditButtonClick={() => {}}
+        onDeleteButtonClick={() => {}}
       />
     )
   },

@@ -88,7 +88,7 @@ type UseCommandOutput<I, O> = [
 ]
 
 export function useCommand<I, O>(
-  method: "POST" | "PUT" | "PATCH",
+  method: "POST" | "PUT" | "PATCH" | "DELETE",
   path: string,
 ): UseCommandOutput<I, O> {
   const [response, setResponse] = useState<NetworkResponse<O>>(

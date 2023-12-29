@@ -16,6 +16,11 @@ export default function CategoriesPage() {
     "/categories/",
   )
 
+  const [deletionResponse, deleteCategory] = useCommand<Category, Category>(
+    "DELETE",
+    "/categories/",
+  )
+
   async function onCategoryCreate(category: Category): Promise<boolean> {
     const response = await createCategory(category)
     const isSuccess = response !== null
@@ -46,15 +51,28 @@ export default function CategoriesPage() {
     return isSuccess
   }
 
+  async function onCategoryDelete(deleted: Category): Promise<boolean> {
+    const response = await deleteCategory(deleted)
+    const isSuccess = response !== null
+
+    if (isSuccess) {
+      updateCategories((categories) =>
+        categories.filter((category) => category.id !== deleted.id),
+      )
+    }
+
+    return isSuccess
+  }
+
   return (
     <CategoriesList
       readingResponse={readingResponse}
       creationResponse={creationResponse}
       updateResponse={updateResponse}
-      // deleteResponse={}
+      deletionResponse={deletionResponse}
       onCategoryCreate={onCategoryCreate}
       onCategoryUpdate={onCategoryUpdate}
-      // onCategoryDelete={}
+      onCategoryDelete={onCategoryDelete}
     />
   )
 }
