@@ -3,8 +3,9 @@ import { NetworkResponse } from "../network/NetworkResponse"
 
 type UseMockNetworkResponseOutput<T> = [
   response: NetworkResponse<T>,
-  trigger: (data: T) => void,
-  fail: (status: number, message: string) => void,
+  trigger: (data: T) => Promise<T>,
+  fail: (status: number, message: string) => Promise<void>,
+  update: (data: T | ((latestValue: T) => T)) => void,
 ]
 
 export function useMockNetworkResponse<T>(
@@ -24,16 +25,31 @@ export function useMockNetworkResponse<T>(
 
   return [
     response,
-    (data) => {
-      setResponse((response) => response.load())
-      setTimeout(() => setResponse(NetworkResponse.fromSuccess(data)), 500)
-    },
-    (status, message) => {
-      setResponse((response) => response.load())
-      setTimeout(
-        () => setResponse(NetworkResponse.fromFailure(status, message)),
-        500,
-      )
+    (data) =>
+      new Promise((resolve) => {
+        setResponse((response) => response.load())
+
+        setTimeout(() => {
+          setResponse(NetworkResponse.fromSuccess(data))
+          resolve(data)
+        }, 500)
+      }),
+    (status, message) =>
+      new Promise((resolve) => {
+        setResponse((response) => response.load())
+        setTimeout(() => {
+          setResponse(NetworkResponse.fromFailure(status, message))
+          resolve()
+        }, 500)
+      }),
+    (update) => {
+      if (typeof update === "function") {
+        setResponse(
+          response.map((data) => (update as (latestValue: T) => T)(data)),
+        )
+      } else {
+        setResponse(NetworkResponse.fromSuccess(update))
+      }
     },
   ]
 }
