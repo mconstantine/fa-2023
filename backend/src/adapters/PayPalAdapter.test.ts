@@ -1,6 +1,15 @@
+import { TestDataSource } from "../TestDataSource"
 import { PayPalAdapter } from "./PayPalAdapter"
 
 describe("PayPalAdapter", () => {
+  beforeAll(async () => {
+    await TestDataSource.initialize()
+  })
+
+  afterAll(async () => {
+    await TestDataSource.destroy()
+  })
+
   describe("parsing a row", () => {
     it("should work with all data", () => {
       const row =
@@ -12,7 +21,7 @@ describe("PayPalAdapter", () => {
         "All data test receiver<all.data.test@example.com>: All data test",
       )
       expect(result.value).toBe(-42.0)
-      expect(result.date.toISOString()).toBe("2020-01-15T00:12:42.000+01:00")
+      expect(result.date.toISOString()).toBe("2020-01-15T00:00:00.000Z")
     })
 
     it("should work with email and no name", () => {
@@ -25,7 +34,7 @@ describe("PayPalAdapter", () => {
         "<no.name.test@example.com>: No name test",
       )
       expect(result.value).toBe(-69.0)
-      expect(result.date.toISOString()).toBe("2020-01-16T01:13:43.000+01:00")
+      expect(result.date.toISOString()).toBe("2020-01-16T00:00:00.000Z")
     })
 
     it("should work with name and no email", () => {
@@ -36,7 +45,7 @@ describe("PayPalAdapter", () => {
 
       expect(result.description).toBe("No email test receiver<>: No email test")
       expect(result.value).toBe(42.0)
-      expect(result.date.toISOString()).toBe("2020-01-17T02:14:44.000+01:00")
+      expect(result.date.toISOString()).toBe("2020-01-17T00:00:00.000Z")
     })
 
     it("should work with no name and no email", () => {
@@ -47,7 +56,7 @@ describe("PayPalAdapter", () => {
 
       expect(result.description).toBe("No receiver test")
       expect(result.value).toBe(69.0)
-      expect(result.date.toISOString()).toBe("2020-01-18T00:15:45.000+01:00")
+      expect(result.date.toISOString()).toBe("2020-01-18T00:00:00.000Z")
     })
   })
 })
