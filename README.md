@@ -15,7 +15,8 @@ This project is designed to work with Docker, without dirtying the local develop
 
 Once you do that, you can clone the repo, `cd` into it, and run:
 
-- `docker compose up -d --build`
+- `docker volume create fa_2023_db` to create a local volume for your data, so destroying the container won't make you loose it. Deleting the volume will though, in case you _want_ to loose your data
+- `docker compose up -d --build` to spin up all the things
 
 Once it's done, you can click on your Docker tab in VSCode, find the `fa-2023` container, right click on it and select "Attach Visual Studio Code".
 
@@ -23,7 +24,12 @@ Once inside the container, VSCode should prompt you to install all required exte
 
 #### Backend
 
-The backend runs on Node and Postgres, with TypeORM and routing-controllers over Express. You don't need any setup as Docker installs dependencies and runs database migrations for you (TODO: test this claim). To use it:
+The backend runs on Node and Postgres, with TypeORM and routing-controllers over Express. You'll need to run database migrations in order to bring it up to speed, can't do this with Docker as the database is in another container:
+
+- `cd backend`
+- `npm run migration:run`
+
+To use it:
 
 - `cd backend`
 - `npm start` to run the server
@@ -46,3 +52,17 @@ The frontend runs on React and uses Storybook for components development and ana
 - `npx tsc` to compile
 
 > Don't build anything, you'd just waste precious memory. Docker will build for deploy when needed, from outside the container.
+
+### Development
+
+You can handle your code directly inside the container. Just remember to commit and push before you run `docker compose down`, or your changes will be wiped from existence together with the container. You can run `docker compose stop` with uncommitted changes though, that will just shut down the container.
+
+Things you can do with Docker:
+
+- `docker compose start` to start the containers (application and database). The containers will not start automatically when you restart your computer, as this thing was made to not be in your way
+- `docker compose stop` to stop the containers, free the ports, but keep your changes in place
+- `docker compose down` to wipe the containers from existence. This will also wipe your changes, so push them first or loose them forever
+- `docker compose up -d` to spin up the container, or recreate them if they were already there
+- `docker compose up -d --build` to spin up the container and rebuild the image. This is usually used if you changed the Dockerfile
+
+For more interesting powers, refer to the Docker documentation.
