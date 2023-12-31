@@ -1,5 +1,8 @@
 import { TestDataSource } from "../TestDataSource"
+import { Source } from "../adapters/Source"
 import { Transaction } from "./Transaction"
+import fs from "fs"
+import path from "path"
 
 describe("Transaction", () => {
   beforeAll(async () => {
@@ -26,5 +29,25 @@ describe("Transaction", () => {
       .getRawOne()
 
     expect(rawTransaction.value).toBe(4269)
+  })
+
+  it("should interpret CSV files with bank data", async () => {
+    const fileContent = fs.readFileSync(
+      path.join(__dirname, "../mockData/bank.csv"),
+      "utf8",
+    )
+
+    const result = await Transaction.importFile(fileContent, Source.BANK)
+    expect(result.errors).toEqual([])
+  })
+
+  it("should interpret CSV files with PayPal data", async () => {
+    const fileContent = fs.readFileSync(
+      path.join(__dirname, "../mockData/paypal.csv"),
+      "utf8",
+    )
+
+    const result = await Transaction.importFile(fileContent, Source.PAYPAL)
+    expect(result.errors).toEqual([])
   })
 })

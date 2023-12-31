@@ -1,6 +1,22 @@
 import { Transaction } from "../models/Transaction"
-import { Adapter, Source } from "./Adapter"
+import { Adapter } from "./Adapter"
+import { Source } from "./Source"
 import { dateFromItalianString } from "./dateFromItalianString"
+
+export enum BankAdapterErrorType {
+  INVALID_ROW,
+  INVALID_DATE,
+  NO_VALUE,
+}
+
+export class BankAdapterError extends Error {
+  public readonly type: BankAdapterErrorType
+
+  constructor(type: BankAdapterErrorType) {
+    super("invalid bank transaction format")
+    this.type = type
+  }
+}
 
 export class BankAdapter extends Adapter {
   public override readonly name = Source.BANK
@@ -14,18 +30,21 @@ export class BankAdapter extends Adapter {
       typeof outbound === "undefined" ||
       typeof description === "undefined"
     ) {
-      throw new EvalError(
-        "malformed bank transaction: invalid count of raw elements",
-      )
+      throw new BankAdapterError(BankAdapterErrorType.INVALID_ROW)
     }
 
-    const date = dateFromItalianString(dateString)
+    const date = (() => {
+      try {
+        return dateFromItalianString(dateString)
+      } catch (e) {
+        throw new BankAdapterError(BankAdapterErrorType.INVALID_DATE)
+      }
+    })()
+
     const valueString = inbound !== "" ? inbound : outbound
 
     if (typeof valueString === "undefined") {
-      throw new EvalError(
-        "malformed bank transaction: no value, either inbound or outbound",
-      )
+      throw new BankAdapterError(BankAdapterErrorType.NO_VALUE)
     }
 
     const value = parseFloat(valueString)

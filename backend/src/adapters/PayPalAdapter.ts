@@ -1,5 +1,6 @@
 import { Transaction } from "../models/Transaction"
-import { Adapter, Source } from "./Adapter"
+import { Adapter } from "./Adapter"
+import { Source } from "./Source"
 import { dateFromItalianString } from "./dateFromItalianString"
 
 export class PayPalAdapter extends Adapter {
