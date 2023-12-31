@@ -4,7 +4,7 @@ import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from "typeorm"
 @Entity()
 export class Category extends BaseEntity {
   @PrimaryGeneratedColumn("uuid")
-  public id?: string
+  public id!: string
 
   @Column()
   @IsNotEmpty()

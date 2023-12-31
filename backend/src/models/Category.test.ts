@@ -6,6 +6,10 @@ describe("Category", () => {
     await TestDataSource.initialize()
   })
 
+  afterAll(async () => {
+    await TestDataSource.destroy()
+  })
+
   describe("creation", () => {
     it("should work with minimal data", async () => {
       const category = await Category.create({

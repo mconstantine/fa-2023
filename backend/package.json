@@ -6,7 +6,7 @@
   "scripts": {
     "start": "nodemon --watch \"./src/**\" --ext \"ts, json\" --ignore \"./src/**/*.test.ts\" --exec \"ts-node --swc ./src/index.ts\"",
     "build": "tsc",
-    "test": "jest",
+    "test": "jest --runInBand",
     "typeorm": "typeorm-ts-node-commonjs",
     "migration:generate": "f() { typeorm-ts-node-commonjs migration:generate -d ./src/AppDataSource.ts \"./src/migrations/$@\"; }; f",
     "migration:run": "typeorm-ts-node-commonjs migration:run -d ./src/AppDataSource.ts",
