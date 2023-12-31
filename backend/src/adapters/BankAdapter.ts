@@ -1,8 +1,8 @@
 import { Transaction } from "../models/Transaction"
-import { Adapter } from "./Adapter"
+import { Adapter, Source } from "./Adapter"
 
 export class BankAdapter extends Adapter {
-  public override readonly name = "bank"
+  public override readonly name = Source.BANK
 
   public static override fromString(input: string): Transaction {
     const [, dateString, description, inbound, outbound] = input.split(";")
