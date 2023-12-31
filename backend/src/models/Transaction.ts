@@ -31,6 +31,9 @@ export class Transaction extends BaseEntity {
   })
   public value!: number
 
+  @Column("date")
+  public date!: Date
+
   @ManyToOne(() => Category, {
     nullable: true,
     onDelete: "SET NULL",

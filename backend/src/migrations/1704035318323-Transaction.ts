@@ -1,11 +1,11 @@
 import { type MigrationInterface, type QueryRunner } from "typeorm"
 
-export class Transaction1704028069534 implements MigrationInterface {
-  name = "Transaction1704028069534"
+export class Transaction1704035318323 implements MigrationInterface {
+  name = "Transaction1704035318323"
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `CREATE TABLE "transaction" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "description" character varying NOT NULL, "value" integer NOT NULL, "categoryId" uuid, CONSTRAINT "PK_89eadb93a89810556e1cbcd6ab9" PRIMARY KEY ("id"))`,
+      `CREATE TABLE "transaction" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "description" character varying NOT NULL, "value" integer NOT NULL, "date" date NOT NULL, "categoryId" uuid, CONSTRAINT "PK_89eadb93a89810556e1cbcd6ab9" PRIMARY KEY ("id"))`,
     )
 
     await queryRunner.query(

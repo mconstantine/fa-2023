@@ -8,6 +8,7 @@ export const TestDataSource = new DataSource({
   url: "postgres://postgres:postgres@db:5432/fa_2023_test",
   entities: [Category, Transaction],
   migrations: [],
+  useUTC: true,
   synchronize: true,
   dropSchema: true,
 })

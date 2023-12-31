@@ -7,4 +7,5 @@ export const AppDataSource = new DataSource({
   url: "postgres://postgres:postgres@db:5432/fa_2023",
   entities: [Category, Transaction],
   migrations: ["./src/migrations/*.ts"],
+  useUTC: true,
 })
