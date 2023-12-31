@@ -1,10 +1,8 @@
-import { before, describe, it } from "node:test"
-import { Category } from "./Category"
-import assert from "node:assert"
 import { TestDataSource } from "../TestDataSource"
+import { Category } from "./Category"
 
 describe("Category", () => {
-  before(async () => {
+  beforeAll(async () => {
     await TestDataSource.initialize()
   })
 
@@ -14,8 +12,8 @@ describe("Category", () => {
         name: "Category creation test minimal data",
       }).save()
 
-      assert.strictEqual(category.name, "Category creation test minimal data")
-      assert.deepStrictEqual(category.keywords, [])
+      expect(category.name).toBe("Category creation test minimal data")
+      expect(category.keywords).toEqual([])
     })
 
     it("should work with empty array of keywords", async () => {
@@ -24,7 +22,7 @@ describe("Category", () => {
         keywords: [],
       }).save()
 
-      assert.deepStrictEqual(category.keywords, [])
+      expect(category.keywords).toEqual([])
     })
 
     it("should work with keywords", async () => {
@@ -33,7 +31,7 @@ describe("Category", () => {
         keywords: ["some", "keywords"],
       }).save()
 
-      assert.deepStrictEqual(category.keywords, ["some", "keywords"])
+      expect(category.keywords).toEqual(["some", "keywords"])
     })
   })
 })

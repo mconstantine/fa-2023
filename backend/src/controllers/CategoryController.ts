@@ -13,8 +13,7 @@ import type { DeepPartial } from "typeorm"
 
 class CategoryCreationBody {
   @IsNotEmpty()
-  // @ts-expect-error doesn't need initialization
-  public name: string
+  public name!: string
 
   @IsArray()
   @IsOptional()
@@ -30,8 +29,7 @@ class CategoryCreationBody {
 
 class CategoryUpdateBody extends CategoryCreationBody {
   @IsUUID()
-  // @ts-expect-error doesn't need initialization
-  public id: string
+  public id!: string
 
   override toCategory(): Omit<DeepPartial<Category>, "id"> & { id: string } {
     return {

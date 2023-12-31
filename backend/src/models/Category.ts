@@ -8,10 +8,8 @@ export class Category extends BaseEntity {
 
   @Column()
   @IsNotEmpty()
-  // @ts-expect-error doesn't need initialization
-  public name: string
+  public name!: string
 
   @Column({ type: "simple-array", default: "" })
-  // @ts-expect-error doesn't need initialization
-  public keywords: string[]
+  public keywords!: string[]
 }
