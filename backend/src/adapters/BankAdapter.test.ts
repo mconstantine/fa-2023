@@ -13,7 +13,7 @@ describe("BankAdapter", () => {
   describe("parsing a row", () => {
     it("should work for inbound money", () => {
       const row = "15/01/2020;16/01/2020;Inbound money test;42,00;;EUR"
-      const result = BankAdapter.fromString(row)
+      const result = BankAdapter.fromString(row).unsafeGetValue()
 
       expect(result.description).toBe("Inbound money test")
       expect(result.value).toBe(42.0)
@@ -22,7 +22,7 @@ describe("BankAdapter", () => {
 
     it("should work for outbound money", () => {
       const row = "16/01/2020;17/01/2020;Outbound money test;;-42,00;EUR"
-      const result = BankAdapter.fromString(row)
+      const result = BankAdapter.fromString(row).unsafeGetValue()
 
       expect(result.description).toBe("Outbound money test")
       expect(result.value).toBe(-42.0)
@@ -31,7 +31,7 @@ describe("BankAdapter", () => {
 
     it("should work with no accounting date", () => {
       const row = ";18/01/2020;No accounting date test;;-42,00;EUR"
-      const result = BankAdapter.fromString(row)
+      const result = BankAdapter.fromString(row).unsafeGetValue()
 
       expect(result.description).toBe("No accounting date test")
       expect(result.value).toBe(-42.0)

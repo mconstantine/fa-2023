@@ -9,11 +9,7 @@ import {
 } from "typeorm"
 import { Category } from "./Category"
 import { Source } from "../adapters/Source"
-import {
-  BankAdapter,
-  BankAdapterError,
-  BankAdapterErrorType,
-} from "../adapters/BankAdapter"
+import { BankAdapter } from "../adapters/BankAdapter"
 import { PayPalAdapter } from "../adapters/PayPalAdapter"
 
 interface ImportFileResults {
@@ -72,26 +68,16 @@ export class Transaction extends BaseEntity {
       .filter((row) => row !== "")
       .reduce<ImportFileResults>(
         ({ result, errors }, row) => {
-          try {
-            result.push(adapter.fromString(row))
-          } catch (e) {
-            if (e instanceof BankAdapterError) {
-              errors.push(
-                (() => {
-                  switch (e.type) {
-                    case BankAdapterErrorType.INVALID_ROW:
-                      return `Inavlid row: ${row}`
-                    case BankAdapterErrorType.INVALID_DATE:
-                      return `Invalid date: ${row}`
-                    case BankAdapterErrorType.NO_VALUE:
-                      return `No value: ${row}`
-                  }
-                })(),
-              )
-            } else {
-              throw e
-            }
-          }
+          const importResult = adapter.fromString(row)
+
+          importResult.match(
+            (error) => {
+              errors.push(`${error.type}: ${error.subject}`)
+            },
+            (transaction) => {
+              result.push(transaction)
+            },
+          )
 
           return { result, errors }
         },

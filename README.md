@@ -18,7 +18,7 @@ Once you do that, you can clone the repo, `cd` into it, and run:
 - `docker volume create fa_2023_db` to create a local volume for your data, so destroying the container won't make you loose it. Deleting the volume will though, in case you _want_ to loose your data
 - `docker compose up -d --build` to spin up all the things
 
-Once it's done, you can click on your Docker tab in VSCode, find the `fa-2023` container, right click on it and select "Attach Visual Studio Code".
+Once it's done, you can click on your Docker tab in VSCode, find the `fa-2023` container, right click on it and select "Attach Visual Studio Code". Open the `app` directory.
 
 Once inside the container, VSCode should prompt you to install all required extensions inside the container. These will keep the coding standards consistent for you.
 

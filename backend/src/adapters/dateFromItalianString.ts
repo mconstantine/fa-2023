@@ -1,4 +1,6 @@
-export function dateFromItalianString(input: string): Date {
+import { Result } from "../Result"
+
+export function dateFromItalianString(input: string): Result<void, Date> {
   const [dayString, monthPlusOneString, yearString] = input.split("/")
 
   if (
@@ -6,12 +8,14 @@ export function dateFromItalianString(input: string): Date {
     typeof monthPlusOneString === "undefined" ||
     typeof yearString === "undefined"
   ) {
-    throw new EvalError("malformed bank transaction: invalid value date field")
+    return Result.fromFailure(undefined)
   }
 
-  return new Date(
-    parseInt(yearString),
-    parseInt(monthPlusOneString) - 1,
-    parseInt(dayString),
+  return Result.fromSuccess(
+    new Date(
+      parseInt(yearString),
+      parseInt(monthPlusOneString) - 1,
+      parseInt(dayString),
+    ),
   )
 }

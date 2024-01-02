@@ -1,27 +1,15 @@
+import { Result } from "../Result"
 import { Transaction } from "../models/Transaction"
-import { Adapter } from "./Adapter"
+import { Adapter, ImportError, ImportErrorType } from "./Adapter"
 import { Source } from "./Source"
 import { dateFromItalianString } from "./dateFromItalianString"
-
-export enum BankAdapterErrorType {
-  INVALID_ROW,
-  INVALID_DATE,
-  NO_VALUE,
-}
-
-export class BankAdapterError extends Error {
-  public readonly type: BankAdapterErrorType
-
-  constructor(type: BankAdapterErrorType) {
-    super("invalid bank transaction format")
-    this.type = type
-  }
-}
 
 export class BankAdapter extends Adapter {
   public override readonly name = Source.BANK
 
-  public static override fromString(input: string): Transaction {
+  public static override fromString(
+    input: string,
+  ): Result<ImportError, Transaction> {
     const [, dateString, description, inbound, outbound] = input.split(";")
 
     if (
@@ -30,29 +18,37 @@ export class BankAdapter extends Adapter {
       typeof outbound === "undefined" ||
       typeof description === "undefined"
     ) {
-      throw new BankAdapterError(BankAdapterErrorType.INVALID_ROW)
+      return Result.fromFailure(
+        new ImportError(ImportErrorType.INVALID_ROW, input),
+      )
     }
 
-    const date = (() => {
-      try {
-        return dateFromItalianString(dateString)
-      } catch (e) {
-        throw new BankAdapterError(BankAdapterErrorType.INVALID_DATE)
-      }
-    })()
+    const dateResult = dateFromItalianString(dateString)
 
-    const valueString = inbound !== "" ? inbound : outbound
+    return dateResult.match<Result<ImportError, Transaction>>(
+      () =>
+        Result.fromFailure(
+          new ImportError(ImportErrorType.INVALID_DATE, dateString),
+        ),
+      (date) => {
+        const valueString = inbound !== "" ? inbound : outbound
 
-    if (typeof valueString === "undefined") {
-      throw new BankAdapterError(BankAdapterErrorType.NO_VALUE)
-    }
+        if (typeof valueString === "undefined") {
+          return Result.fromFailure(
+            new ImportError(ImportErrorType.NO_VALUE, input),
+          )
+        }
 
-    const value = parseFloat(valueString)
+        const value = parseFloat(valueString)
 
-    return Transaction.create({
-      description,
-      value,
-      date,
-    })
+        return Result.fromSuccess(
+          Transaction.create({
+            description,
+            value,
+            date,
+          }),
+        )
+      },
+    )
   }
 }

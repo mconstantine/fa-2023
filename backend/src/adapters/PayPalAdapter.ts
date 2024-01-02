@@ -1,12 +1,15 @@
+import { Result } from "../Result"
 import { Transaction } from "../models/Transaction"
-import { Adapter } from "./Adapter"
+import { Adapter, ImportError, ImportErrorType } from "./Adapter"
 import { Source } from "./Source"
 import { dateFromItalianString } from "./dateFromItalianString"
 
 export class PayPalAdapter extends Adapter {
   public override readonly name = Source.PAYPAL
 
-  public static override fromString(input: string): Transaction {
+  public static override fromString(
+    input: string,
+  ): Result<ImportError, Transaction> {
     const [
       dateString,
       ,
@@ -29,25 +32,37 @@ export class PayPalAdapter extends Adapter {
       typeof email === "undefined" ||
       typeof receiverName === "undefined"
     ) {
-      throw new EvalError("invalid PayPal transaction: wrong elements count")
+      return Result.fromFailure(
+        new ImportError(ImportErrorType.INVALID_ROW, input),
+      )
     }
 
-    const date = dateFromItalianString(dateString)
+    const dateResult = dateFromItalianString(dateString)
 
-    const description = (() => {
-      if (email !== "" || receiverName !== "") {
-        return `${receiverName}<${email}>: ${transactionDescription}`
-      } else {
-        return transactionDescription
-      }
-    })()
+    return dateResult.match<Result<ImportError, Transaction>>(
+      () =>
+        Result.fromFailure(
+          new ImportError(ImportErrorType.INVALID_DATE, dateString),
+        ),
+      (date) => {
+        const description = (() => {
+          if (email !== "" || receiverName !== "") {
+            return `${receiverName}<${email}>: ${transactionDescription}`
+          } else {
+            return transactionDescription
+          }
+        })()
 
-    const value = parseInt(valueString)
+        const value = parseInt(valueString)
 
-    return Transaction.create({
-      description,
-      value,
-      date,
-    })
+        return Result.fromSuccess(
+          Transaction.create({
+            description,
+            value,
+            date,
+          }),
+        )
+      },
+    )
   }
 }
