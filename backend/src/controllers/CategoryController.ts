@@ -60,7 +60,7 @@ export class CategoryController {
   async update(@Body() body: CategoryUpdateBody): Promise<Category> {
     const data = body.toCategory()
     const category = await Category.findOneByOrFail({ id: data.id })
-    return await Category.merge(category, data).save()
+    return await Category.merge<Category>(category, data).save()
   }
 
   @Delete("/")

@@ -3,12 +3,13 @@ import { createExpressServer } from "routing-controllers"
 import { CategoryController } from "./controllers/CategoryController"
 import { AppDataSource } from "./AppDataSource"
 import { ErrorHandler } from "./ErrorHandler"
+import { TransactionController } from "./controllers/TransactionController"
 
 AppDataSource.initialize()
   .then(() => {
     const app = createExpressServer({
       routePrefix: "/api",
-      controllers: [CategoryController],
+      controllers: [CategoryController, TransactionController],
       defaultErrorHandler: false,
       middlewares: [ErrorHandler],
       validation: true,

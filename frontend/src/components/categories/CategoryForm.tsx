@@ -43,7 +43,6 @@ export default function CategoryForm(props: Props) {
         >
           <NonBlankInput
             {...inputProps("name", null)}
-            name="name"
             label="Name"
             errorMessageWhenBlank="The category name cannot be blank"
             fieldProps={{ sx: { mb: 1.5 } }}
@@ -51,7 +50,6 @@ export default function CategoryForm(props: Props) {
           <StringArrayInput
             {...inputProps("keywords", [])}
             title="Keywords"
-            name="keywords"
             label="Keyword"
             errorMessageWhenBlank="A keyword cannot be blank"
           />

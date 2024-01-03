@@ -17,6 +17,7 @@ interface UseFormOutput<T extends Record<string, unknown>> {
     key: K,
     defaultValue: D,
   ): {
+    name: K
     value: T[K] | D
     onChange(value: T[K]): void
   }
@@ -33,6 +34,7 @@ export function useForm<T extends Record<string, unknown>>(
   return {
     inputProps(key, defaultValue) {
       return {
+        name: key,
         value: state[key] ?? defaultValue,
         onChange: (value) =>
           setState((state) => ({

@@ -4,12 +4,35 @@ import { ThemeProvider } from "./contexts/ThemeContext"
 import CategoriesPage from "./components/categories/CategoriesPage"
 import { RouterProvider, createBrowserRouter } from "react-router-dom"
 import ErrorPage from "./ErrorPage"
+import TransactionsPage from "./components/transactions/TransactionsPage"
+import { PropsWithChildren } from "react"
+
+function PageWithHeader(props: PropsWithChildren) {
+  return (
+    <>
+      <Header />
+      {props.children}
+    </>
+  )
+}
 
 const router = createBrowserRouter(
   [
     {
       path: "/",
-      element: <CategoriesPage />,
+      element: (
+        <PageWithHeader>
+          <TransactionsPage />
+        </PageWithHeader>
+      ),
+    },
+    {
+      path: "/categories",
+      element: (
+        <PageWithHeader>
+          <CategoriesPage />
+        </PageWithHeader>
+      ),
     },
   ].map((route) => ({
     ...route,
@@ -21,7 +44,6 @@ function App() {
   return (
     <ThemeProvider>
       <CssBaseline />
-      <Header />
       <RouterProvider router={router} />
     </ThemeProvider>
   )

@@ -49,10 +49,7 @@ export class Transaction extends BaseEntity {
   })
   public category: Relation<Category> | null = null
 
-  static async importFile(
-    csvFileContent: string,
-    source: Source,
-  ): Promise<ImportFileResults> {
+  static importFile(csvFileContent: string, source: Source): ImportFileResults {
     const adapter = (() => {
       switch (source) {
         case Source.BANK:
