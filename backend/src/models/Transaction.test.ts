@@ -37,8 +37,8 @@ describe("Transaction", () => {
       "utf8",
     )
 
-    const result = await Transaction.importFile(fileContent, Source.BANK)
-    expect(result.errors).toEqual([])
+    const result = Transaction.importFile(fileContent, Source.BANK)
+    expect(result.isSuccessful()).toBe(true)
   })
 
   it("should interpret CSV files with PayPal data", async () => {
@@ -47,7 +47,7 @@ describe("Transaction", () => {
       "utf8",
     )
 
-    const result = await Transaction.importFile(fileContent, Source.PAYPAL)
-    expect(result.errors).toEqual([])
+    const result = Transaction.importFile(fileContent, Source.PAYPAL)
+    expect(result.isSuccessful()).toBe(true)
   })
 })
