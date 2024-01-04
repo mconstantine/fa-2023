@@ -7,8 +7,8 @@ import {
 } from "@mui/material"
 import { useForm } from "../../hooks/useForm"
 import Form from "../forms/Form"
-import { NetworkResponse } from "../../network/NetworkResponse"
 import FileInput from "../forms/inputs/FileInput"
+import { useFilesUpload } from "../../hooks/network"
 
 export interface ImportFormData extends Record<string, unknown> {
   bank: File
@@ -22,13 +22,22 @@ interface Props {
 }
 
 export default function ImportTransactionsDialog(props: Props) {
+  const [uploadResponse, uploadFiles] = useFilesUpload(
+    "/transactions/import",
+    "files",
+  )
+
   const { inputProps, submit, isValid } = useForm<ImportFormData>(
     {
       bank: null,
       paypal: null,
     },
     (data) => {
-      console.log(data)
+      uploadFiles([data.bank, data.paypal]).then((result) => {
+        if (result) {
+          props.onClose()
+        }
+      })
     },
   )
 
@@ -56,8 +65,9 @@ export default function ImportTransactionsDialog(props: Props) {
           <Form
             onSubmit={submit}
             isValid={isValid}
-            networkResponse={new NetworkResponse()}
+            networkResponse={uploadResponse}
             submitButtonLabel="Import"
+            cancelAction={props.onClose}
           >
             <Stack justifyContent="start" spacing={1.5}>
               <FileInput

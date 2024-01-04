@@ -12,20 +12,25 @@ interface ApiError {
   message: string
 }
 
-async function sendNetworkRequest<I, O>(
+function makeNetworkRequest<I>(
   method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE",
-  path: string,
   data?: I,
+): RequestInit {
+  return {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    ...(typeof data === "undefined" ? {} : { body: JSON.stringify(data) }),
+  }
+}
+
+async function sendNetworkRequest<O>(
+  path: string,
+  request: RequestInit,
 ): Promise<NetworkResponse<O>> {
   try {
-    const response = await window.fetch(`${apiUrl}/api${path}`, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      ...(typeof data === "undefined" ? {} : { body: JSON.stringify(data) }),
-    })
-
+    const response = await window.fetch(`${apiUrl}/api${path}`, request)
     const status = response.status
 
     try {
@@ -65,7 +70,7 @@ export function useQuery<O>(path: string): UseQueryOutput<O> {
       }),
     )
 
-    sendNetworkRequest<void, O>("GET", path).then(setResponse)
+    sendNetworkRequest<O>(path, makeNetworkRequest("GET")).then(setResponse)
   }, [path])
 
   return [
@@ -99,15 +104,50 @@ export function useCommand<I, O>(
     response,
     async (data) => {
       setResponse((response) => response.load())
-      const response = await sendNetworkRequest<I, O>(method, path, data)
-      setResponse(response)
 
-      return response.match({
-        whenIdle: () => null,
-        whenLoading: () => null,
-        whenFailed: () => null,
-        whenSuccessful: (response) => response.data,
+      const response = await sendNetworkRequest<O>(
+        path,
+        makeNetworkRequest(method, data),
+      )
+
+      setResponse(response)
+      return response.getOrElse(null)
+    },
+  ]
+}
+
+type UseFilesUploadOutput = [
+  response: NetworkResponse<void>,
+  sendRequest: (files: File[]) => Promise<boolean>,
+]
+
+export function useFilesUpload(
+  path: string,
+  paramName: string,
+): UseFilesUploadOutput {
+  const [response, setResponse] = useState<NetworkResponse<void>>(
+    new NetworkResponse(),
+  )
+
+  return [
+    response,
+    async (files) => {
+      setResponse((response) => response.load())
+
+      const data = new FormData()
+
+      files.forEach((file) => {
+        data.append(paramName, file)
       })
+
+      const request: RequestInit = {
+        method: "POST",
+        body: data,
+      }
+
+      const response = await sendNetworkRequest<void>(path, request)
+      setResponse(response)
+      return response.isSuccessful()
     },
   ]
 }

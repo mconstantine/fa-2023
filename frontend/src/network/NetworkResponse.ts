@@ -40,12 +40,12 @@ export class NetworkResponse<O> {
     }
   }
 
-  public getOrElse(defaultValue: O): O {
+  public getOrElse<D = O>(defaultValue: D): O | D {
     return this.match({
       whenIdle: () => defaultValue,
       whenLoading: () => defaultValue,
       whenFailed: () => defaultValue,
-      whenSuccessful: (response) => response.data,
+      whenSuccessful: (response) => response.data as O | D,
     })
   }
 
