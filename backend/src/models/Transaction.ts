@@ -11,10 +11,12 @@ import { Category } from "./Category"
 import { Source } from "../adapters/Source"
 import { BankAdapter } from "../adapters/BankAdapter"
 import { PayPalAdapter } from "../adapters/PayPalAdapter"
+import { type ImportError } from "../adapters/Adapter"
+import { Result } from "../Result"
 
 interface ImportFileResults {
-  result: Transaction[]
-  errors: string[]
+  transactions: Transaction[]
+  errors: ImportError[]
 }
 
 @Entity()
@@ -49,7 +51,10 @@ export class Transaction extends BaseEntity {
   })
   public category: Relation<Category> | null = null
 
-  static importFile(csvFileContent: string, source: Source): ImportFileResults {
+  static importFile(
+    csvFileContent: string,
+    source: Source,
+  ): Result<ImportError[], Transaction[]> {
     const adapter = (() => {
       switch (source) {
         case Source.BANK:
@@ -59,26 +64,32 @@ export class Transaction extends BaseEntity {
       }
     })()
 
-    return csvFileContent
+    const { transactions, errors } = csvFileContent
       .split("\n")
       .slice(1)
       .filter((row) => row !== "")
       .reduce<ImportFileResults>(
-        ({ result, errors }, row) => {
+        ({ transactions, errors }, row) => {
           const importResult = adapter.fromString(row)
 
           importResult.match(
             (error) => {
-              errors.push(`${error.type}: ${error.subject}`)
+              errors.push(error)
             },
             (transaction) => {
-              result.push(transaction)
+              transactions.push(transaction)
             },
           )
 
-          return { result, errors }
+          return { transactions, errors }
         },
-        { result: [], errors: [] },
+        { transactions: [], errors: [] },
       )
+
+    if (errors.length > 0) {
+      return Result.fromFailure(errors)
+    } else {
+      return Result.fromSuccess(transactions)
+    }
   }
 }

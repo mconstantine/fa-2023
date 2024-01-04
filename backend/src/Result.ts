@@ -1,11 +1,16 @@
+type MergedResult<E, Map extends Record<string, Result<E, unknown>>> = {
+  [key in keyof Map]: Map[key] extends Result<E, infer R> ? R : never
+}
+
 export class Result<E, A> {
   static fromFailure(): FailedResult<void>
   static fromFailure<E>(error: E): FailedResult<E>
-  static fromFailure<E>(error?: E): FailedResult<E> {
+  static fromFailure<E, A = unknown>(error?: E): Result<E, A> {
     return new FailedResult(error) as FailedResult<E>
   }
 
-  static fromSuccess<A>(value: A): SuccessfulResult<A> {
+  static fromSuccess<A>(value: A): SuccessfulResult<A>
+  static fromSuccess<A, E = unknown>(value: A): Result<E, A> {
     return new SuccessfulResult(value)
   }
 
@@ -28,6 +33,38 @@ export class Result<E, A> {
     } else {
       throw new Error("Impossible state from matching Result")
     }
+  }
+
+  public flatMap<B>(fn: (value: A) => Result<E, B>): Result<E, B> {
+    return this.match(
+      (error) => Result.fromFailure(error),
+      (value) => fn(value),
+    )
+  }
+
+  public map<B>(fn: (value: A) => B): Result<E, B> {
+    return this.flatMap((value) => Result.fromSuccess(fn(value)))
+  }
+
+  public static merge<E, T extends Record<string, Result<E, unknown>>>(
+    map: T,
+  ): Result<E, MergedResult<E, T>> {
+    return Object.entries(map).reduce<Result<E, MergedResult<E, T>>>(
+      (acc, [key, result]) => {
+        return acc.flatMap((accValue) =>
+          result.match(
+            (error) => Result.fromFailure(error),
+            (value) =>
+              Result.fromSuccess({
+                ...accValue,
+                [key]: value,
+              }) as Result<E, MergedResult<E, T>>,
+          ),
+        )
+      },
+      // eslint-disable-next-line @typescript-eslint/prefer-reduce-type-parameter
+      Result.fromSuccess({}) as unknown as Result<E, MergedResult<E, T>>,
+    )
   }
 
   unsafeGetError(): E {

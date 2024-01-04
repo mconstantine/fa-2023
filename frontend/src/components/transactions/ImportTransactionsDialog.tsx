@@ -9,6 +9,7 @@ import { useForm } from "../../hooks/useForm"
 import Form from "../forms/Form"
 import FileInput from "../forms/inputs/FileInput"
 import { useFilesUpload } from "../../hooks/network"
+import { NetworkResponse } from "../../network/NetworkResponse"
 
 export interface ImportFormData extends Record<string, unknown> {
   bank: File
@@ -22,7 +23,7 @@ interface Props {
 }
 
 export default function ImportTransactionsDialog(props: Props) {
-  const [uploadResponse, uploadFiles] = useFilesUpload(
+  const [uploadResponse, uploadFiles] = useFilesUpload<{ errors: string[] }>(
     "/transactions/import",
     "files",
   )
@@ -34,7 +35,7 @@ export default function ImportTransactionsDialog(props: Props) {
     },
     (data) => {
       uploadFiles([data.bank, data.paypal]).then((result) => {
-        if (result) {
+        if (result?.errors.length === 0) {
           props.onClose()
         }
       })
@@ -52,6 +53,17 @@ export default function ImportTransactionsDialog(props: Props) {
     }
   }
 
+  const parsedUploadResponse = uploadResponse.flatMap((data) => {
+    if (data.errors.length > 0) {
+      return NetworkResponse.fromFailure(
+        400,
+        `The server raised ${data.errors.length} errors. See the network response for details.`,
+      )
+    } else {
+      return NetworkResponse.fromSuccess()
+    }
+  })
+
   return (
     <Dialog open={props.isOpen} onClose={props.onClose}>
       <DialogTitle>Import transactions</DialogTitle>
@@ -65,7 +77,7 @@ export default function ImportTransactionsDialog(props: Props) {
           <Form
             onSubmit={submit}
             isValid={isValid}
-            networkResponse={uploadResponse}
+            networkResponse={parsedUploadResponse}
             submitButtonLabel="Import"
             cancelAction={props.onClose}
           >

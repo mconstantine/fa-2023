@@ -7,8 +7,10 @@ export class NetworkResponse<O> {
     return new FailedResponse(status, message)
   }
 
-  static fromSuccess<O>(data: O): SuccessfulResponse<O> {
-    return new SuccessfulResponse(data)
+  static fromSuccess(): SuccessfulResponse<void>
+  static fromSuccess<O>(data: O): SuccessfulResponse<O>
+  static fromSuccess<O>(data?: O): SuccessfulResponse<O> {
+    return new SuccessfulResponse(data as O)
   }
 
   public isLoading(): this is LoadingResponse<O> {
@@ -49,15 +51,18 @@ export class NetworkResponse<O> {
     })
   }
 
-  public map<T>(mapFn: (data: O) => T): NetworkResponse<T> {
+  public flatMap<T>(fn: (data: O) => NetworkResponse<T>): NetworkResponse<T> {
     return this.match({
       whenIdle: () => new NetworkResponse(),
       whenLoading: () => new LoadingResponse(),
       whenFailed: (response) =>
         new FailedResponse<T>(response.status, response.message),
-      whenSuccessful: (response) =>
-        new SuccessfulResponse(mapFn(response.data)),
+      whenSuccessful: (response) => fn(response.data),
     })
+  }
+
+  public map<T>(fn: (data: O) => T): NetworkResponse<T> {
+    return this.flatMap((data) => new SuccessfulResponse(fn(data)))
   }
 }
 

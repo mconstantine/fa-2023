@@ -116,16 +116,16 @@ export function useCommand<I, O>(
   ]
 }
 
-type UseFilesUploadOutput = [
-  response: NetworkResponse<void>,
-  sendRequest: (files: File[]) => Promise<boolean>,
+type UseFilesUploadOutput<T> = [
+  response: NetworkResponse<T>,
+  sendRequest: (files: File[]) => Promise<T | null>,
 ]
 
-export function useFilesUpload(
+export function useFilesUpload<T>(
   path: string,
   paramName: string,
-): UseFilesUploadOutput {
-  const [response, setResponse] = useState<NetworkResponse<void>>(
+): UseFilesUploadOutput<T> {
+  const [response, setResponse] = useState<NetworkResponse<T>>(
     new NetworkResponse(),
   )
 
@@ -145,9 +145,9 @@ export function useFilesUpload(
         body: data,
       }
 
-      const response = await sendNetworkRequest<void>(path, request)
+      const response = await sendNetworkRequest<T>(path, request)
       setResponse(response)
-      return response.isSuccessful()
+      return response.getOrElse(null)
     },
   ]
 }
