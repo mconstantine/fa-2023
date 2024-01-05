@@ -39,7 +39,7 @@ export class BankAdapter extends Adapter {
           )
         }
 
-        const value = parseFloat(valueString)
+        const value = parseFloat(valueString.replace(",", "."))
 
         return Result.fromSuccess(
           Transaction.create({

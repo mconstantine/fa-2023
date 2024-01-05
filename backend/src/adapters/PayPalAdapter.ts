@@ -53,7 +53,7 @@ export class PayPalAdapter extends Adapter {
           }
         })()
 
-        const value = parseInt(valueString)
+        const value = parseFloat(valueString.replace(",", "."))
 
         return Result.fromSuccess(
           Transaction.create({

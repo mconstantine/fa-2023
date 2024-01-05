@@ -8,6 +8,7 @@ import { Transaction } from "../models/Transaction"
 import { Source } from "../adapters/Source"
 import { Result } from "../Result"
 import { type ImportError } from "../adapters/Adapter"
+import { MoreThanOrEqual, LessThanOrEqual, And } from "typeorm"
 
 interface ImportResponse {
   errors: string[]
@@ -72,8 +73,77 @@ export class TransactionController {
     }
 
     const result = importResult.unsafeGetValue()
-    console.log(result)
+    const mergedTransactions =
+      TransactionController.mergeBankAndPayPalTransactions(
+        result.bank,
+        result.paypal,
+      )
 
+    if (mergedTransactions.length > 0) {
+      const allDatesTimestamps = mergedTransactions.map((t) => t.date.getTime())
+      const minDateTimestamp = Math.min(...allDatesTimestamps)
+      const maxDateTimestamp = Math.max(...allDatesTimestamps)
+
+      const minDateSqlString = new Date(minDateTimestamp)
+        .toISOString()
+        .slice(0, 10)
+
+      const maxDateSqlString = new Date(maxDateTimestamp)
+        .toISOString()
+        .slice(0, 10)
+
+      await Transaction.createQueryBuilder()
+        .delete()
+        .where({
+          date: And(
+            MoreThanOrEqual(minDateSqlString),
+            LessThanOrEqual(maxDateSqlString),
+          ),
+        })
+        .execute()
+    }
+
+    await Transaction.insert(mergedTransactions)
     return { errors: [] }
+  }
+
+  public static mergeBankAndPayPalTransactions(
+    bankTransactions: Transaction[],
+    paypalTransactions: Transaction[],
+  ): Transaction[] {
+    const mutBankTransactions = bankTransactions.toSorted(
+      (a, b) => a.date.getTime() - b.date.getTime(),
+    )
+
+    const mutPayPalTransactions = paypalTransactions.toSorted(
+      (a, b) => b.date.getTime() - a.date.getTime(),
+    )
+
+    for (const [index, bankTransaction] of mutBankTransactions.entries()) {
+      if (bankTransaction.description.includes("PayPal")) {
+        const paypalTransactionIndex = mutPayPalTransactions.findIndex(
+          (paypalTransaction) =>
+            paypalTransaction.date.getTime() <=
+              bankTransaction.date.getTime() &&
+            paypalTransaction.value === bankTransaction.value,
+        )
+
+        if (paypalTransactionIndex >= 0) {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          mutBankTransactions[index]!.description =
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            mutPayPalTransactions[paypalTransactionIndex]!.description
+
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          mutBankTransactions[index]!.date =
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            mutPayPalTransactions[paypalTransactionIndex]!.date
+
+          mutPayPalTransactions.splice(paypalTransactionIndex, 1)
+        }
+      }
+    }
+
+    return mutBankTransactions
   }
 }
