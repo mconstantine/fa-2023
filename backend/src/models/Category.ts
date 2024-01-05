@@ -1,5 +1,13 @@
 import { IsNotEmpty } from "class-validator"
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from "typeorm"
+import {
+  BaseEntity,
+  Column,
+  Entity,
+  ManyToMany,
+  PrimaryGeneratedColumn,
+  Relation,
+} from "typeorm"
+import { Transaction } from "./Transaction"
 
 @Entity()
 export class Category extends BaseEntity {
@@ -12,4 +20,7 @@ export class Category extends BaseEntity {
 
   @Column({ type: "simple-array", default: "" })
   public keywords!: string[]
+
+  @ManyToMany(() => Transaction, (transaction) => transaction.categories)
+  public transactions!: Relation<Transaction[]>
 }

@@ -3,7 +3,8 @@ import {
   BaseEntity,
   Column,
   Entity,
-  ManyToOne,
+  JoinTable,
+  ManyToMany,
   PrimaryGeneratedColumn,
   type Relation,
 } from "typeorm"
@@ -44,12 +45,9 @@ export class Transaction extends BaseEntity {
   @Column("date")
   public date!: Date
 
-  @ManyToOne(() => Category, {
-    nullable: true,
-    onDelete: "SET NULL",
-    onUpdate: "NO ACTION",
-  })
-  public category: Relation<Category> | null = null
+  @ManyToMany(() => Category, (category) => category.transactions)
+  @JoinTable()
+  public categories!: Relation<Category[]>
 
   static importFile(
     csvFileContent: string,
