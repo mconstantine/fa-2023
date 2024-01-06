@@ -19,7 +19,7 @@ export interface ImportFormData extends Record<string, unknown> {
 interface Props {
   isOpen: boolean
   onClose(): void
-  onSubmit(data: ImportFormData): void
+  onSubmit(): void
 }
 
 export default function ImportTransactionsDialog(props: Props) {
@@ -36,7 +36,7 @@ export default function ImportTransactionsDialog(props: Props) {
     (data) => {
       uploadFiles([data.bank, data.paypal]).then((result) => {
         if (result?.errors.length === 0) {
-          props.onClose()
+          props.onSubmit()
         }
       })
     },

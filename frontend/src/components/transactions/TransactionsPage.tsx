@@ -1,14 +1,30 @@
 import { Button, Container, Paper, Stack, Typography } from "@mui/material"
 import { useState } from "react"
-import ImportTransactionsDialog, {
-  ImportFormData,
-} from "./ImportTransactionsDialog"
+import ImportTransactionsDialog from "./ImportTransactionsDialog"
+import { useQuery } from "../../hooks/network"
+import Query from "../Query"
+import { PaginatedResponse } from "../../globalDomain"
+import { FindTransactionsParams, Transaction } from "./domain"
+import TransactionsList from "./TransactionsList"
 
 export default function TransactionsPage() {
   const [isImportDialogOpen, setIsImportDialodOpen] = useState(false)
 
-  function onSubmit(data: ImportFormData): void {
-    console.log("TODO:", data)
+  const [params] = useState<FindTransactionsParams>({
+    startDate: new Date(
+      Date.UTC(new Date().getFullYear() - 1, 0, 1),
+    ).toISOString(),
+    endDate: new Date(Date.UTC(new Date().getFullYear(), 0, 1)).toISOString(),
+  })
+
+  const [transactions, , fetchTransactions] = useQuery<
+    FindTransactionsParams,
+    PaginatedResponse<Transaction>
+  >("/transactions", params)
+
+  function onSubmit(): void {
+    setIsImportDialodOpen(false)
+    fetchTransactions()
   }
 
   return (
@@ -28,6 +44,12 @@ export default function TransactionsPage() {
             Import transactions
           </Button>
         </Paper>
+        <Query
+          response={transactions}
+          render={([transactions]) => (
+            <TransactionsList transactions={transactions} />
+          )}
+        />
       </Stack>
       <ImportTransactionsDialog
         isOpen={isImportDialogOpen}

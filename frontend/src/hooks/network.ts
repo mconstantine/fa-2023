@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { NetworkResponse } from "../network/NetworkResponse"
 
 if (!("VITE_API_URL" in import.meta.env)) {
@@ -53,12 +53,44 @@ async function sendNetworkRequest<O>(
 type UseQueryOutput<O> = [
   response: NetworkResponse<O>,
   optimisticlyUpdate: (update: O | ((oldValue: O) => O)) => void,
+  refresh: () => void,
 ]
 
-export function useQuery<O>(path: string): UseQueryOutput<O> {
+export function useQuery<O>(path: string): UseQueryOutput<O>
+export function useQuery<I extends Record<string, string | undefined>, O>(
+  path: string,
+  query: I,
+): UseQueryOutput<O>
+export function useQuery<I extends Record<string, string | undefined>, O>(
+  path: string,
+  query?: I,
+): UseQueryOutput<O> {
   const [response, setResponse] = useState<NetworkResponse<O>>(
     new NetworkResponse<O>().load(),
   )
+
+  const sendQuery = useCallback((): Promise<void> => {
+    const queryString = (() => {
+      if (typeof query === "undefined") {
+        return ""
+      } else {
+        const params = new URLSearchParams()
+
+        Object.entries(query).forEach(([name, value]) => {
+          if (typeof value !== "undefined") {
+            params.append(name, value)
+          }
+        })
+
+        return "?" + params.toString()
+      }
+    })()
+
+    return sendNetworkRequest<O>(
+      path + queryString,
+      makeNetworkRequest("GET"),
+    ).then(setResponse)
+  }, [path, query])
 
   useEffect(() => {
     setResponse((state) =>
@@ -70,8 +102,8 @@ export function useQuery<O>(path: string): UseQueryOutput<O> {
       }),
     )
 
-    sendNetworkRequest<O>(path, makeNetworkRequest("GET")).then(setResponse)
-  }, [path])
+    sendQuery()
+  }, [sendQuery])
 
   return [
     response,
@@ -84,6 +116,7 @@ export function useQuery<O>(path: string): UseQueryOutput<O> {
         }
       })
     },
+    sendQuery,
   ]
 }
 

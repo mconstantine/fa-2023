@@ -1,21 +1,86 @@
 import {
+  Get,
   HttpError,
   JsonController,
   Post,
+  QueryParams,
   UploadedFiles,
 } from "routing-controllers"
 import { Transaction } from "../models/Transaction"
 import { Source } from "../adapters/Source"
 import { Result } from "../Result"
 import { type ImportError } from "../adapters/Adapter"
-import { MoreThanOrEqual, LessThanOrEqual, And } from "typeorm"
+import { MoreThanOrEqual, LessThanOrEqual, And, Like } from "typeorm"
+import { IsDateString, IsNotEmpty, IsOptional, IsString } from "class-validator"
 
 interface ImportResponse {
   errors: string[]
 }
 
+class FindQueryParams {
+  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
+  public query?: string
+
+  @IsOptional()
+  @IsDateString()
+  public startDate?: string
+
+  @IsOptional()
+  @IsDateString()
+  public endDate?: string
+}
+
 @JsonController("/transactions")
 export class TransactionController {
+  @Get("/")
+  public async find(
+    @QueryParams() params: FindQueryParams,
+  ): Promise<[Transaction[], number]> {
+    const query = params.query?.toLowerCase() ?? ""
+
+    const startTimeCondition =
+      typeof params.startDate !== "undefined"
+        ? MoreThanOrEqual(new Date(params.startDate))
+        : null
+
+    const endTimeCondition =
+      typeof params.endDate !== "undefined"
+        ? LessThanOrEqual(new Date(params.endDate))
+        : null
+
+    const timeCondition = (() => {
+      if (startTimeCondition !== null && endTimeCondition !== null) {
+        return And(startTimeCondition, endTimeCondition)
+      } else if (startTimeCondition !== null) {
+        return startTimeCondition
+      } else if (endTimeCondition !== null) {
+        return endTimeCondition
+      } else {
+        return null
+      }
+    })()
+
+    return await Transaction.findAndCount({
+      where: {
+        ...(query !== ""
+          ? {
+              description: Like(`%${query}%`),
+            }
+          : {}),
+        ...(timeCondition !== null
+          ? {
+              date: timeCondition,
+            }
+          : {}),
+      },
+      order: {
+        date: "DESC",
+      },
+    })
+  }
+
   @Post("/import")
   public async import(
     @UploadedFiles("files", { required: true }) files: Express.Multer.File[],
