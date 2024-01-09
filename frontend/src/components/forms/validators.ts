@@ -69,12 +69,23 @@ export class Validator<T> {
     })
   }
 
+  static chain(...validators: Validator<string>[]): Validator<string> {
+    return new Validator((input: string) => {
+      return validators.reduce<Validation<string>>((result, validator) => {
+        return result.match(
+          () => Validation.fromFailure(),
+          (input) => validator.validateFn(input),
+        )
+      }, Validation.fromSuccess(input))
+    })
+  }
+
   withErrorMessage(errorMessage: string): ValidatorWithErrorMessage<T> {
     return new ValidatorWithErrorMessage(this.validateFn, errorMessage)
   }
 }
 
-class ValidatorWithErrorMessage<T> extends Validator<T> {
+export class ValidatorWithErrorMessage<T> extends Validator<T> {
   public readonly errorMessage: string
 
   constructor(
@@ -92,7 +103,7 @@ class ValidatorWithErrorMessage<T> extends Validator<T> {
 
 interface BaseInputProps<T> {
   name: string
-  label: string
+  label: string | undefined
   input: string
   validator: ValidatorWithErrorMessage<T>
   onChange: (value: string) => void
@@ -119,4 +130,22 @@ export type InputProps<T> =
 
 export const NonBlankString = Validator.fromPredicate(
   (input) => input.trim() !== "",
+)
+
+export const NumberFromString = Validator.fromPredicate(
+  (input) => !isNaN(parseFloat(input.trim())),
+)
+
+export const IntFromString = Validator.fromPredicate(
+  (input) => !isNaN(parseInt(input.trim())),
+)
+
+export const NonNegativeIntFromString = Validator.chain(
+  IntFromString,
+  Validator.fromPredicate((input) => parseInt(input) >= 0),
+)
+
+export const PositiveIntFromString = Validator.chain(
+  NonNegativeIntFromString,
+  Validator.fromPredicate((input) => parseInt(input) > 0),
 )

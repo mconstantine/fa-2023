@@ -6,6 +6,7 @@ import Query from "../Query"
 import { PaginatedResponse } from "../../globalDomain"
 import { FindTransactionsParams, Transaction } from "./domain"
 import TransactionsList from "./TransactionsList"
+import TransactionFilters from "./filters/TransactionFilters"
 
 export default function TransactionsPage() {
   const [isImportDialogOpen, setIsImportDialodOpen] = useState(false)
@@ -44,6 +45,7 @@ export default function TransactionsPage() {
             Import transactions
           </Button>
         </Paper>
+        <TransactionFilters />
         <Query
           response={transactions}
           render={([transactions]) => (

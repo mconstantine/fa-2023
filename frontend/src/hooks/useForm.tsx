@@ -36,11 +36,12 @@ export function useForm<T extends Record<string, unknown>>(
       return {
         name: key,
         value: state[key] ?? defaultValue,
-        onChange: (value) =>
+        onChange: (value) => {
           setState((state) => ({
             ...state,
             [key]: value,
-          })),
+          }))
+        },
       }
     },
     submit() {
