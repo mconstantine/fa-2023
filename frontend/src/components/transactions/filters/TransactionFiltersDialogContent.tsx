@@ -1,4 +1,6 @@
 import {
+  Box,
+  Button,
   FormControlLabel,
   InputAdornment,
   Paper,
@@ -10,11 +12,11 @@ import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers"
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
 import { FindTransactionsParams } from "../domain"
 import dayjs, { Dayjs } from "dayjs"
-import { useForm } from "../../../hooks/useForm"
 import { NetworkResponse } from "../../../network/NetworkResponse"
 import PositiveIntegerInput from "../../forms/inputs/PositiveIntegerInput"
 import ValidatedSelect from "../../forms/inputs/ValidatedSelect"
 import { useState } from "react"
+import { DateTimeRange, RelativeTimeRange, ShortcutRange } from "./TimeRange"
 
 interface Props {
   params: FindTransactionsParams
@@ -34,7 +36,6 @@ export default function TransactionFiltersDialogContent(props: Props) {
     mode: "RelativeTimeRange",
   })
 
-  // TODO: there should be a button that disables if this is false
   const datesAreValid =
     typeof filters.startDate !== "undefined" &&
     typeof filters.endDate !== "undefined" &&
@@ -55,6 +56,9 @@ export default function TransactionFiltersDialogContent(props: Props) {
   return (
     <Stack spacing={3}>
       <RelativeTimeRangeForm
+        startDate={filters.startDate ? new Date(filters.startDate) : null}
+        endDate={filters.endDate ? new Date(filters.endDate) : null}
+        onChange={onDatesChange}
         disabled={filters.mode !== "RelativeTimeRange"}
         onEnable={() => onModeChange("RelativeTimeRange")}
       />
@@ -66,35 +70,55 @@ export default function TransactionFiltersDialogContent(props: Props) {
         disabled={filters.mode !== "DateRange"}
         onEnable={() => onModeChange("DateRange")}
       />
+      <Box>
+        <Button
+          variant="contained"
+          onClick={() => props.onChange(filters)}
+          disabled={!datesAreValid}
+        >
+          Set filters
+        </Button>
+      </Box>
     </Stack>
   )
 }
 
-enum ShortcutRange {
-  WEEKS = "weeks",
-  MONTHS = "months",
-  YEARS = "years",
-}
-
-interface Shortcut extends Record<string, unknown> {
-  last: number
-  range: ShortcutRange
-}
-
-interface RelativeTimeRangeFormProps {
+interface RangeFormProps {
+  startDate: Date | null
+  endDate: Date | null
+  onChange(startDate: Date, endDate: Date): void
   disabled: boolean
   onEnable(): void
 }
 
-// TODO: this shouldn't use useForm, it should communicate with the parent component
-function RelativeTimeRangeForm(props: RelativeTimeRangeFormProps) {
-  const { inputProps } = useForm<Shortcut>(
-    {
-      last: 1,
-      range: ShortcutRange.YEARS,
-    },
-    (data) => console.log(data),
-  )
+function RelativeTimeRangeForm(props: RangeFormProps) {
+  const value: RelativeTimeRange = (() => {
+    if (props.startDate !== null && props.endDate !== null) {
+      const dateTimeRange = new DateTimeRange(props.startDate, props.endDate)
+      const relativeTimeRange =
+        RelativeTimeRange.fromDateTimeRange(dateTimeRange)
+
+      if (relativeTimeRange !== null) {
+        return relativeTimeRange
+      }
+    }
+
+    return new RelativeTimeRange(1, ShortcutRange.YEARS)
+  })()
+
+  function onRangeNumberChange(last: number): void {
+    const relativeTimeRange = new RelativeTimeRange(last, value.range)
+    const dateTimeRange = relativeTimeRange.toDateTimeRange()
+
+    props.onChange(dateTimeRange.startDate, dateTimeRange.endDate)
+  }
+
+  function onRangeChange(range: ShortcutRange): void {
+    const relativeTimeRange = new RelativeTimeRange(value.last, range)
+    const dateTimeRange = relativeTimeRange.toDateTimeRange()
+
+    props.onChange(dateTimeRange.startDate, dateTimeRange.endDate)
+  }
 
   return (
     <Paper sx={{ p: 1.5 }}>
@@ -107,7 +131,9 @@ function RelativeTimeRangeForm(props: RelativeTimeRangeFormProps) {
         />
         <Stack direction="row" spacing={1.5} alignItems="center">
           <PositiveIntegerInput
-            {...inputProps("last", null)}
+            name="last"
+            value={value.last}
+            onChange={onRangeNumberChange}
             errorMessage="This should be a positive integer"
             fieldProps={{
               InputProps: {
@@ -119,7 +145,9 @@ function RelativeTimeRangeForm(props: RelativeTimeRangeFormProps) {
             }}
           />
           <ValidatedSelect
-            {...inputProps("range", null)}
+            name="range"
+            value={value.range}
+            onChange={onRangeChange}
             options={ShortcutRange}
           />
         </Stack>
@@ -128,13 +156,8 @@ function RelativeTimeRangeForm(props: RelativeTimeRangeFormProps) {
   )
 }
 
-interface DateRangeFormProps {
-  startDate: Date | null
-  endDate: Date | null
-  onChange(startDate: Date, endDate: Date): void
+interface DateRangeFormProps extends RangeFormProps {
   isValid: boolean
-  disabled: boolean
-  onEnable(): void
 }
 
 function DateRangeForm(props: DateRangeFormProps) {
@@ -166,12 +189,14 @@ function DateRangeForm(props: DateRangeFormProps) {
               value={dayjs(props.startDate)}
               onChange={onStartDateChange}
               disabled={props.disabled}
+              disableFuture
             />
             <DatePicker
               label="End date"
               value={dayjs(props.endDate)}
               onChange={onEndDateChange}
               disabled={props.disabled}
+              disableFuture
             />
             {props.isValid ? null : (
               <Typography variant="caption" color="error">

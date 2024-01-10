@@ -1,5 +1,5 @@
 import { InputProps, ValidatorWithErrorMessage } from "../validators"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import TextInput from "./TextInput"
 import { TextFieldProps } from "@mui/material"
 
@@ -21,6 +21,13 @@ export default function ValidatedInput(props: Props) {
     input: props.value ?? "",
     onChange,
   })
+
+  useEffect(() => {
+    setInputProps((inputProps) => ({
+      ...inputProps,
+      input: props.value ?? "",
+    }))
+  }, [props.value])
 
   function onChange(input: string) {
     const validation = inputProps.validator.validate(input)

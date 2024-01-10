@@ -18,13 +18,29 @@ type Story = StoryObj<typeof TransactionFiltersDialogContent>
 export const Default: Story = {
   args: {},
   render: function NonBlankInputStory() {
-    const [params, setParams] = useState<FindTransactionsParams>({
-      startDate: new Date(Date.UTC(new Date().getUTCFullYear(), 0, 1))
-        .toISOString()
-        .slice(0, 10),
-      endDate: new Date(Date.UTC(new Date().getUTCFullYear() + 1, 0, 0))
-        .toISOString()
-        .slice(0, 10),
+    const [params, setParams] = useState<FindTransactionsParams>(() => {
+      const now = new Date()
+
+      return {
+        startDate: new Date(
+          Date.UTC(
+            now.getUTCFullYear() - 1,
+            now.getUTCMonth(),
+            now.getUTCDate(),
+          ),
+        )
+          .toISOString()
+          .slice(0, 10),
+        endDate: new Date(
+          Date.UTC(
+            new Date().getUTCFullYear(),
+            now.getUTCMonth(),
+            now.getUTCDate(),
+          ),
+        )
+          .toISOString()
+          .slice(0, 10),
+      }
     })
 
     const [networkResponse, triggerNetworkRequest] =
