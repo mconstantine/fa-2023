@@ -1,61 +1,62 @@
-interface FailedValidationState {
-  type: "failure"
-}
+// interface FailedValidationState {
+//   type: "failure"
+// }
 
-interface SuccessfulValidationState<T> {
-  type: "success"
-  value: T
-}
+// interface SuccessfulValidationState<T> {
+//   type: "success"
+//   value: T
+// }
 
-type ValidationState<T> = FailedValidationState | SuccessfulValidationState<T>
+// type ValidationState<T> = FailedValidationState | SuccessfulValidationState<T>
 
-function failure<T>(): ValidationState<T> {
-  return { type: "failure" }
-}
+// function failure<T>(): ValidationState<T> {
+//   return { type: "failure" }
+// }
 
-function success<T>(value: T): ValidationState<T> {
-  return { type: "success", value }
-}
+// function success<T>(value: T): ValidationState<T> {
+//   return { type: "success", value }
+// }
 
 class Validation<T> {
-  private readonly state: ValidationState<T>
+  protected constructor() {}
 
-  private constructor(state: ValidationState<T>) {
-    this.state = state
+  static fromFailure<T>(): FailedValidation<T> {
+    return new FailedValidation()
   }
 
-  static fromFailure<T>(): Validation<T> {
-    return new Validation<T>(failure<T>())
+  static fromSuccess<T>(value: T): SuccessfulValidation<T> {
+    return new SuccessfulValidation(value)
   }
 
-  static fromSuccess<T>(value: T): Validation<T> {
-    return new Validation(success(value))
+  isFailure(): this is FailedValidation<T> {
+    return this instanceof FailedValidation
   }
 
-  isFailure(): boolean {
-    return this.state.type === "failure"
+  isSuccessful(): this is SuccessfulValidation<T> {
+    return this instanceof SuccessfulValidation
   }
 
-  isSuccessful(): boolean {
-    return this.state.type === "success"
-  }
-
-  match<O>(whenFailure: () => O, whenSuccessful: (value: T) => O) {
-    switch (this.state.type) {
-      case "failure":
-        return whenFailure()
-      case "success":
-        return whenSuccessful(this.state.value)
+  match<O>(whenFailure: () => O, whenSuccessful: (value: T) => O): O {
+    if (this.isFailure()) {
+      return whenFailure()
+    } else {
+      return whenSuccessful((this as SuccessfulValidation<T>).value)
     }
   }
 }
 
-export class Validator<T> {
-  protected readonly validateFn: (input: string) => Validation<T>
+class FailedValidation<T> extends Validation<T> {}
 
-  constructor(validate: (input: string) => Validation<T>) {
-    this.validateFn = validate
+class SuccessfulValidation<T> extends Validation<T> {
+  public constructor(public readonly value: T) {
+    super()
   }
+}
+
+export class Validator<T> {
+  constructor(
+    protected readonly validateFn: (input: string) => Validation<T>,
+  ) {}
 
   static fromPredicate(
     predicate: (input: string) => boolean,
@@ -86,14 +87,11 @@ export class Validator<T> {
 }
 
 export class ValidatorWithErrorMessage<T> extends Validator<T> {
-  public readonly errorMessage: string
-
   constructor(
-    validate: (input: string) => Validation<T>,
-    errorMessage: string,
+    protected override readonly validateFn: (input: string) => Validation<T>,
+    public readonly errorMessage: string,
   ) {
-    super(validate)
-    this.errorMessage = errorMessage
+    super(validateFn)
   }
 
   validate(input: string): Validation<T> {

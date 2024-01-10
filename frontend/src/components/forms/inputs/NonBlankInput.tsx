@@ -4,7 +4,7 @@ import ValidatedInput from "./ValidatedInput"
 
 interface Props {
   name: string
-  label?: string
+  label?: string | undefined
   value: string | null
   onChange(value: string): void
   errorMessageWhenBlank: string

@@ -1,6 +1,14 @@
 export class NetworkResponse<O> {
-  public load(): LoadingResponse<O> {
-    return new LoadingResponse()
+  protected constructor() {}
+
+  static make<O>(): NetworkResponse<O> &
+    (
+      | IdleResponse<O>
+      | LoadingResponse<O>
+      | FailedResponse<O>
+      | SuccessfulResponse<O>
+    ) {
+    return new IdleResponse()
   }
 
   static fromFailure<O>(status: number, message: string): FailedResponse<O> {
@@ -11,6 +19,14 @@ export class NetworkResponse<O> {
   static fromSuccess<O>(data: O): SuccessfulResponse<O>
   static fromSuccess<O>(data?: O): SuccessfulResponse<O> {
     return new SuccessfulResponse(data as O)
+  }
+
+  public load(): LoadingResponse<O> {
+    return new LoadingResponse()
+  }
+
+  public isIdle(): this is IdleResponse<O> {
+    return this instanceof IdleResponse
   }
 
   public isLoading(): this is LoadingResponse<O> {
@@ -26,19 +42,19 @@ export class NetworkResponse<O> {
   }
 
   public match<T>(cases: {
-    whenIdle(): T
-    whenLoading(): T
+    whenIdle(response: IdleResponse<O>): T
+    whenLoading(response: LoadingResponse<O>): T
     whenFailed(response: FailedResponse<O>): T
     whenSuccessful(response: SuccessfulResponse<O>): T
   }): T {
     if (this.isLoading()) {
-      return cases.whenLoading()
+      return cases.whenLoading(this)
     } else if (this.isFailure()) {
       return cases.whenFailed(this)
     } else if (this.isSuccessful()) {
       return cases.whenSuccessful(this)
     } else {
-      return cases.whenIdle()
+      return cases.whenIdle(this)
     }
   }
 
@@ -66,6 +82,8 @@ export class NetworkResponse<O> {
   }
 }
 
+class IdleResponse<O> extends NetworkResponse<O> {}
+
 class LoadingResponse<O> extends NetworkResponse<O> {
   public fail(status: number, message: string): FailedResponse<O> {
     return new FailedResponse(status, message)
@@ -77,13 +95,11 @@ class LoadingResponse<O> extends NetworkResponse<O> {
 }
 
 class FailedResponse<O> extends NetworkResponse<O> {
-  public readonly status: number
-  public readonly message: string
-
-  public constructor(status: number, message: string) {
+  public constructor(
+    public readonly status: number,
+    public readonly message: string,
+  ) {
     super()
-    this.status = status
-    this.message = message
   }
 
   public retry(): LoadingResponse<O> {
@@ -92,11 +108,8 @@ class FailedResponse<O> extends NetworkResponse<O> {
 }
 
 class SuccessfulResponse<O> extends NetworkResponse<O> {
-  public readonly data: O
-
-  public constructor(data: O) {
+  public constructor(public readonly data: O) {
     super()
-    this.data = data
   }
 
   public refresh(): LoadingResponse<O> {

@@ -172,7 +172,7 @@ export default function CategoriesList(props: Props) {
                 case "updating":
                   return props.updateResponse
                 case "reading":
-                  return new NetworkResponse()
+                  return NetworkResponse.make()
               }
             })()}
             cancelAction={cancel}

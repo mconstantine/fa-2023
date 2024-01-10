@@ -5,7 +5,7 @@ import { TextFieldProps } from "@mui/material"
 
 interface Props {
   name: string
-  label?: string
+  label?: string | undefined
   value: string | null
   onChange(value: string): void
   validator: ValidatorWithErrorMessage<string>

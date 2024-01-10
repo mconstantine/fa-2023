@@ -19,7 +19,7 @@ export function useMockNetworkResponse<T>(
         return NetworkResponse.fromSuccess(initialValue)
       }
     } else {
-      return new NetworkResponse<T>()
+      return NetworkResponse.make<T>()
     }
   })
 
@@ -37,6 +37,7 @@ export function useMockNetworkResponse<T>(
     (status, message) =>
       new Promise((resolve) => {
         setResponse((response) => response.load())
+
         setTimeout(() => {
           setResponse(NetworkResponse.fromFailure(status, message))
           resolve()

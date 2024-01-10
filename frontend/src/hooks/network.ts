@@ -66,7 +66,7 @@ export function useQuery<I extends Record<string, string | undefined>, O>(
   query?: I,
 ): UseQueryOutput<O> {
   const [response, setResponse] = useState<NetworkResponse<O>>(
-    new NetworkResponse<O>().load(),
+    NetworkResponse.make<O>().load(),
   )
 
   const sendQuery = useCallback((): Promise<void> => {
@@ -93,14 +93,7 @@ export function useQuery<I extends Record<string, string | undefined>, O>(
   }, [path, query])
 
   useEffect(() => {
-    setResponse((state) =>
-      state.match({
-        whenIdle: () => state.load(),
-        whenLoading: () => state,
-        whenFailed: (response) => response.retry(),
-        whenSuccessful: (response) => response.refresh(),
-      }),
-    )
+    setResponse((response) => response.load())
 
     sendQuery()
   }, [sendQuery])
@@ -130,7 +123,7 @@ export function useCommand<I, O>(
   path: string,
 ): UseCommandOutput<I, O> {
   const [response, setResponse] = useState<NetworkResponse<O>>(
-    new NetworkResponse<O>(),
+    NetworkResponse.make<O>(),
   )
 
   return [
@@ -158,9 +151,7 @@ export function useFilesUpload<T>(
   path: string,
   paramName: string,
 ): UseFilesUploadOutput<T> {
-  const [response, setResponse] = useState<NetworkResponse<T>>(
-    new NetworkResponse(),
-  )
+  const [response, setResponse] = useState(NetworkResponse.make<T>())
 
   return [
     response,
