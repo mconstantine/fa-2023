@@ -8,4 +8,5 @@ export const AppDataSource = new DataSource({
   entities: [Category, Transaction],
   migrations: ["./src/migrations/*.ts"],
   useUTC: true,
+  logging: "all",
 })

@@ -5,8 +5,22 @@ import { useQuery } from "../../hooks/network"
 import Query from "../Query"
 import { PaginatedResponse } from "../../globalDomain"
 import { FindTransactionsParams, Transaction } from "./domain"
-import TransactionsList from "./TransactionsList"
+import TransactionsList, { SelectableTransaction } from "./TransactionsList"
 import TransactionFilters from "./filters/TransactionFilters"
+
+function transactionsQueryTransformer(
+  response: PaginatedResponse<Transaction>,
+): PaginatedResponse<SelectableTransaction> {
+  const [transactions, count] = response
+
+  return [
+    transactions.map((t) => {
+      t["isSelected"] = false
+      return t as SelectableTransaction
+    }),
+    count,
+  ]
+}
 
 export default function TransactionsPage() {
   const [isImportDialogOpen, setIsImportDialodOpen] = useState(false)
@@ -18,10 +32,16 @@ export default function TransactionsPage() {
     endDate: new Date(Date.UTC(new Date().getFullYear(), 0, 1)).toISOString(),
   })
 
-  const [transactions, , fetchTransactions] = useQuery<
-    FindTransactionsParams,
-    PaginatedResponse<Transaction>
-  >("/transactions", params)
+  const [paginatedTransactions, updateTransactions, fetchTransactions] =
+    useQuery<
+      FindTransactionsParams,
+      PaginatedResponse<Transaction>,
+      PaginatedResponse<SelectableTransaction>
+    >("/transactions", params, transactionsQueryTransformer)
+
+  const allIsSelected = paginatedTransactions
+    .map(([transactions]) => transactions.every((t) => t.isSelected))
+    .getOrElse(false)
 
   function onImportSubmit(): void {
     setIsImportDialodOpen(false)
@@ -30,6 +50,47 @@ export default function TransactionsPage() {
 
   function onParamsChange(params: FindTransactionsParams): void {
     setParams(params)
+  }
+
+  function setAllIsSelected(allIsSelected: boolean): void {
+    if (allIsSelected) {
+      updateTransactions(([transactions, count]) => {
+        return [
+          transactions.map((t) => {
+            t.isSelected = true
+            return t
+          }),
+          count,
+        ]
+      })
+    } else {
+      updateTransactions(([transactions, count]) => {
+        return [
+          transactions.map((t) => {
+            t.isSelected = false
+            return t
+          }),
+          count,
+        ]
+      })
+    }
+  }
+
+  function onTransactionSelectionChange(
+    transaction: SelectableTransaction,
+  ): void {
+    updateTransactions(([transactions, count]) => {
+      return [
+        transactions.map((t) => {
+          if (t.id === transaction.id) {
+            return transaction
+          } else {
+            return t
+          }
+        }),
+        count,
+      ]
+    })
   }
 
   return (
@@ -50,14 +111,19 @@ export default function TransactionsPage() {
           </Button>
         </Paper>
         <TransactionFilters
-          networkResponse={transactions}
+          networkResponse={paginatedTransactions}
           params={params}
-          onChange={onParamsChange}
+          onParamsChange={onParamsChange}
+          allIsSelected={allIsSelected}
+          onSelectAllChange={setAllIsSelected}
         />
         <Query
-          response={transactions}
+          response={paginatedTransactions}
           render={([transactions]) => (
-            <TransactionsList transactions={transactions} />
+            <TransactionsList
+              transactions={transactions}
+              onTransactionSelectionChange={onTransactionSelectionChange}
+            />
           )}
         />
       </Stack>

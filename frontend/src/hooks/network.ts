@@ -57,19 +57,33 @@ type UseQueryOutput<O> = [
 ]
 
 export function useQuery<O>(path: string): UseQueryOutput<O>
+export function useQuery<O, T = O>(
+  path: string,
+  transformer: (data: O) => T,
+): UseQueryOutput<T>
 export function useQuery<I extends Record<string, string | undefined>, O>(
   path: string,
   query: I,
 ): UseQueryOutput<O>
-export function useQuery<I extends Record<string, string | undefined>, O>(
+export function useQuery<
+  I extends Record<string, string | undefined>,
+  O,
+  T = O,
+>(path: string, query: I, transformer: (data: O) => T): UseQueryOutput<T>
+export function useQuery<
+  I extends Record<string, string | undefined>,
+  O,
+  T = O,
+>(
   path: string,
   query?: I,
-): UseQueryOutput<O> {
-  const [response, setResponse] = useState<NetworkResponse<O>>(
+  transformer?: (data: O) => T,
+): UseQueryOutput<O | T> {
+  const [response, setResponse] = useState<NetworkResponse<O | T>>(
     networkResponse.make<O>().load(),
   )
 
-  const sendQuery = useCallback((): Promise<void> => {
+  const sendQuery = useCallback(async (): Promise<void> => {
     const queryString = (() => {
       if (typeof query === "undefined") {
         return ""
@@ -86,15 +100,20 @@ export function useQuery<I extends Record<string, string | undefined>, O>(
       }
     })()
 
-    return sendNetworkRequest<O>(
+    const response = await sendNetworkRequest<O>(
       path + queryString,
       makeNetworkRequest("GET"),
-    ).then(setResponse)
-  }, [path, query])
+    )
+
+    if (typeof transformer !== "undefined") {
+      setResponse(response.map((data) => transformer(data)))
+    } else {
+      setResponse(response)
+    }
+  }, [path, query, transformer])
 
   useEffect(() => {
     setResponse((response) => response.load())
-
     sendQuery()
   }, [sendQuery])
 
@@ -103,7 +122,7 @@ export function useQuery<I extends Record<string, string | undefined>, O>(
     (update) => {
       setResponse((response) => {
         if (typeof update === "function") {
-          return response.map(update as (data: O) => O)
+          return response.map(update as (data: O | T) => O | T)
         } else {
           return networkResponse.fromSuccess(update)
         }

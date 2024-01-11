@@ -1,5 +1,6 @@
 import { Search, Tune } from "@mui/icons-material"
 import {
+  Checkbox,
   Dialog,
   DialogContent,
   FormControl,
@@ -8,8 +9,9 @@ import {
   InputLabel,
   OutlinedInput,
   Stack,
+  Tooltip,
 } from "@mui/material"
-import { ChangeEventHandler, useState } from "react"
+import { ChangeEvent, ChangeEventHandler, useState } from "react"
 import TransactionFiltersDialogContent from "./TransactionFiltersDialogContent"
 import { FindTransactionsParams } from "../domain"
 import { NetworkResponse } from "../../../network/NetworkResponse"
@@ -18,7 +20,9 @@ import { useDebounce } from "../../../hooks/useDebounce"
 interface Props {
   networkResponse: NetworkResponse<unknown>
   params: FindTransactionsParams
-  onChange(params: FindTransactionsParams): void
+  onParamsChange(params: FindTransactionsParams): void
+  allIsSelected: boolean
+  onSelectAllChange(allIsSelected: boolean): void
 }
 
 export default function TransactionFilters(props: Props) {
@@ -26,7 +30,7 @@ export default function TransactionFilters(props: Props) {
   const [filtersDialogIsOpen, setFiltersDialogIsOpen] = useState(false)
 
   const debounceSearch = useDebounce(function search(query: string) {
-    props.onChange({
+    props.onParamsChange({
       ...props.params,
       query: query === "" ? undefined : query,
     })
@@ -38,12 +42,26 @@ export default function TransactionFilters(props: Props) {
   }
 
   function onFiltersChange(params: FindTransactionsParams): void {
-    props.onChange(params)
+    props.onParamsChange(params)
     setFiltersDialogIsOpen(false)
   }
 
+  function onSelectAllChange(
+    _: ChangeEvent<HTMLInputElement>,
+    checked: boolean,
+  ): void {
+    props.onSelectAllChange(checked)
+  }
+
   return (
-    <Stack direction="row" spacing={1.5}>
+    <Stack direction="row" spacing={1.5} alignItems="center">
+      <Tooltip title="Select all">
+        <Checkbox
+          aria-label="Select all"
+          value={props.allIsSelected}
+          onChange={onSelectAllChange}
+        />
+      </Tooltip>
       <FormControl variant="outlined" fullWidth>
         <InputLabel htmlFor="search">Search</InputLabel>
         <OutlinedInput

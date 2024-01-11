@@ -1,13 +1,25 @@
-import { List, ListItem, ListItemText, ListSubheader } from "@mui/material"
+import {
+  Checkbox,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  ListSubheader,
+} from "@mui/material"
 import { Transaction } from "./domain"
 
-interface Props {
-  transactions: Transaction[]
+export interface SelectableTransaction extends Transaction {
+  isSelected: boolean
 }
 
 interface YearMonthGroup {
   localeDate: string
-  transactions: Transaction[]
+  transactions: SelectableTransaction[]
+}
+
+interface Props {
+  transactions: SelectableTransaction[]
+  onTransactionSelectionChange(transaction: SelectableTransaction): void
 }
 
 export default function TransactionsList(props: Props) {
@@ -42,7 +54,24 @@ export default function TransactionsList(props: Props) {
           <ul>
             <ListSubheader>{group.localeDate}</ListSubheader>
             {group.transactions.map((transaction) => (
-              <ListItem key={transaction.id}>
+              <ListItemButton
+                key={transaction.id}
+                onClick={() => {
+                  transaction.isSelected = !transaction.isSelected
+                  props.onTransactionSelectionChange(transaction)
+                }}
+              >
+                <ListItemIcon>
+                  <Checkbox
+                    edge="start"
+                    checked={transaction.isSelected}
+                    tabIndex={-1}
+                    disableRipple
+                    inputProps={{
+                      "aria-labelledby": `Select transaction`,
+                    }}
+                  />
+                </ListItemIcon>
                 <ListItemText
                   sx={{ overflow: "hidden" }}
                   primary={new Date(transaction.date).toLocaleDateString(
@@ -55,7 +84,7 @@ export default function TransactionsList(props: Props) {
                   )}
                   secondary={transaction.description}
                 />
-              </ListItem>
+              </ListItemButton>
             ))}
           </ul>
         </li>
