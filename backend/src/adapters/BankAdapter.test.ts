@@ -37,5 +37,14 @@ describe("BankAdapter", () => {
       expect(result.value).toBe(-42.5)
       expect(result.date.toISOString()).toBe("2020-01-18T00:00:00.000Z")
     })
+
+    it("should work with thousands", () => {
+      const row = "15/01/2020;16/01/2020;Thousands test;6.666,42;;EUR"
+      const result = BankAdapter.fromString(row).unsafeGetValue()
+
+      expect(result.description).toBe("Thousands test")
+      expect(result.value).toBe(6666.42)
+      expect(result.date.toISOString()).toBe("2020-01-16T00:00:00.000Z")
+    })
   })
 })

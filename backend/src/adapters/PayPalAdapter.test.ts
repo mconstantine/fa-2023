@@ -58,5 +58,18 @@ describe("PayPalAdapter", () => {
       expect(result.value).toBe(69.5)
       expect(result.date.toISOString()).toBe("2020-01-18T00:00:00.000Z")
     })
+
+    it("should work with thousands", () => {
+      const row =
+        "15/01/2020;00:12:42;Europe/Berlin;Thousands test;EUR;6.666,42;0;6.666,42;0;21D800331X157821M;thousands@example.com;Thousands test receiver;Bank name;Account number;0;0;Invoice number;Transaction code"
+
+      const result = PayPalAdapter.fromString(row).unsafeGetValue()
+
+      expect(result.description).toBe(
+        "Thousands test receiver<thousands@example.com>: Thousands test",
+      )
+      expect(result.value).toBe(6666.42)
+      expect(result.date.toISOString()).toBe("2020-01-15T00:00:00.000Z")
+    })
   })
 })
