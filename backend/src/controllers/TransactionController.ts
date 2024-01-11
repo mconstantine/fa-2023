@@ -10,7 +10,7 @@ import { Transaction } from "../models/Transaction"
 import { Source } from "../adapters/Source"
 import { result } from "../Result"
 import { type ImportError } from "../adapters/Adapter"
-import { MoreThanOrEqual, LessThanOrEqual, And, Like } from "typeorm"
+import { MoreThanOrEqual, LessThanOrEqual, And } from "typeorm"
 import { IsDateString, IsNotEmpty, IsOptional, IsString } from "class-validator"
 
 interface ImportResponse {
@@ -38,7 +38,7 @@ export class TransactionController {
   public async find(
     @QueryParams() params: FindQueryParams,
   ): Promise<[Transaction[], number]> {
-    const query = params.query?.toLowerCase() ?? ""
+    const searchQuery = params.query?.toLowerCase() ?? ""
 
     const startTimeCondition =
       typeof params.startDate !== "undefined"
@@ -62,23 +62,21 @@ export class TransactionController {
       }
     })()
 
-    return await Transaction.findAndCount({
-      where: {
-        ...(query !== ""
-          ? {
-              description: Like(`%${query}%`),
-            }
-          : {}),
-        ...(timeCondition !== null
-          ? {
-              date: timeCondition,
-            }
-          : {}),
-      },
-      order: {
-        date: "DESC",
-      },
+    const query = Transaction.createQueryBuilder("t").where("1 = 1").orderBy({
+      date: "DESC",
     })
+
+    if (searchQuery !== "") {
+      query.andWhere("LOWER(t.description) LIKE :searchQuery", {
+        searchQuery: `%${searchQuery}%`,
+      })
+    }
+
+    if (timeCondition !== null) {
+      query.andWhere({ date: timeCondition })
+    }
+
+    return await query.getManyAndCount()
   }
 
   @Post("/import")

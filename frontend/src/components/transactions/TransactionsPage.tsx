@@ -11,7 +11,7 @@ import TransactionFilters from "./filters/TransactionFilters"
 export default function TransactionsPage() {
   const [isImportDialogOpen, setIsImportDialodOpen] = useState(false)
 
-  const [params] = useState<FindTransactionsParams>({
+  const [params, setParams] = useState<FindTransactionsParams>({
     startDate: new Date(
       Date.UTC(new Date().getFullYear() - 1, 0, 1),
     ).toISOString(),
@@ -23,9 +23,13 @@ export default function TransactionsPage() {
     PaginatedResponse<Transaction>
   >("/transactions", params)
 
-  function onSubmit(): void {
+  function onImportSubmit(): void {
     setIsImportDialodOpen(false)
     fetchTransactions()
+  }
+
+  function onParamsChange(params: FindTransactionsParams): void {
+    setParams(params)
   }
 
   return (
@@ -45,7 +49,11 @@ export default function TransactionsPage() {
             Import transactions
           </Button>
         </Paper>
-        <TransactionFilters />
+        <TransactionFilters
+          networkResponse={transactions}
+          params={params}
+          onChange={onParamsChange}
+        />
         <Query
           response={transactions}
           render={([transactions]) => (
@@ -56,7 +64,7 @@ export default function TransactionsPage() {
       <ImportTransactionsDialog
         isOpen={isImportDialogOpen}
         onClose={() => setIsImportDialodOpen(false)}
-        onSubmit={onSubmit}
+        onSubmit={onImportSubmit}
       />
     </Container>
   )

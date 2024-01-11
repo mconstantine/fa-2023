@@ -74,7 +74,7 @@ export default function TransactionFiltersDialogContent(props: Props) {
         <Button
           variant="contained"
           onClick={() => props.onChange(filters)}
-          disabled={!datesAreValid}
+          disabled={!datesAreValid || props.networkResponse.isLoading()}
         >
           Set filters
         </Button>
@@ -162,13 +162,13 @@ interface DateRangeFormProps extends RangeFormProps {
 
 function DateRangeForm(props: DateRangeFormProps) {
   function onStartDateChange(startDate: Dayjs | null): void {
-    if (startDate !== null && props.endDate !== null) {
+    if (startDate !== null && startDate.isValid() && props.endDate !== null) {
       props.onChange(startDate.toDate(), props.endDate)
     }
   }
 
   function onEndDateChange(endDate: Dayjs | null): void {
-    if (endDate !== null && props.startDate !== null) {
+    if (endDate !== null && endDate.isValid() && props.startDate !== null) {
       props.onChange(props.startDate, endDate.toDate())
     }
   }
