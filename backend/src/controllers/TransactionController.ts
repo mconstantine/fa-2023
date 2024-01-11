@@ -1,7 +1,9 @@
 import {
+  Body,
   Get,
   HttpError,
   JsonController,
+  Patch,
   Post,
   QueryParams,
   UploadedFiles,
@@ -10,8 +12,14 @@ import { Transaction } from "../models/Transaction"
 import { Source } from "../adapters/Source"
 import { result } from "../Result"
 import { type ImportError } from "../adapters/Adapter"
-import { MoreThanOrEqual, LessThanOrEqual, And } from "typeorm"
-import { IsDateString, IsNotEmpty, IsOptional, IsString } from "class-validator"
+import { MoreThanOrEqual, LessThanOrEqual, And, In } from "typeorm"
+import {
+  IsDateString,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from "class-validator"
 
 interface ImportResponse {
   errors: string[]
@@ -30,6 +38,14 @@ class FindQueryParams {
   @IsOptional()
   @IsDateString()
   public endDate?: string
+}
+
+class BulkUpdateTransactionsBody {
+  @IsUUID("4", { each: true })
+  public ids!: string[]
+
+  @IsNotEmpty()
+  description!: string
 }
 
 @JsonController("/transactions")
@@ -170,6 +186,20 @@ export class TransactionController {
       await Transaction.insert(mergedTransactions)
       return { errors: [] }
     }
+  }
+
+  @Patch()
+  public async bulkUpdate(
+    @Body() body: BulkUpdateTransactionsBody,
+  ): Promise<Transaction[]> {
+    await Transaction.createQueryBuilder()
+      .where({ id: In(body.ids) })
+      .update({
+        description: body.description,
+      })
+      .execute()
+
+    return await Transaction.findBy({ id: In(body.ids) })
   }
 
   public static mergeBankAndPayPalTransactions(

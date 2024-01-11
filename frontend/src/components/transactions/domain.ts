@@ -11,3 +11,8 @@ export interface FindTransactionsParams
   startDate?: string | undefined
   endDate?: string | undefined
 }
+
+export interface BulkUpdateTransactionsBody {
+  ids: string[]
+  description: string
+}

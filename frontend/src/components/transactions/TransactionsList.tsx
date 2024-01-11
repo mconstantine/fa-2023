@@ -74,14 +74,14 @@ export default function TransactionsList(props: Props) {
                 </ListItemIcon>
                 <ListItemText
                   sx={{ overflow: "hidden" }}
-                  primary={new Date(transaction.date).toLocaleDateString(
+                  primary={`${new Date(transaction.date).toLocaleDateString(
                     undefined,
                     {
                       year: "numeric",
                       month: "long",
                       day: "2-digit",
                     },
-                  )}
+                  )}, ${transaction.value.toFixed(2)}`}
                   secondary={transaction.description}
                 />
               </ListItemButton>

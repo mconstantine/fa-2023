@@ -1,12 +1,17 @@
 import { Button, Container, Paper, Stack, Typography } from "@mui/material"
 import { useState } from "react"
 import ImportTransactionsDialog from "./ImportTransactionsDialog"
-import { useQuery } from "../../hooks/network"
+import { useCommand, useQuery } from "../../hooks/network"
 import Query from "../Query"
 import { PaginatedResponse } from "../../globalDomain"
-import { FindTransactionsParams, Transaction } from "./domain"
+import {
+  BulkUpdateTransactionsBody,
+  FindTransactionsParams,
+  Transaction,
+} from "./domain"
 import TransactionsList, { SelectableTransaction } from "./TransactionsList"
 import TransactionFilters from "./filters/TransactionFilters"
+import { BulkUpdateTransactionsData } from "./filters/BulkUpdateTransactionsForm"
 
 function transactionsQueryTransformer(
   response: PaginatedResponse<Transaction>,
@@ -39,9 +44,26 @@ export default function TransactionsPage() {
       PaginatedResponse<SelectableTransaction>
     >("/transactions", params, transactionsQueryTransformer)
 
-  const allIsSelected = paginatedTransactions
-    .map(([transactions]) => transactions.every((t) => t.isSelected))
-    .getOrElse(false)
+  const [bulkUpdateNetworkResponse, bulkUpdate] = useCommand<
+    BulkUpdateTransactionsBody,
+    Transaction[]
+  >("PATCH", "/transactions/")
+
+  const selectedCount = paginatedTransactions
+    .map(([transactions]) =>
+      transactions.reduce((sum, t) => {
+        if (t.isSelected) {
+          return sum + 1
+        } else {
+          return sum
+        }
+      }, 0),
+    )
+    .getOrElse(0)
+
+  const transactionsCount = paginatedTransactions
+    .map(([transactions]) => transactions.length)
+    .getOrElse(0)
 
   function onImportSubmit(): void {
     setIsImportDialodOpen(false)
@@ -93,6 +115,35 @@ export default function TransactionsPage() {
     })
   }
 
+  function onBulkUpdate(data: BulkUpdateTransactionsData): Promise<boolean> {
+    const ids: string[] = paginatedTransactions
+      .map(([transactions]) =>
+        transactions.filter((t) => t.isSelected).map((t) => t.id),
+      )
+      .getOrElse([])
+
+    return bulkUpdate({ ids, ...data }).then((response) => {
+      if (response === null) {
+        return false
+      } else {
+        updateTransactions(([transactions, count]) => [
+          transactions.map((transaction) => {
+            const updated = response.find((t) => t.id === transaction.id)
+
+            if (typeof updated === "undefined") {
+              return transaction
+            } else {
+              return { ...updated, isSelected: true }
+            }
+          }),
+          count,
+        ])
+
+        return true
+      }
+    })
+  }
+
   return (
     <Container>
       <Stack spacing={1.5} sx={{ mt: 1.5 }}>
@@ -111,11 +162,14 @@ export default function TransactionsPage() {
           </Button>
         </Paper>
         <TransactionFilters
-          networkResponse={paginatedTransactions}
+          findTransactionsNetworkResponse={paginatedTransactions}
+          updateTransactionsNetworkResponse={bulkUpdateNetworkResponse}
           params={params}
           onParamsChange={onParamsChange}
-          allIsSelected={allIsSelected}
+          selectedCount={selectedCount}
+          allIsSelected={selectedCount === transactionsCount}
           onSelectAllChange={setAllIsSelected}
+          onBulkUpdate={onBulkUpdate}
         />
         <Query
           response={paginatedTransactions}
