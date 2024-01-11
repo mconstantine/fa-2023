@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import { NetworkResponse } from "../network/NetworkResponse"
+import { NetworkResponse, networkResponse } from "../network/NetworkResponse"
 
 if (!("VITE_API_URL" in import.meta.env)) {
   throw new ReferenceError('Unable to find environment variable "VITE_API_URL"')
@@ -37,16 +37,16 @@ async function sendNetworkRequest<O>(
       const content = await response.json()
 
       if (Math.floor(status / 100) === 2) {
-        return NetworkResponse.fromSuccess(content as O)
+        return networkResponse.fromSuccess(content as O)
       } else {
         const error = content as ApiError
-        return NetworkResponse.fromFailure(status, error.message)
+        return networkResponse.fromFailure(status, error.message)
       }
     } catch (e) {
-      return NetworkResponse.fromFailure(500, "Unable to parse server response")
+      return networkResponse.fromFailure(500, "Unable to parse server response")
     }
   } catch (e) {
-    return NetworkResponse.fromFailure(500, "Unable to reach the server")
+    return networkResponse.fromFailure(500, "Unable to reach the server")
   }
 }
 
@@ -66,7 +66,7 @@ export function useQuery<I extends Record<string, string | undefined>, O>(
   query?: I,
 ): UseQueryOutput<O> {
   const [response, setResponse] = useState<NetworkResponse<O>>(
-    NetworkResponse.make<O>().load(),
+    networkResponse.make<O>().load(),
   )
 
   const sendQuery = useCallback((): Promise<void> => {
@@ -105,7 +105,7 @@ export function useQuery<I extends Record<string, string | undefined>, O>(
         if (typeof update === "function") {
           return response.map(update as (data: O) => O)
         } else {
-          return NetworkResponse.fromSuccess(update)
+          return networkResponse.fromSuccess(update)
         }
       })
     },
@@ -123,7 +123,7 @@ export function useCommand<I, O>(
   path: string,
 ): UseCommandOutput<I, O> {
   const [response, setResponse] = useState<NetworkResponse<O>>(
-    NetworkResponse.make<O>(),
+    networkResponse.make<O>(),
   )
 
   return [
@@ -151,7 +151,7 @@ export function useFilesUpload<T>(
   path: string,
   paramName: string,
 ): UseFilesUploadOutput<T> {
-  const [response, setResponse] = useState(NetworkResponse.make<T>())
+  const [response, setResponse] = useState(networkResponse.make<T>())
 
   return [
     response,

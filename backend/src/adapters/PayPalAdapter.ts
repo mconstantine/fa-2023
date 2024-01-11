@@ -1,4 +1,4 @@
-import { Result } from "../Result"
+import { type Result, result } from "../Result"
 import { Transaction } from "../models/Transaction"
 import { Adapter, ImportError, ImportErrorType } from "./Adapter"
 import { Source } from "./Source"
@@ -32,37 +32,37 @@ export class PayPalAdapter extends Adapter {
       typeof email === "undefined" ||
       typeof receiverName === "undefined"
     ) {
-      return Result.fromFailure(
+      return result.fromFailure(
         new ImportError(ImportErrorType.INVALID_ROW, input),
       )
     }
 
     const dateResult = dateFromItalianString(dateString)
 
-    return dateResult.match<Result<ImportError, Transaction>>(
-      () =>
-        Result.fromFailure(
-          new ImportError(ImportErrorType.INVALID_DATE, dateString),
-        ),
-      (date) => {
-        const description = (() => {
-          if (email !== "" || receiverName !== "") {
-            return `${receiverName}<${email}>: ${transactionDescription}`
-          } else {
-            return transactionDescription
-          }
-        })()
+    if (dateResult.isFailure()) {
+      return result.fromFailure(
+        new ImportError(ImportErrorType.INVALID_DATE, dateString),
+      )
+    } else {
+      const date = dateResult.value
 
-        const value = parseFloat(valueString.replace(",", "."))
+      const description = (() => {
+        if (email !== "" || receiverName !== "") {
+          return `${receiverName}<${email}>: ${transactionDescription}`
+        } else {
+          return transactionDescription
+        }
+      })()
 
-        return Result.fromSuccess(
-          Transaction.create({
-            description,
-            value,
-            date,
-          }),
-        )
-      },
-    )
+      const value = parseFloat(valueString.replace(",", "."))
+
+      return result.fromSuccess(
+        Transaction.create({
+          description,
+          value,
+          date,
+        }),
+      )
+    }
   }
 }

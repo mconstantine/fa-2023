@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { NetworkResponse } from "../network/NetworkResponse"
+import { NetworkResponse, networkResponse } from "../network/NetworkResponse"
 
 type UseMockNetworkResponseOutput<T> = [
   response: NetworkResponse<T>,
@@ -14,12 +14,12 @@ export function useMockNetworkResponse<T>(
   const [response, setResponse] = useState(() => {
     if (typeof initialValue !== "undefined") {
       if (typeof initialValue === "function") {
-        return NetworkResponse.fromSuccess((initialValue as () => T)())
+        return networkResponse.fromSuccess((initialValue as () => T)())
       } else {
-        return NetworkResponse.fromSuccess(initialValue)
+        return networkResponse.fromSuccess(initialValue)
       }
     } else {
-      return NetworkResponse.make<T>()
+      return networkResponse.make<T>()
     }
   })
 
@@ -30,7 +30,7 @@ export function useMockNetworkResponse<T>(
         setResponse((response) => response.load())
 
         setTimeout(() => {
-          setResponse(NetworkResponse.fromSuccess(data))
+          setResponse(networkResponse.fromSuccess(data))
           resolve(data)
         }, 500)
       }),
@@ -39,7 +39,7 @@ export function useMockNetworkResponse<T>(
         setResponse((response) => response.load())
 
         setTimeout(() => {
-          setResponse(NetworkResponse.fromFailure(status, message))
+          setResponse(networkResponse.fromFailure(status, message))
           resolve()
         }, 500)
       }),
@@ -49,7 +49,7 @@ export function useMockNetworkResponse<T>(
           response.map((data) => (update as (latestValue: T) => T)(data)),
         )
       } else {
-        setResponse(NetworkResponse.fromSuccess(update))
+        setResponse(networkResponse.fromSuccess(update))
       }
     },
   ]

@@ -9,7 +9,7 @@ import { useForm } from "../../hooks/useForm"
 import Form from "../forms/Form"
 import FileInput from "../forms/inputs/FileInput"
 import { useFilesUpload } from "../../hooks/network"
-import { NetworkResponse } from "../../network/NetworkResponse"
+import { networkResponse } from "../../network/NetworkResponse"
 
 export interface ImportFormData extends Record<string, unknown> {
   bank: File
@@ -55,12 +55,12 @@ export default function ImportTransactionsDialog(props: Props) {
 
   const parsedUploadResponse = uploadResponse.flatMap((data) => {
     if (data.errors.length > 0) {
-      return NetworkResponse.fromFailure(
+      return networkResponse.fromFailure(
         400,
         `The server raised ${data.errors.length} errors. See the network response for details.`,
       )
     } else {
-      return NetworkResponse.fromSuccess()
+      return networkResponse.fromSuccess()
     }
   })
 

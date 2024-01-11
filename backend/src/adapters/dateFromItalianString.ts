@@ -1,4 +1,4 @@
-import { Result } from "../Result"
+import { type Result, result } from "../Result"
 
 export function dateFromItalianString(input: string): Result<void, Date> {
   const [dayString, monthPlusOneString, yearString] = input.split("/")
@@ -8,10 +8,10 @@ export function dateFromItalianString(input: string): Result<void, Date> {
     typeof monthPlusOneString === "undefined" ||
     typeof yearString === "undefined"
   ) {
-    return Result.fromFailure(undefined)
+    return result.fromFailure(undefined)
   }
 
-  return Result.fromSuccess(
+  return result.fromSuccess(
     new Date(
       parseInt(yearString),
       parseInt(monthPlusOneString) - 1,

@@ -9,7 +9,7 @@ import {
 import CategoryCard from "./CategoryCard"
 import { Category } from "./domain"
 import { useState } from "react"
-import { NetworkResponse } from "../../network/NetworkResponse"
+import { NetworkResponse, networkResponse } from "../../network/NetworkResponse"
 import Query from "../Query"
 import CategoryForm from "./CategoryForm"
 import { useConfirmation } from "../../hooks/useConfirmation"
@@ -172,7 +172,7 @@ export default function CategoriesList(props: Props) {
                 case "updating":
                   return props.updateResponse
                 case "reading":
-                  return NetworkResponse.make()
+                  return networkResponse.make()
               }
             })()}
             cancelAction={cancel}

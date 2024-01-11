@@ -1,25 +1,29 @@
-export class NetworkResponse<O> {
-  protected constructor() {}
+export type NetworkResponse<O> = NetworkResponseC<O> &
+  (
+    | IdleResponse<O>
+    | LoadingResponse<O>
+    | FailedResponse<O>
+    | SuccessfulResponse<O>
+  )
 
-  static make<O>(): NetworkResponse<O> &
-    (
-      | IdleResponse<O>
-      | LoadingResponse<O>
-      | FailedResponse<O>
-      | SuccessfulResponse<O>
-    ) {
+function fromSuccess(): SuccessfulResponse<void>
+function fromSuccess<O>(data: O): SuccessfulResponse<O>
+function fromSuccess<O>(data?: O): SuccessfulResponse<O> {
+  return new SuccessfulResponse(data as O)
+}
+
+export const networkResponse = {
+  make<O>(): IdleResponse<O> {
     return new IdleResponse()
-  }
-
-  static fromFailure<O>(status: number, message: string): FailedResponse<O> {
+  },
+  fromFailure<O>(status: number, message: string): FailedResponse<O> {
     return new FailedResponse(status, message)
-  }
+  },
+  fromSuccess,
+}
 
-  static fromSuccess(): SuccessfulResponse<void>
-  static fromSuccess<O>(data: O): SuccessfulResponse<O>
-  static fromSuccess<O>(data?: O): SuccessfulResponse<O> {
-    return new SuccessfulResponse(data as O)
-  }
+abstract class NetworkResponseC<O> {
+  protected constructor() {}
 
   public load(): LoadingResponse<O> {
     return new LoadingResponse()
@@ -41,12 +45,15 @@ export class NetworkResponse<O> {
     return this instanceof SuccessfulResponse
   }
 
-  public match<T>(cases: {
-    whenIdle(response: IdleResponse<O>): T
-    whenLoading(response: LoadingResponse<O>): T
-    whenFailed(response: FailedResponse<O>): T
-    whenSuccessful(response: SuccessfulResponse<O>): T
-  }): T {
+  public match<T>(
+    this: NetworkResponse<O>,
+    cases: {
+      whenIdle(response: IdleResponse<O>): T
+      whenLoading(response: LoadingResponse<O>): T
+      whenFailed(response: FailedResponse<O>): T
+      whenSuccessful(response: SuccessfulResponse<O>): T
+    },
+  ): T {
     if (this.isLoading()) {
       return cases.whenLoading(this)
     } else if (this.isFailure()) {
@@ -59,17 +66,16 @@ export class NetworkResponse<O> {
   }
 
   public getOrElse<D = O>(defaultValue: D): O | D {
-    return this.match({
-      whenIdle: () => defaultValue,
-      whenLoading: () => defaultValue,
-      whenFailed: () => defaultValue,
-      whenSuccessful: (response) => response.data as O | D,
-    })
+    if (this.isSuccessful()) {
+      return this.data
+    } else {
+      return defaultValue
+    }
   }
 
   public flatMap<T>(fn: (data: O) => NetworkResponse<T>): NetworkResponse<T> {
     return this.match({
-      whenIdle: () => new NetworkResponse(),
+      whenIdle: () => networkResponse.make(),
       whenLoading: () => new LoadingResponse(),
       whenFailed: (response) =>
         new FailedResponse<T>(response.status, response.message),
@@ -82,9 +88,17 @@ export class NetworkResponse<O> {
   }
 }
 
-class IdleResponse<O> extends NetworkResponse<O> {}
+class IdleResponse<O> extends NetworkResponseC<O> {
+  public constructor() {
+    super()
+  }
+}
 
-class LoadingResponse<O> extends NetworkResponse<O> {
+class LoadingResponse<O> extends NetworkResponseC<O> {
+  public constructor() {
+    super()
+  }
+
   public fail(status: number, message: string): FailedResponse<O> {
     return new FailedResponse(status, message)
   }
@@ -94,7 +108,7 @@ class LoadingResponse<O> extends NetworkResponse<O> {
   }
 }
 
-class FailedResponse<O> extends NetworkResponse<O> {
+class FailedResponse<O> extends NetworkResponseC<O> {
   public constructor(
     public readonly status: number,
     public readonly message: string,
@@ -107,7 +121,7 @@ class FailedResponse<O> extends NetworkResponse<O> {
   }
 }
 
-class SuccessfulResponse<O> extends NetworkResponse<O> {
+class SuccessfulResponse<O> extends NetworkResponseC<O> {
   public constructor(public readonly data: O) {
     super()
   }

@@ -13,7 +13,7 @@ import { Source } from "../adapters/Source"
 import { BankAdapter } from "../adapters/BankAdapter"
 import { PayPalAdapter } from "../adapters/PayPalAdapter"
 import { type ImportError } from "../adapters/Adapter"
-import { Result } from "../Result"
+import { type Result, result } from "../Result"
 
 interface ImportFileResults {
   transactions: Transaction[]
@@ -70,14 +70,11 @@ export class Transaction extends BaseEntity {
         ({ transactions, errors }, row) => {
           const importResult = adapter.fromString(row)
 
-          importResult.match(
-            (error) => {
-              errors.push(error)
-            },
-            (transaction) => {
-              transactions.push(transaction)
-            },
-          )
+          if (importResult.isFailure()) {
+            errors.push(importResult.error)
+          } else {
+            transactions.push(importResult.value)
+          }
 
           return { transactions, errors }
         },
@@ -85,9 +82,9 @@ export class Transaction extends BaseEntity {
       )
 
     if (errors.length > 0) {
-      return Result.fromFailure(errors)
+      return result.fromFailure(errors)
     } else {
-      return Result.fromSuccess(transactions)
+      return result.fromSuccess(transactions)
     }
   }
 }

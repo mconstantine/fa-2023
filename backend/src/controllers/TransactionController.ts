@@ -8,7 +8,7 @@ import {
 } from "routing-controllers"
 import { Transaction } from "../models/Transaction"
 import { Source } from "../adapters/Source"
-import { Result } from "../Result"
+import { result } from "../Result"
 import { type ImportError } from "../adapters/Adapter"
 import { MoreThanOrEqual, LessThanOrEqual, And, Like } from "typeorm"
 import { IsDateString, IsNotEmpty, IsOptional, IsString } from "class-validator"
@@ -127,7 +127,7 @@ export class TransactionController {
       paypal: Transaction.importFile(paypalFileContent, Source.PAYPAL),
     }
 
-    const importResult = Result.merge<ImportError[], typeof results>(results)
+    const importResult = result.merge<ImportError[], typeof results>(results)
 
     if (importResult.isFailure()) {
       return {
@@ -135,41 +135,43 @@ export class TransactionController {
           (error) => `${error.type}: ${error.subject}`,
         ),
       }
+    } else {
+      const mergedTransactions =
+        TransactionController.mergeBankAndPayPalTransactions(
+          importResult.value.bank,
+          importResult.value.paypal,
+        )
+
+      if (mergedTransactions.length > 0) {
+        const allDatesTimestamps = mergedTransactions.map((t) =>
+          t.date.getTime(),
+        )
+
+        const minDateTimestamp = Math.min(...allDatesTimestamps)
+        const maxDateTimestamp = Math.max(...allDatesTimestamps)
+
+        const minDateSqlString = new Date(minDateTimestamp)
+          .toISOString()
+          .slice(0, 10)
+
+        const maxDateSqlString = new Date(maxDateTimestamp)
+          .toISOString()
+          .slice(0, 10)
+
+        await Transaction.createQueryBuilder()
+          .delete()
+          .where({
+            date: And(
+              MoreThanOrEqual(minDateSqlString),
+              LessThanOrEqual(maxDateSqlString),
+            ),
+          })
+          .execute()
+      }
+
+      await Transaction.insert(mergedTransactions)
+      return { errors: [] }
     }
-
-    const result = importResult.unsafeGetValue()
-    const mergedTransactions =
-      TransactionController.mergeBankAndPayPalTransactions(
-        result.bank,
-        result.paypal,
-      )
-
-    if (mergedTransactions.length > 0) {
-      const allDatesTimestamps = mergedTransactions.map((t) => t.date.getTime())
-      const minDateTimestamp = Math.min(...allDatesTimestamps)
-      const maxDateTimestamp = Math.max(...allDatesTimestamps)
-
-      const minDateSqlString = new Date(minDateTimestamp)
-        .toISOString()
-        .slice(0, 10)
-
-      const maxDateSqlString = new Date(maxDateTimestamp)
-        .toISOString()
-        .slice(0, 10)
-
-      await Transaction.createQueryBuilder()
-        .delete()
-        .where({
-          date: And(
-            MoreThanOrEqual(minDateSqlString),
-            LessThanOrEqual(maxDateSqlString),
-          ),
-        })
-        .execute()
-    }
-
-    await Transaction.insert(mergedTransactions)
-    return { errors: [] }
   }
 
   public static mergeBankAndPayPalTransactions(
