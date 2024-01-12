@@ -41,7 +41,7 @@ export const result = {
   },
 }
 
-export abstract class ResultC<E, A> {
+abstract class ResultC<E, A> {
   protected constructor() {}
 
   public isFailure(): this is FailedResult<E> {
@@ -109,19 +109,14 @@ export abstract class ResultC<E, A> {
 }
 
 class FailedResult<E> extends ResultC<E, never> {
-  public readonly error: E
-
-  public constructor(error: E) {
+  // eslint-disable-next-line n/handle-callback-err
+  public constructor(public readonly error: E) {
     super()
-    this.error = error
   }
 }
 
 class SuccessfulResult<A> extends ResultC<never, A> {
-  public readonly value: A
-
-  public constructor(value: A) {
+  public constructor(public readonly value: A) {
     super()
-    this.value = value
   }
 }
