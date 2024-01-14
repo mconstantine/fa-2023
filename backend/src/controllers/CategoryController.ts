@@ -1,4 +1,10 @@
-import { IsArray, IsNotEmpty, IsOptional, IsUUID } from "class-validator"
+import {
+  IsArray,
+  IsNotEmpty,
+  IsOptional,
+  IsUUID,
+  ValidateNested,
+} from "class-validator"
 import {
   Body,
   Delete,
@@ -9,7 +15,7 @@ import {
   Put,
 } from "routing-controllers"
 import { Category } from "../models/Category"
-import type { DeepPartial } from "typeorm"
+import { In, type DeepPartial } from "typeorm"
 
 class CategoryCreationBody {
   @IsNotEmpty()
@@ -19,7 +25,7 @@ class CategoryCreationBody {
   @IsOptional()
   public keywords?: string[]
 
-  toCategory(): DeepPartial<Category> {
+  public toCategory(): DeepPartial<Category> {
     return {
       name: this.name,
       keywords: this.keywords ?? [],
@@ -31,7 +37,9 @@ class CategoryUpdateBody extends CategoryCreationBody {
   @IsUUID()
   public id!: string
 
-  override toCategory(): Omit<DeepPartial<Category>, "id"> & { id: string } {
+  public override toCategory(): Omit<DeepPartial<Category>, "id"> & {
+    id: string
+  } {
     return {
       ...super.toCategory(),
       id: this.id,
@@ -39,11 +47,27 @@ class CategoryUpdateBody extends CategoryCreationBody {
   }
 }
 
+class CategoryBulkCreationBody {
+  @ValidateNested({ each: true })
+  public categories!: CategoryCreationBody[]
+}
+
 @JsonController("/categories")
 export class CategoryController {
   @Post("/")
   async create(@Body() body: CategoryCreationBody): Promise<Category> {
     return await Category.create(body.toCategory()).save()
+  }
+
+  @Post("/bulk")
+  async createInBulk(
+    @Body() body: CategoryBulkCreationBody,
+  ): Promise<Category[]> {
+    const categories = Category.create(body.categories)
+    const insertResult = await Category.insert(categories)
+    const ids: string[] = insertResult.identifiers.map((_) => _["id"])
+
+    return await Category.find({ where: { id: In(ids) } })
   }
 
   @Get("/:id")
