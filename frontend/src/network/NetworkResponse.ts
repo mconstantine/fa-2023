@@ -6,6 +6,11 @@ export type NetworkResponse<O> = NetworkResponseC<O> &
     | SuccessfulResponse<O>
   )
 
+type MergedNetworkResponse<T extends Record<string, NetworkResponse<unknown>>> =
+  NetworkResponse<{
+    [k in keyof T]: T[k] extends NetworkResponse<infer O> ? O : never
+  }>
+
 function fromSuccess(): SuccessfulResponse<void>
 function fromSuccess<O>(data: O): SuccessfulResponse<O>
 function fromSuccess<O>(data?: O): SuccessfulResponse<O> {
@@ -20,6 +25,25 @@ export const networkResponse = {
     return new FailedResponse(status, message)
   },
   fromSuccess,
+  merge<T extends Record<string, NetworkResponse<unknown>>>(
+    map: T,
+  ): MergedNetworkResponse<T> {
+    return Object.entries(map).reduce<MergedNetworkResponse<T>>(
+      (result, [key, response]) => {
+        if (!result.isSuccessful()) {
+          return result
+        } else if (!response.isSuccessful()) {
+          return response as MergedNetworkResponse<T>
+        } else {
+          return this.fromSuccess({
+            ...result.data,
+            [key]: response.data,
+          })
+        }
+      },
+      this.fromSuccess({}) as MergedNetworkResponse<T>,
+    )
+  },
 }
 
 abstract class NetworkResponseC<O> {

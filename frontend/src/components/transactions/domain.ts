@@ -14,5 +14,6 @@ export interface FindTransactionsParams
 
 export interface BulkUpdateTransactionsBody {
   ids: string[]
-  description: string
+  description?: string | undefined
+  categoryIds?: string[] | undefined
 }

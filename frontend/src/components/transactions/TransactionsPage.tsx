@@ -28,7 +28,7 @@ function transactionsQueryTransformer(
 }
 
 export default function TransactionsPage() {
-  const [isImportDialogOpen, setIsImportDialodOpen] = useState(false)
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false)
 
   const [params, setParams] = useState<FindTransactionsParams>({
     startDate: new Date(
@@ -66,7 +66,7 @@ export default function TransactionsPage() {
     .getOrElse(0)
 
   function onImportSubmit(): void {
-    setIsImportDialodOpen(false)
+    setIsImportDialogOpen(false)
     fetchTransactions()
   }
 
@@ -115,33 +115,35 @@ export default function TransactionsPage() {
     })
   }
 
-  function onBulkUpdate(data: BulkUpdateTransactionsData): Promise<boolean> {
+  async function onBulkUpdate(
+    data: BulkUpdateTransactionsData,
+  ): Promise<boolean> {
     const ids: string[] = paginatedTransactions
       .map(([transactions]) =>
         transactions.filter((t) => t.isSelected).map((t) => t.id),
       )
       .getOrElse([])
 
-    return bulkUpdate({ ids, ...data }).then((response) => {
-      if (response === null) {
-        return false
-      } else {
-        updateTransactions(([transactions, count]) => [
-          transactions.map((transaction) => {
-            const updated = response.find((t) => t.id === transaction.id)
+    const response = await bulkUpdate({ ids, ...data })
 
-            if (typeof updated === "undefined") {
-              return transaction
-            } else {
-              return { ...updated, isSelected: true }
-            }
-          }),
-          count,
-        ])
+    if (response === null) {
+      return false
+    } else {
+      updateTransactions(([transactions, count]) => [
+        transactions.map((transaction) => {
+          const updated = response.find((t) => t.id === transaction.id)
 
-        return true
-      }
-    })
+          if (typeof updated === "undefined") {
+            return transaction
+          } else {
+            return { ...updated, isSelected: true }
+          }
+        }),
+        count,
+      ])
+
+      return true
+    }
   }
 
   return (
@@ -157,7 +159,7 @@ export default function TransactionsPage() {
           }}
         >
           <Typography variant="h5">Transactions</Typography>
-          <Button onClick={() => setIsImportDialodOpen(true)}>
+          <Button onClick={() => setIsImportDialogOpen(true)}>
             Import transactions
           </Button>
         </Paper>
@@ -183,7 +185,7 @@ export default function TransactionsPage() {
       </Stack>
       <ImportTransactionsDialog
         isOpen={isImportDialogOpen}
-        onClose={() => setIsImportDialodOpen(false)}
+        onClose={() => setIsImportDialogOpen(false)}
         onSubmit={onImportSubmit}
       />
     </Container>

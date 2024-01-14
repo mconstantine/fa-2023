@@ -13,9 +13,16 @@ import {
   Param,
   Post,
   Put,
+  QueryParams,
 } from "routing-controllers"
 import { Category } from "../models/Category"
 import { In, type DeepPartial } from "typeorm"
+
+class FindCategoryParams {
+  @IsOptional()
+  @IsNotEmpty()
+  public query?: string
+}
 
 class CategoryCreationBody {
   @IsNotEmpty()
@@ -76,8 +83,18 @@ export class CategoryController {
   }
 
   @Get("/")
-  async find(): Promise<Category[]> {
-    return await Category.find()
+  async find(@QueryParams() params: FindCategoryParams): Promise<Category[]> {
+    const query = Category.createQueryBuilder("c").where("1 = 1")
+
+    console.log(params)
+
+    if (typeof params.query !== "undefined") {
+      query.andWhere("LOWER(c.name) LIKE :query", {
+        query: `%${params.query}%`,
+      })
+    }
+
+    return await query.getMany()
   }
 
   @Put("/")

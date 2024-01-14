@@ -20,6 +20,7 @@ import {
   IsString,
   IsUUID,
 } from "class-validator"
+import { AppDataSource } from "../AppDataSource"
 
 interface ImportResponse {
   errors: string[]
@@ -44,8 +45,13 @@ class BulkUpdateTransactionsBody {
   @IsUUID("4", { each: true })
   public ids!: string[]
 
+  @IsOptional()
   @IsNotEmpty()
-  description!: string
+  description?: string
+
+  @IsOptional()
+  @IsUUID(4, { each: true })
+  public categoryIds?: string[]
 }
 
 @JsonController("/transactions")
@@ -92,7 +98,9 @@ export class TransactionController {
       query.andWhere({ date: timeCondition })
     }
 
-    return await query.getManyAndCount()
+    return await query
+      .leftJoinAndSelect("t.categories", "categories")
+      .getManyAndCount()
   }
 
   @Post("/import")
@@ -192,14 +200,42 @@ export class TransactionController {
   public async bulkUpdate(
     @Body() body: BulkUpdateTransactionsBody,
   ): Promise<Transaction[]> {
-    await Transaction.createQueryBuilder()
-      .where({ id: In(body.ids) })
-      .update({
-        description: body.description,
-      })
-      .execute()
+    if (typeof body.description !== "undefined") {
+      await Transaction.createQueryBuilder()
+        .where({ id: In(body.ids) })
+        .update({
+          description: body.description,
+        })
+        .execute()
+    }
 
-    return await Transaction.findBy({ id: In(body.ids) })
+    if (typeof body.categoryIds !== "undefined") {
+      await AppDataSource.createQueryBuilder()
+        .from("transaction_categories_category", "tc")
+        .delete()
+        .where("transactionId IN (...ids)", { ids: body.ids })
+        .execute()
+
+      await AppDataSource.createQueryBuilder()
+        .from("transaction_categories_category", "tc")
+        .insert()
+        .values(
+          body.ids.flatMap((transactionId) =>
+            // we just checked that categoryIds is defined
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            body.categoryIds!.map((categoryId) => ({
+              transactionId,
+              categoryId,
+            })),
+          ),
+        )
+        .execute()
+    }
+
+    return await Transaction.createQueryBuilder("t")
+      .leftJoinAndSelect("t.categories", "categories")
+      .where({ id: In(body.ids) })
+      .getMany()
   }
 
   public static mergeBankAndPayPalTransactions(

@@ -57,10 +57,6 @@ type UseQueryOutput<O> = [
 ]
 
 export function useQuery<O>(path: string): UseQueryOutput<O>
-export function useQuery<O, T = O>(
-  path: string,
-  transformer: (data: O) => T,
-): UseQueryOutput<T>
 export function useQuery<I extends Record<string, string | undefined>, O>(
   path: string,
   query: I,
@@ -80,7 +76,7 @@ export function useQuery<
   transformer?: (data: O) => T,
 ): UseQueryOutput<O | T> {
   const [response, setResponse] = useState<NetworkResponse<O | T>>(
-    networkResponse.make<O>().load(),
+    networkResponse.make<O | T>().load(),
   )
 
   const sendQuery = useCallback(async (): Promise<void> => {
@@ -106,7 +102,7 @@ export function useQuery<
     )
 
     if (typeof transformer !== "undefined") {
-      setResponse(response.map((data) => transformer(data)))
+      setResponse(response.map(transformer))
     } else {
       setResponse(response)
     }
