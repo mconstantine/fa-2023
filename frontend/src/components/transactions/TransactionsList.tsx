@@ -82,7 +82,15 @@ export default function TransactionsList(props: Props) {
                       day: "2-digit",
                     },
                   )}, ${transaction.value.toFixed(2)}`}
-                  secondary={transaction.description}
+                  secondary={
+                    <span>
+                      {transaction.description}
+                      <br />
+                      {transaction.categories
+                        .map((category) => category.name)
+                        .join(", ")}
+                    </span>
+                  }
                 />
               </ListItemButton>
             ))}

@@ -213,7 +213,7 @@ export class TransactionController {
       await AppDataSource.createQueryBuilder()
         .from("transaction_categories_category", "tc")
         .delete()
-        .where("transactionId IN (...ids)", { ids: body.ids })
+        .where({ transactionId: In(body.ids) })
         .execute()
 
       await AppDataSource.createQueryBuilder()

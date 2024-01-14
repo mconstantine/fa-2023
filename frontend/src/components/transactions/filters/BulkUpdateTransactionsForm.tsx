@@ -14,6 +14,8 @@ import {
   FindCategoryParams,
 } from "../../categories/domain"
 import { useDebounce } from "../../../hooks/useDebounce"
+import { useForm } from "../../../hooks/useForm"
+import Form from "../../forms/Form"
 
 export interface BulkUpdateTransactionsData {
   description?: string | undefined
@@ -31,13 +33,33 @@ interface Props {
   onCancel(): void
 }
 
-// TODO: use the props
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export default function BulkUpdateTransactionsForm(_props: Props) {
-  const [data, setData] = useState<BulkUpdateTransactionFormData>({
-    description: "",
-    categorySelection: [],
-  })
+export default function BulkUpdateTransactionsForm(props: Props) {
+  const { inputProps, submit } = useForm<BulkUpdateTransactionFormData>(
+    {
+      description: "",
+      categorySelection: [],
+    },
+    (data) => {
+      if (data.description !== "" || data.categorySelection.length > 0) {
+        props.onSubmit({
+          ...(data.description !== ""
+            ? {
+                description: data.description,
+              }
+            : {}),
+          ...(data.categorySelection.length > 0
+            ? {
+                categoryIds: data.categorySelection.map(
+                  (category) => category.id,
+                ),
+              }
+            : {}),
+        })
+      } else {
+        props.onCancel()
+      }
+    },
+  )
 
   const [searchQuery, setSearchQuery] = useState("")
   const [searchParams, setSearchParams] = useState<FindCategoryParams>({})
@@ -53,18 +75,29 @@ export default function BulkUpdateTransactionsForm(_props: Props) {
     Category[]
   >("POST", "/categories/bulk")
 
-  const categorySelectionResponse = categoriesListResponse.flatMap(
-    (categories) =>
-      createCategoriesResponse.match({
-        whenIdle: () => networkResponse.fromSuccess(categories),
-        whenLoading: () => createCategoriesResponse,
-        whenFailed: () => createCategoriesResponse,
-        whenSuccessful: () => networkResponse.fromSuccess(categories),
-      }),
-  )
+  const categorySelectionResponse: NetworkResponse<Category[]> =
+    categoriesListResponse
+      .flatMap((categories) =>
+        createCategoriesResponse.match({
+          whenIdle: () => networkResponse.fromSuccess(categories),
+          whenLoading: () => createCategoriesResponse,
+          whenFailed: () => createCategoriesResponse,
+          whenSuccessful: () => networkResponse.fromSuccess(categories),
+        }),
+      )
+      .flatMap((categories) =>
+        props.networkResponse.match({
+          whenIdle: () => networkResponse.fromSuccess(categories),
+          whenLoading: () =>
+            props.networkResponse as NetworkResponse<Category[]>,
+          whenFailed: () =>
+            props.networkResponse as NetworkResponse<Category[]>,
+          whenSuccessful: () => networkResponse.fromSuccess(categories),
+        }),
+      )
 
   const onDescriptionChange: ChangeEventHandler<HTMLInputElement> = (event) => {
-    setData((data) => ({ ...data, description: event.currentTarget.value }))
+    inputProps("description", "").onChange(event.currentTarget.value)
   }
 
   function onSearchQueryChange(query: string): void {
@@ -78,32 +111,40 @@ export default function BulkUpdateTransactionsForm(_props: Props) {
         if (response !== null) {
           updateCategoriesList((list) => [...list, ...response])
 
-          setData((data) => ({
-            ...data,
-            categorySelection: [...selection.categories, ...response],
-          }))
+          inputProps("categorySelection", []).onChange([
+            ...selection.categories,
+            ...response,
+          ])
         }
       })
     } else {
-      setData((data) => ({ ...data, categorySelection: selection.categories }))
+      inputProps("categorySelection", []).onChange(selection.categories)
     }
   }
 
   return (
     <Stack spacing={1.5}>
       <Typography variant="h5">Update transactions</Typography>
-      <TextField
-        label="Description"
-        value={data.description}
-        onChange={onDescriptionChange}
-      />
-      <CategorySelect
+      <Form
+        onSubmit={submit}
         networkResponse={categorySelectionResponse}
-        searchQuery={searchQuery}
-        onSearchQueryChange={onSearchQueryChange}
-        selection={data.categorySelection}
-        onSubmit={onCategorySelectionChange}
-      />
+        submitButtonLabel="Save"
+        cancelAction={props.onCancel}
+        isValid={() => true}
+      >
+        <TextField
+          label="Description"
+          value={inputProps("description", "").value}
+          onChange={onDescriptionChange}
+        />
+        <CategorySelect
+          networkResponse={categorySelectionResponse}
+          searchQuery={searchQuery}
+          onSearchQueryChange={onSearchQueryChange}
+          selection={inputProps("categorySelection", []).value}
+          onSubmit={onCategorySelectionChange}
+        />
+      </Form>
     </Stack>
   )
 }

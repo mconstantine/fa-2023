@@ -1,8 +1,11 @@
+import { Category } from "../categories/domain"
+
 export interface Transaction extends Record<string, unknown> {
   id: string
   description: string
   date: string
   value: number
+  categories: Category[]
 }
 
 export interface FindTransactionsParams
