@@ -19,7 +19,7 @@ import { NetworkResponse } from "../../../network/NetworkResponse"
 import { useDebounce } from "../../../hooks/useDebounce"
 import BulkUpdateTransactionsForm, {
   BulkUpdateTransactionsData,
-} from "./BulkUpdateTransactionsForm"
+} from "../bulkUpdate/BulkUpdateTransactionsForm"
 
 interface Props {
   findTransactionsNetworkResponse: NetworkResponse<unknown>

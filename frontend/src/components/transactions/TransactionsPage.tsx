@@ -11,7 +11,7 @@ import {
 } from "./domain"
 import TransactionsList, { SelectableTransaction } from "./TransactionsList"
 import TransactionFilters from "./filters/TransactionFilters"
-import { BulkUpdateTransactionsData } from "./filters/BulkUpdateTransactionsForm"
+import { BulkUpdateTransactionsData } from "./bulkUpdate/BulkUpdateTransactionsForm"
 
 function transactionsQueryTransformer(
   response: PaginatedResponse<Transaction>,
