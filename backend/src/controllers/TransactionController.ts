@@ -15,6 +15,7 @@ import { type ImportError } from "../adapters/Adapter"
 import { MoreThanOrEqual, LessThanOrEqual, And, In } from "typeorm"
 import {
   IsDateString,
+  IsEnum,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -41,6 +42,11 @@ class FindQueryParams {
   public endDate?: string
 }
 
+export enum CategoryUpdateMode {
+  REPLACE = "replace",
+  ADD = "add",
+}
+
 class BulkUpdateTransactionsBody {
   @IsUUID("4", { each: true })
   public ids!: string[]
@@ -52,6 +58,9 @@ class BulkUpdateTransactionsBody {
   @IsOptional()
   @IsUUID(4, { each: true })
   public categoryIds?: string[]
+
+  @IsEnum(CategoryUpdateMode)
+  public categoryUpdateMode!: CategoryUpdateMode
 }
 
 @JsonController("/transactions")
@@ -210,11 +219,13 @@ export class TransactionController {
     }
 
     if (typeof body.categoryIds !== "undefined") {
-      await AppDataSource.createQueryBuilder()
-        .from("transaction_categories_category", "tc")
-        .delete()
-        .where({ transactionId: In(body.ids) })
-        .execute()
+      if (body.categoryUpdateMode === CategoryUpdateMode.REPLACE) {
+        await AppDataSource.createQueryBuilder()
+          .from("transaction_categories_category", "tc")
+          .delete()
+          .where({ transactionId: In(body.ids) })
+          .execute()
+      }
 
       await AppDataSource.createQueryBuilder()
         .from("transaction_categories_category", "tc")

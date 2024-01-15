@@ -16,15 +16,19 @@ import {
 import { useDebounce } from "../../../hooks/useDebounce"
 import { useForm } from "../../../hooks/useForm"
 import Form from "../../forms/Form"
+import { CategoryUpdateMode } from "./CategoryUpdateMode"
+import ValidatedSelect from "../../forms/inputs/ValidatedSelect"
 
 export interface BulkUpdateTransactionsData {
   description?: string | undefined
   categoryIds?: string[] | undefined
+  categoryUpdateMode: CategoryUpdateMode
 }
 
 interface BulkUpdateTransactionFormData extends Record<string, unknown> {
   description: string
   categorySelection: Category[]
+  categoryUpdateMode: CategoryUpdateMode
 }
 
 interface Props {
@@ -38,6 +42,7 @@ export default function BulkUpdateTransactionsForm(props: Props) {
     {
       description: "",
       categorySelection: [],
+      categoryUpdateMode: CategoryUpdateMode.REPLACE,
     },
     (data) => {
       if (data.description !== "" || data.categorySelection.length > 0) {
@@ -54,6 +59,7 @@ export default function BulkUpdateTransactionsForm(props: Props) {
                 ),
               }
             : {}),
+          categoryUpdateMode: data.categoryUpdateMode,
         })
       } else {
         props.onCancel()
@@ -143,6 +149,15 @@ export default function BulkUpdateTransactionsForm(props: Props) {
           onSearchQueryChange={onSearchQueryChange}
           selection={inputProps("categorySelection", []).value}
           onSubmit={onCategorySelectionChange}
+        />
+        <ValidatedSelect
+          label="Categories update mode"
+          {...inputProps("categoryUpdateMode", null)}
+          options={CategoryUpdateMode}
+          optionLabels={{
+            ADD: "Add categories",
+            REPLACE: "Replace categories",
+          }}
         />
       </Form>
     </Stack>

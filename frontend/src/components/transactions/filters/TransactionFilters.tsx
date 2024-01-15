@@ -82,7 +82,7 @@ export default function TransactionFilters(props: Props) {
             control={
               <Checkbox
                 aria-label="Select all"
-                value={props.allIsSelected}
+                checked={props.allIsSelected}
                 onChange={onSelectAllChange}
               />
             }

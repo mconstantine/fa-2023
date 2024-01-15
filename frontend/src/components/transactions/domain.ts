@@ -1,4 +1,5 @@
 import { Category } from "../categories/domain"
+import { CategoryUpdateMode } from "./bulkUpdate/CategoryUpdateMode"
 
 export interface Transaction extends Record<string, unknown> {
   id: string
@@ -19,4 +20,5 @@ export interface BulkUpdateTransactionsBody {
   ids: string[]
   description?: string | undefined
   categoryIds?: string[] | undefined
+  categoryUpdateMode: CategoryUpdateMode
 }
