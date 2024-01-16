@@ -1,10 +1,9 @@
 import { Edit, Tune } from "@mui/icons-material"
-import { IconButton, Stack } from "@mui/material"
+import { IconButton, Stack, Typography } from "@mui/material"
 import { useState } from "react"
 import { FindTransactionsParams, Transaction } from "../domain"
 import { NetworkResponse } from "../../../network/NetworkResponse"
 import { PaginatedResponse } from "../../../globalDomain"
-import SelectAllCheckbox from "./SelectAllCheckbox"
 import BulkUpdateTransactionsDialog, {
   BulkUpdateTransactionsData,
 } from "../bulkUpdate/BulkUpdateTransactionsDialog"
@@ -19,15 +18,9 @@ interface Props {
   params: FindTransactionsParams
   onParamsChange(params: FindTransactionsParams): void
   selectedCount: number
-  allIsSelected: boolean
-  onSelectAllChange(allIsSelected: boolean): void
   onBulkUpdate(data: BulkUpdateTransactionsData): Promise<boolean>
 }
 
-/*
-TODO:
-- Actually implement pagination with a table
-*/
 export default function TransactionFilters(props: Props) {
   const [filtersDialogIsOpen, setFiltersDialogIsOpen] = useState(false)
   const [updateDialogIsOpen, setUpdateDialogIsOpen] = useState(false)
@@ -39,13 +32,9 @@ export default function TransactionFilters(props: Props) {
       alignItems="center"
       justifyContent="space-between"
     >
-      <SelectAllCheckbox
-        allIsSelected={props.allIsSelected}
-        selectedCount={props.selectedCount}
-        onSelectAllChange={props.onSelectAllChange}
-      />
       {props.selectedCount > 0 ? (
         <>
+          <Typography>{props.selectedCount} selected</Typography>
           <IconButton
             aria-label="Edit"
             onClick={() => setUpdateDialogIsOpen(true)}

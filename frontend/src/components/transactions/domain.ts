@@ -1,3 +1,4 @@
+import { PaginationParams } from "../../globalDomain"
 import { Category } from "../categories/domain"
 import { CategoryUpdateMode } from "./bulkUpdate/CategoryUpdateMode"
 
@@ -9,8 +10,7 @@ export interface Transaction extends Record<string, unknown> {
   categories: Category[]
 }
 
-interface BaseFindTransactionsParams
-  extends Record<string, string | string[] | undefined> {
+interface BaseFindTransactionsParams extends PaginationParams {
   query?: string | undefined
   startDate?: string | undefined
   endDate?: string | undefined

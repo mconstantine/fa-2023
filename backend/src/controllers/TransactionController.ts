@@ -21,6 +21,7 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  Min,
   ValidateIf,
 } from "class-validator"
 import { AppDataSource } from "../AppDataSource"
@@ -36,6 +37,12 @@ enum FindTransactionsCategoryMode {
 }
 
 class FindQueryParams {
+  @Min(0)
+  public page!: number
+
+  @Min(1)
+  public perPage!: number
+
   @IsOptional()
   @IsNotEmpty()
   @IsString()
@@ -117,8 +124,10 @@ export class TransactionController {
     const query = Transaction.createQueryBuilder("transaction")
       .leftJoinAndSelect("transaction.categories", "categories")
       .where("1 = 1")
+      .take(params.perPage)
+      .skip(params.perPage * params.page)
       .orderBy({
-        date: "DESC",
+        "transaction.date": "DESC",
       })
 
     if (searchQuery !== "") {

@@ -3,14 +3,14 @@ import { useState } from "react"
 import ImportTransactionsDialog from "./ImportTransactionsDialog"
 import { useCommand, useQuery } from "../../hooks/network"
 import Query from "../Query"
-import { PaginatedResponse } from "../../globalDomain"
+import { PaginatedResponse, PaginationParams } from "../../globalDomain"
 import {
   BulkUpdateTransactionsBody,
   CategoryMode,
   FindTransactionsParams,
   Transaction,
 } from "./domain"
-import TransactionsList, { SelectableTransaction } from "./TransactionsList"
+import TransactionsTable, { SelectableTransaction } from "./TransactionsTable"
 import TransactionFilters from "./filters/TransactionFilters"
 import { BulkUpdateTransactionsData } from "./bulkUpdate/BulkUpdateTransactionsDialog"
 
@@ -32,6 +32,8 @@ export default function TransactionsPage() {
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false)
 
   const [params, setParams] = useState<FindTransactionsParams>({
+    page: 0,
+    perPage: 100,
     startDate: new Date(
       Date.UTC(new Date().getFullYear() - 1, 0, 1),
     ).toISOString(),
@@ -63,10 +65,6 @@ export default function TransactionsPage() {
     )
     .getOrElse(0)
 
-  const transactionsCount = paginatedTransactions
-    .map(([transactions]) => transactions.length)
-    .getOrElse(0)
-
   function onImportSubmit(): void {
     setIsImportDialogOpen(false)
     fetchTransactions()
@@ -76,45 +74,26 @@ export default function TransactionsPage() {
     setParams(params)
   }
 
-  function setAllIsSelected(allIsSelected: boolean): void {
-    if (allIsSelected) {
-      updateTransactions(([transactions, count]) => {
-        return [
-          transactions.map((t) => {
-            t.isSelected = true
-            return t
-          }),
-          count,
-        ]
-      })
-    } else {
-      updateTransactions(([transactions, count]) => {
-        return [
-          transactions.map((t) => {
-            t.isSelected = false
-            return t
-          }),
-          count,
-        ]
-      })
-    }
-  }
-
-  function onTransactionSelectionChange(
-    transaction: SelectableTransaction,
+  function onTransactionsSelectionChange(
+    selected: boolean,
+    ids: string[],
   ): void {
     updateTransactions(([transactions, count]) => {
       return [
-        transactions.map((t) => {
-          if (t.id === transaction.id) {
-            return transaction
-          } else {
-            return t
+        transactions.map((transaction) => {
+          if (ids.includes(transaction.id)) {
+            transaction.isSelected = selected
           }
+
+          return transaction
         }),
         count,
       ]
     })
+  }
+
+  function onPaginationParamsChange(paginationParams: PaginationParams) {
+    setParams((params) => ({ ...params, ...paginationParams }))
   }
 
   async function onBulkUpdate(
@@ -171,16 +150,17 @@ export default function TransactionsPage() {
           params={params}
           onParamsChange={onParamsChange}
           selectedCount={selectedCount}
-          allIsSelected={selectedCount === transactionsCount}
-          onSelectAllChange={setAllIsSelected}
           onBulkUpdate={onBulkUpdate}
         />
         <Query
           response={paginatedTransactions}
-          render={([transactions]) => (
-            <TransactionsList
+          render={([transactions, count]) => (
+            <TransactionsTable
               transactions={transactions}
-              onTransactionSelectionChange={onTransactionSelectionChange}
+              transactionsCount={count}
+              onTransactionsSelectionChange={onTransactionsSelectionChange}
+              params={params}
+              onParamsChange={onPaginationParamsChange}
             />
           )}
         />

@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from "react"
 import { NetworkResponse, networkResponse } from "../network/NetworkResponse"
 
+type Param = string | number | string[] | undefined
+
 if (!("VITE_API_URL" in import.meta.env)) {
   throw new ReferenceError('Unable to find environment variable "VITE_API_URL"')
 }
@@ -57,20 +59,17 @@ type UseLazyQueryOutput<O, I> = [
 ]
 
 export function useLazyQuery<O>(path: string): UseLazyQueryOutput<O, void>
-export function useLazyQuery<
-  O,
-  I extends Record<string, string | string[] | undefined>,
->(path: string): UseLazyQueryOutput<O, I>
-export function useLazyQuery<
-  O,
-  I extends Record<string, string | string[] | undefined>,
-  T = O,
->(path: string, transformer: (data: O) => T): UseLazyQueryOutput<O | T, I>
-export function useLazyQuery<
-  O,
-  I extends Record<string, string | string[] | undefined>,
-  T = O,
->(path: string, transformer?: (data: O) => T): UseLazyQueryOutput<O | T, I> {
+export function useLazyQuery<O, I extends Record<string, Param>>(
+  path: string,
+): UseLazyQueryOutput<O, I>
+export function useLazyQuery<O, I extends Record<string, Param>, T = O>(
+  path: string,
+  transformer: (data: O) => T,
+): UseLazyQueryOutput<O | T, I>
+export function useLazyQuery<O, I extends Record<string, Param>, T = O>(
+  path: string,
+  transformer?: (data: O) => T,
+): UseLazyQueryOutput<O | T, I> {
   const [response, setResponse] = useState<NetworkResponse<O | T>>(
     networkResponse.make<O | T>(),
   )
@@ -88,6 +87,8 @@ export function useLazyQuery<
           Object.entries(query).forEach(([name, value]) => {
             if (typeof value === "string") {
               params.append(name, value)
+            } else if (typeof value === "number") {
+              params.append(name, value.toString(10))
             } else if (typeof value !== "undefined") {
               value.forEach((value) => {
                 params.append(name, value)
@@ -135,20 +136,16 @@ type UseQueryOutput<O> = [
 ]
 
 export function useQuery<O>(path: string): UseQueryOutput<O>
-export function useQuery<
-  I extends Record<string, string | string[] | undefined>,
-  O,
->(path: string, query: I): UseQueryOutput<O>
-export function useQuery<
-  I extends Record<string, string | string[] | undefined>,
-  O,
-  T = O,
->(path: string, query: I, transformer: (data: O) => T): UseQueryOutput<T>
-export function useQuery<
-  I extends Record<string, string | string[] | undefined>,
-  O,
-  T = O,
->(
+export function useQuery<I extends Record<string, Param>, O>(
+  path: string,
+  query: I,
+): UseQueryOutput<O>
+export function useQuery<I extends Record<string, Param>, O, T = O>(
+  path: string,
+  query: I,
+  transformer: (data: O) => T,
+): UseQueryOutput<T>
+export function useQuery<I extends Record<string, Param>, O, T = O>(
   path: string,
   query?: I,
   transformer?: (data: O) => T,
