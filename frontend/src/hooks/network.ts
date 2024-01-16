@@ -50,6 +50,84 @@ async function sendNetworkRequest<O>(
   }
 }
 
+type UseLazyQueryOutput<O, I> = [
+  response: NetworkResponse<O>,
+  optimisticlyUpdate: (update: O | ((oldValue: O) => O)) => void,
+  refresh: (query: I) => void,
+]
+
+export function useLazyQuery<O>(path: string): UseLazyQueryOutput<O, void>
+export function useLazyQuery<
+  O,
+  I extends Record<string, string | string[] | undefined>,
+>(path: string): UseLazyQueryOutput<O, I>
+export function useLazyQuery<
+  O,
+  I extends Record<string, string | string[] | undefined>,
+  T = O,
+>(path: string, transformer: (data: O) => T): UseLazyQueryOutput<O | T, I>
+export function useLazyQuery<
+  O,
+  I extends Record<string, string | string[] | undefined>,
+  T = O,
+>(path: string, transformer?: (data: O) => T): UseLazyQueryOutput<O | T, I> {
+  const [response, setResponse] = useState<NetworkResponse<O | T>>(
+    networkResponse.make<O | T>(),
+  )
+
+  const sendQuery = useCallback(
+    async (query?: I): Promise<void> => {
+      setResponse((response) => response.load())
+
+      const queryString = (() => {
+        if (typeof query === "undefined") {
+          return ""
+        } else {
+          const params = new URLSearchParams()
+
+          Object.entries(query).forEach(([name, value]) => {
+            if (typeof value === "string") {
+              params.append(name, value)
+            } else if (typeof value !== "undefined") {
+              value.forEach((value) => {
+                params.append(name, value)
+              })
+            }
+          })
+
+          return "?" + params.toString()
+        }
+      })()
+
+      const response = await sendNetworkRequest<O>(
+        path + queryString,
+        makeNetworkRequest("GET"),
+      )
+
+      if (typeof transformer !== "undefined") {
+        setResponse(response.map(transformer))
+      } else {
+        setResponse(response)
+      }
+    },
+    [path, transformer],
+  )
+
+  return [
+    response,
+    (update) => {
+      setResponse((response) => {
+        if (typeof update === "function") {
+          return response.map(update as (data: O | T) => O | T)
+        } else {
+          return networkResponse.fromSuccess(update)
+        }
+      })
+    },
+    sendQuery,
+  ]
+}
+
 type UseQueryOutput<O> = [
   response: NetworkResponse<O>,
   optimisticlyUpdate: (update: O | ((oldValue: O) => O)) => void,
@@ -75,60 +153,19 @@ export function useQuery<
   query?: I,
   transformer?: (data: O) => T,
 ): UseQueryOutput<O | T> {
-  const [response, setResponse] = useState<NetworkResponse<O | T>>(
-    networkResponse.make<O | T>().load(),
+  const [response, update, sendQuery] = useLazyQuery(
+    path,
+    transformer as (data: O) => T,
   )
 
-  const sendQuery = useCallback(async (): Promise<void> => {
-    const queryString = (() => {
-      if (typeof query === "undefined") {
-        return ""
-      } else {
-        const params = new URLSearchParams()
-
-        Object.entries(query).forEach(([name, value]) => {
-          if (typeof value === "string") {
-            params.append(name, value)
-          } else if (typeof value !== "undefined") {
-            value.forEach((value) => {
-              params.append(name, value)
-            })
-          }
-        })
-
-        return "?" + params.toString()
-      }
-    })()
-
-    const response = await sendNetworkRequest<O>(
-      path + queryString,
-      makeNetworkRequest("GET"),
-    )
-
-    if (typeof transformer !== "undefined") {
-      setResponse(response.map(transformer))
-    } else {
-      setResponse(response)
-    }
-  }, [path, query, transformer])
-
   useEffect(() => {
-    setResponse((response) => response.load())
-    sendQuery()
-  }, [sendQuery])
+    sendQuery(query as I)
+  }, [sendQuery, query])
 
   return [
     response,
-    (update) => {
-      setResponse((response) => {
-        if (typeof update === "function") {
-          return response.map(update as (data: O | T) => O | T)
-        } else {
-          return networkResponse.fromSuccess(update)
-        }
-      })
-    },
-    sendQuery,
+    update as UseQueryOutput<O | T>[1],
+    () => sendQuery(query as I),
   ]
 }
 

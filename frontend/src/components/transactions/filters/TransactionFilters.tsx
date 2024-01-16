@@ -3,10 +3,11 @@ import { IconButton, Stack } from "@mui/material"
 import { useState } from "react"
 import { FindTransactionsParams, Transaction } from "../domain"
 import { NetworkResponse } from "../../../network/NetworkResponse"
-import { BulkUpdateTransactionsData } from "../bulkUpdate/BulkUpdateTransactionsForm"
 import { PaginatedResponse } from "../../../globalDomain"
 import SelectAllCheckbox from "./SelectAllCheckbox"
-import BulkUpdateTransactionsDialog from "./BulkUpdateTransactionsDialog"
+import BulkUpdateTransactionsDialog, {
+  BulkUpdateTransactionsData,
+} from "../bulkUpdate/BulkUpdateTransactionsDialog"
 import TransactionFiltersDialog from "./TransactionFiltersDialog"
 import SearchTransactionsInput from "./SearchTransactionsInput"
 
@@ -25,8 +26,7 @@ interface Props {
 
 /*
 TODO:
-- Figure out why there are requests to /categories as soon as the app starts
-- Actually implement pagination
+- Actually implement pagination with a table
 */
 export default function TransactionFilters(props: Props) {
   const [filtersDialogIsOpen, setFiltersDialogIsOpen] = useState(false)
