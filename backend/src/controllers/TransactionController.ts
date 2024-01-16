@@ -90,8 +90,6 @@ export class TransactionController {
   public async find(
     @QueryParams() params: FindQueryParams,
   ): Promise<[Transaction[], number]> {
-    console.log("TODO:", { params })
-
     const searchQuery = params.query?.toLowerCase() ?? ""
 
     const startTimeCondition =
@@ -116,21 +114,37 @@ export class TransactionController {
       }
     })()
 
-    const query = Transaction.createQueryBuilder("t")
-      .leftJoinAndSelect("t.categories", "categories")
+    const query = Transaction.createQueryBuilder("transaction")
+      .leftJoinAndSelect("transaction.categories", "categories")
       .where("1 = 1")
       .orderBy({
         date: "DESC",
       })
 
     if (searchQuery !== "") {
-      query.andWhere("LOWER(t.description) LIKE :searchQuery", {
+      query.andWhere("LOWER(transaction.description) LIKE :searchQuery", {
         searchQuery: `%${searchQuery}%`,
       })
     }
 
     if (timeCondition !== null) {
       query.andWhere({ date: timeCondition })
+    }
+
+    switch (params.categoryMode) {
+      case FindTransactionsCategoryMode.ALL:
+        break
+      case FindTransactionsCategoryMode.UNCATEGORIZED:
+        query.andWhere("transaction_categories.categoryId IS NULL")
+        break
+      case FindTransactionsCategoryMode.SPECIFIC:
+        query.andWhere(
+          "transaction_categories.categoryId IN (:...categories)",
+          {
+            categories: params.categories,
+          },
+        )
+        break
     }
 
     return await query.getManyAndCount()
