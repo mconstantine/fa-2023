@@ -6,6 +6,7 @@ import Query from "../Query"
 import { PaginatedResponse } from "../../globalDomain"
 import {
   BulkUpdateTransactionsBody,
+  CategoryMode,
   FindTransactionsParams,
   Transaction,
 } from "./domain"
@@ -35,6 +36,7 @@ export default function TransactionsPage() {
       Date.UTC(new Date().getFullYear() - 1, 0, 1),
     ).toISOString(),
     endDate: new Date(Date.UTC(new Date().getFullYear(), 0, 1)).toISOString(),
+    categoryMode: CategoryMode.ALL,
   })
 
   const [paginatedTransactions, updateTransactions, fetchTransactions] =

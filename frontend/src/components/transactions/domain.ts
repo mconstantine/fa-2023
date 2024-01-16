@@ -9,12 +9,33 @@ export interface Transaction extends Record<string, unknown> {
   categories: Category[]
 }
 
-export interface FindTransactionsParams
-  extends Record<string, string | undefined> {
+interface BaseFindTransactionsParams
+  extends Record<string, string | string[] | undefined> {
   query?: string | undefined
   startDate?: string | undefined
   endDate?: string | undefined
 }
+
+export enum CategoryMode {
+  ALL = "all",
+  UNCATEGORIZED = "uncategorized",
+  SPECIFIC = "specific",
+}
+
+interface SpecificCategoriesFindTransactionsParams
+  extends BaseFindTransactionsParams {
+  categoryMode: CategoryMode.SPECIFIC
+  categories: string[]
+}
+
+interface NonSpecificCategoriesFindTransactionsParams
+  extends BaseFindTransactionsParams {
+  categoryMode: CategoryMode.ALL | CategoryMode.UNCATEGORIZED
+}
+
+export type FindTransactionsParams =
+  | SpecificCategoriesFindTransactionsParams
+  | NonSpecificCategoriesFindTransactionsParams
 
 export interface BulkUpdateTransactionsBody {
   ids: string[]

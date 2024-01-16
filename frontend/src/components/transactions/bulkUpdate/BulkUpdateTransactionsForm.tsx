@@ -144,6 +144,7 @@ export default function BulkUpdateTransactionsForm(props: Props) {
           onChange={onDescriptionChange}
         />
         <CategorySelect
+          creatable
           networkResponse={categorySelectionResponse}
           searchQuery={searchQuery}
           onSearchQueryChange={onSearchQueryChange}

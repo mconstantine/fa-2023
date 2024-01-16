@@ -1,32 +1,41 @@
 import {
   Box,
   Button,
+  FormControl,
   FormControlLabel,
+  FormLabel,
   InputAdornment,
   Paper,
   Radio,
+  RadioGroup,
   Stack,
   Typography,
 } from "@mui/material"
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers"
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
-import { FindTransactionsParams } from "../domain"
+import { CategoryMode, FindTransactionsParams, Transaction } from "../domain"
 import dayjs, { Dayjs } from "dayjs"
 import { NetworkResponse } from "../../../network/NetworkResponse"
 import PositiveIntegerInput from "../../forms/inputs/PositiveIntegerInput"
 import ValidatedSelect from "../../forms/inputs/ValidatedSelect"
 import { useState } from "react"
 import { DateTimeRange, RelativeTimeRange, ShortcutRange } from "./TimeRange"
+import CategorySelect from "../../forms/inputs/CategorySelect"
+import { Category } from "../../categories/domain"
+import { PaginatedResponse } from "../../../globalDomain"
 
 interface Props {
   params: FindTransactionsParams
-  onChange(params: FindTransactionsParams): void
-  networkResponse: NetworkResponse<unknown>
+  onFiltersChange(params: FindTransactionsParams): void
+  transactionsNetworkResponse: NetworkResponse<PaginatedResponse<Transaction>>
+  categoriesNetworkResponse: NetworkResponse<Category[]>
+  categoriesSearchQuery: string
+  onCategoriesSearchQueryChange(searchQuery: string): void
 }
 
 type Mode = "RelativeTimeRange" | "DateRange"
 
-interface TransactionFilters extends FindTransactionsParams {
+type TransactionFilters = FindTransactionsParams & {
   mode: Mode
 }
 
@@ -36,12 +45,23 @@ export default function TransactionFiltersDialogContent(props: Props) {
     mode: "RelativeTimeRange",
   })
 
+  const [categoriesSelection, setCategoriesSelection] = useState<Category[]>([])
+
   const datesAreValid =
     typeof filters.startDate !== "undefined" &&
     typeof filters.endDate !== "undefined" &&
     filters.startDate.localeCompare(filters.endDate) <= 0
 
-  function onModeChange(mode: Mode) {
+  const categoriesAreValid =
+    filters.categoryMode !== CategoryMode.SPECIFIC ||
+    filters.categories.length > 0
+
+  const submitIsDisabled =
+    !datesAreValid ||
+    !categoriesAreValid ||
+    props.transactionsNetworkResponse.isLoading()
+
+  function onTimeRangeModeChange(mode: Mode) {
     setFilters((filters) => ({ ...filters, mode }))
   }
 
@@ -53,6 +73,29 @@ export default function TransactionFiltersDialogContent(props: Props) {
     }))
   }
 
+  function onCategoryModeChange(categoryMode: CategoryMode): void {
+    switch (categoryMode) {
+      case CategoryMode.ALL:
+      case CategoryMode.UNCATEGORIZED:
+        return setFilters((filters) => ({ ...filters, categoryMode }))
+      case CategoryMode.SPECIFIC:
+        return setFilters((filters) => ({
+          ...filters,
+          categoryMode,
+          categories: categoriesSelection.map((category) => category.id),
+        }))
+    }
+  }
+
+  function onCategoriesSelectionChange(selection: Category[]): void {
+    setCategoriesSelection(selection)
+
+    setFilters((filters) => ({
+      ...filters,
+      categories: selection.map((category) => category.id),
+    }))
+  }
+
   return (
     <Stack spacing={3}>
       <RelativeTimeRangeForm
@@ -60,7 +103,7 @@ export default function TransactionFiltersDialogContent(props: Props) {
         endDate={filters.endDate ? new Date(filters.endDate) : null}
         onChange={onDatesChange}
         disabled={filters.mode !== "RelativeTimeRange"}
-        onEnable={() => onModeChange("RelativeTimeRange")}
+        onEnable={() => onTimeRangeModeChange("RelativeTimeRange")}
       />
       <DateRangeForm
         startDate={filters.startDate ? new Date(filters.startDate) : null}
@@ -68,13 +111,37 @@ export default function TransactionFiltersDialogContent(props: Props) {
         isValid={datesAreValid}
         onChange={onDatesChange}
         disabled={filters.mode !== "DateRange"}
-        onEnable={() => onModeChange("DateRange")}
+        onEnable={() => onTimeRangeModeChange("DateRange")}
       />
+      {(() => {
+        switch (filters.categoryMode) {
+          case CategoryMode.ALL:
+          case CategoryMode.UNCATEGORIZED:
+            return (
+              <CategoriesFiltersForm
+                mode={filters.categoryMode}
+                onModeChange={onCategoryModeChange}
+              />
+            )
+          case CategoryMode.SPECIFIC:
+            return (
+              <CategoriesFiltersForm
+                mode={filters.categoryMode}
+                onModeChange={onCategoryModeChange}
+                networkResponse={props.categoriesNetworkResponse}
+                searchQuery={props.categoriesSearchQuery}
+                onSearchQueryChange={props.onCategoriesSearchQueryChange}
+                categories={categoriesSelection}
+                onSelectionChange={onCategoriesSelectionChange}
+              />
+            )
+        }
+      })()}
       <Box>
         <Button
           variant="contained"
-          onClick={() => props.onChange(filters)}
-          disabled={!datesAreValid || props.networkResponse.isLoading()}
+          onClick={() => props.onFiltersChange(filters)}
+          disabled={submitIsDisabled}
         >
           Set filters
         </Button>
@@ -207,5 +274,79 @@ function DateRangeForm(props: DateRangeFormProps) {
         </LocalizationProvider>
       </Stack>
     </Paper>
+  )
+}
+
+interface BaseCategoriesFiltersProps {
+  onModeChange(mode: CategoryMode): void
+}
+
+interface SpecificCategoriesFiltersFormProps
+  extends BaseCategoriesFiltersProps {
+  mode: CategoryMode.SPECIFIC
+  networkResponse: NetworkResponse<Category[]>
+  categories: Category[]
+  searchQuery: string
+  onSearchQueryChange(searchQuery: string): void
+  onSelectionChange(selection: Category[]): void
+}
+
+interface NonSpecificCategoryFiltersFormProps
+  extends BaseCategoriesFiltersProps {
+  mode: CategoryMode.ALL | CategoryMode.UNCATEGORIZED
+}
+
+type CategoriesFiltersFormProps =
+  | SpecificCategoriesFiltersFormProps
+  | NonSpecificCategoryFiltersFormProps
+
+function CategoriesFiltersForm(props: CategoriesFiltersFormProps) {
+  return (
+    <Paper sx={{ p: 1.5 }}>
+      <Stack spacing={3}>
+        <FormControl>
+          <FormLabel id="categories-filter-label">Filter categories</FormLabel>
+          <RadioGroup
+            aria-labelledby="categories-filter-label"
+            name="categories-filter"
+            value={props.mode}
+            onChange={(_, value) => props.onModeChange(value as CategoryMode)}
+          >
+            <FormControlLabel
+              value={CategoryMode.ALL}
+              control={<Radio />}
+              label="All categories"
+            />
+            <FormControlLabel
+              value={CategoryMode.UNCATEGORIZED}
+              control={<Radio />}
+              label="Uncategorized only"
+            />
+            <FormControlLabel
+              value={CategoryMode.SPECIFIC}
+              control={<Radio />}
+              label="Choose specific categories"
+            />
+          </RadioGroup>
+        </FormControl>
+
+        {props.mode === CategoryMode.SPECIFIC ? (
+          <CategorySelectForm {...props} />
+        ) : null}
+      </Stack>
+    </Paper>
+  )
+}
+
+function CategorySelectForm(props: SpecificCategoriesFiltersFormProps) {
+  return (
+    <CategorySelect
+      creatable={false}
+      networkResponse={props.networkResponse}
+      searchQuery={props.searchQuery}
+      onSearchQueryChange={props.onSearchQueryChange}
+      selection={props.categories}
+      onSubmit={props.onSelectionChange}
+    />
   )
 }

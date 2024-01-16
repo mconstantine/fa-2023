@@ -1,8 +1,15 @@
 import { Meta, StoryObj } from "@storybook/react"
 import TransactionFiltersDialogContent from "../../components/transactions/filters/TransactionFiltersDialogContent"
 import { useState } from "react"
-import { FindTransactionsParams } from "../../components/transactions/domain"
+import {
+  CategoryMode,
+  FindTransactionsParams,
+  Transaction,
+} from "../../components/transactions/domain"
 import { useMockNetworkResponse } from "../useMockNetworkResponse"
+import { PaginatedResponse } from "../../globalDomain"
+import { v4 } from "uuid"
+import { Category } from "../../components/categories/domain"
 
 const meta: Meta<typeof TransactionFiltersDialogContent> = {
   title: "Transactions/Filters",
@@ -15,48 +22,84 @@ const meta: Meta<typeof TransactionFiltersDialogContent> = {
 export default meta
 type Story = StoryObj<typeof TransactionFiltersDialogContent>
 
+const categories: Category[] = [
+  {
+    id: v4(),
+    name: "Some category",
+    keywords: [],
+  },
+  {
+    id: v4(),
+    name: "Some other category",
+    keywords: [],
+  },
+  {
+    id: v4(),
+    name: "Yet another category",
+    keywords: [],
+  },
+]
+
 export const Default: Story = {
   args: {},
   render: function NonBlankInputStory() {
-    const [params, setParams] = useState<FindTransactionsParams>(() => {
-      const now = new Date()
+    const [categoriesSearchQuery, setCategoriesSearchQuery] = useState("")
 
-      return {
-        startDate: new Date(
-          Date.UTC(
-            now.getUTCFullYear() - 1,
-            now.getUTCMonth(),
-            now.getUTCDate(),
-          ),
-        )
-          .toISOString()
-          .slice(0, 10),
-        endDate: new Date(
-          Date.UTC(
-            new Date().getUTCFullYear(),
-            now.getUTCMonth(),
-            now.getUTCDate(),
-          ),
-        )
-          .toISOString()
-          .slice(0, 10),
-      }
-    })
+    const [params, setParams] =
+      useState<FindTransactionsParams>(getInitialParams)
 
-    const [networkResponse, triggerNetworkRequest] =
-      useMockNetworkResponse<void>()
+    const [transactionsNetworkResponse, triggerTransactionsNetworkRequest] =
+      useMockNetworkResponse<PaginatedResponse<Transaction>>([[], 0])
 
-    function onChange(params: FindTransactionsParams): void {
+    const [categoriesResponse, triggerCategoriesNetworkRequest] =
+      useMockNetworkResponse<Category[]>(categories)
+
+    function onFiltersChange(params: FindTransactionsParams): void {
       setParams(params)
-      triggerNetworkRequest()
+      triggerTransactionsNetworkRequest([[], 0])
+    }
+
+    function onCategoriesSearchQueryChange(query: string): void {
+      setCategoriesSearchQuery(query)
+
+      triggerCategoriesNetworkRequest(
+        categories.filter((category) =>
+          category.name.toLowerCase().includes(query.toLowerCase()),
+        ),
+      )
     }
 
     return (
       <TransactionFiltersDialogContent
         params={params}
-        onChange={onChange}
-        networkResponse={networkResponse}
+        onFiltersChange={onFiltersChange}
+        transactionsNetworkResponse={transactionsNetworkResponse}
+        categoriesNetworkResponse={categoriesResponse}
+        categoriesSearchQuery={categoriesSearchQuery}
+        onCategoriesSearchQueryChange={onCategoriesSearchQueryChange}
       />
     )
   },
+}
+
+function getInitialParams(): FindTransactionsParams {
+  const now = new Date()
+
+  return {
+    startDate: new Date(
+      Date.UTC(now.getUTCFullYear() - 1, now.getUTCMonth(), now.getUTCDate()),
+    )
+      .toISOString()
+      .slice(0, 10),
+    endDate: new Date(
+      Date.UTC(
+        new Date().getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate(),
+      ),
+    )
+      .toISOString()
+      .slice(0, 10),
+    categoryMode: CategoryMode.ALL,
+  }
 }

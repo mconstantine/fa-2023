@@ -14,16 +14,21 @@ import {
 } from "@mui/material"
 import { ChangeEvent, ChangeEventHandler, useState } from "react"
 import TransactionFiltersDialogContent from "./TransactionFiltersDialogContent"
-import { FindTransactionsParams } from "../domain"
+import { FindTransactionsParams, Transaction } from "../domain"
 import { NetworkResponse } from "../../../network/NetworkResponse"
 import { useDebounce } from "../../../hooks/useDebounce"
 import BulkUpdateTransactionsForm, {
   BulkUpdateTransactionsData,
 } from "../bulkUpdate/BulkUpdateTransactionsForm"
+import { PaginatedResponse } from "../../../globalDomain"
+import { useQuery } from "../../../hooks/network"
+import { Category, FindCategoryParams } from "../../categories/domain"
 
 interface Props {
-  findTransactionsNetworkResponse: NetworkResponse<unknown>
-  updateTransactionsNetworkResponse: NetworkResponse<unknown>
+  findTransactionsNetworkResponse: NetworkResponse<
+    PaginatedResponse<Transaction>
+  >
+  updateTransactionsNetworkResponse: NetworkResponse<Transaction[]>
   params: FindTransactionsParams
   onParamsChange(params: FindTransactionsParams): void
   selectedCount: number
@@ -32,21 +37,59 @@ interface Props {
   onBulkUpdate(data: BulkUpdateTransactionsData): Promise<boolean>
 }
 
+/*
+TODO: this is doing 4 different things:
+1. Search for transactions
+2. Selection handling
+3. Filtering for transactions
+4. Bulk update for transactions
+
+Also:
+- Add cancel buttons to dialogs
+- Figure out why there are requests to /categories as soon as the app starts
+- Actually implement pagination
+*/
 export default function TransactionFilters(props: Props) {
-  const [query, setQuery] = useState(props.params.query ?? "")
+  const [transactionsQuery, setTransactionsQuery] = useState(
+    props.params.query ?? "",
+  )
+
+  const [categoriesQuery, setCategoriesQuery] = useState("")
+  const [categoriesParams, setCategoriesParams] = useState<FindCategoryParams>(
+    {},
+  )
   const [filtersDialogIsOpen, setFiltersDialogIsOpen] = useState(false)
   const [updateDialogIsOpen, setUpdateDialogIsOpen] = useState(false)
 
-  const debounceSearch = useDebounce(function search(query: string) {
+  const [categoriesResponse] = useQuery<FindCategoryParams, Category[]>(
+    "/categories",
+    categoriesParams,
+  )
+
+  const debounceTransactionsSearch = useDebounce(function search(
+    query: string,
+  ) {
     props.onParamsChange({
       ...props.params,
       query: query === "" ? undefined : query,
     })
+  },
+  500)
+
+  const debounceCategoriesSearch = useDebounce(function search(query: string) {
+    setCategoriesParams({ query })
   }, 500)
 
-  const onQueryChange: ChangeEventHandler<HTMLInputElement> = (event) => {
-    setQuery(event.currentTarget.value)
-    debounceSearch(event.currentTarget.value)
+  const onTransactionsQueryChange: ChangeEventHandler<HTMLInputElement> = (
+    event,
+  ) => {
+    setTransactionsQuery(event.currentTarget.value)
+    debounceTransactionsSearch(event.currentTarget.value)
+  }
+
+  function onCategoriesQueryChange(query: string) {
+    setCategoriesQuery(query)
+    debounceCategoriesSearch(query)
   }
 
   function onFiltersChange(params: FindTransactionsParams): void {
@@ -130,8 +173,8 @@ export default function TransactionFilters(props: Props) {
                 </InputAdornment>
               }
               label="Password"
-              value={query}
-              onChange={onQueryChange}
+              value={transactionsQuery}
+              onChange={onTransactionsQueryChange}
             />
           </FormControl>
           <IconButton
@@ -148,8 +191,13 @@ export default function TransactionFilters(props: Props) {
             <DialogContent>
               <TransactionFiltersDialogContent
                 params={props.params}
-                onChange={onFiltersChange}
-                networkResponse={props.findTransactionsNetworkResponse}
+                onFiltersChange={onFiltersChange}
+                transactionsNetworkResponse={
+                  props.findTransactionsNetworkResponse
+                }
+                categoriesNetworkResponse={categoriesResponse}
+                categoriesSearchQuery={categoriesQuery}
+                onCategoriesSearchQueryChange={onCategoriesQueryChange}
               />
             </DialogContent>
           </Dialog>

@@ -75,6 +75,7 @@ export const Default: Story = {
 
     return (
       <CategorySelect
+        creatable
         networkResponse={categoriesResponse}
         searchQuery={query}
         onSearchQueryChange={onQueryChange}

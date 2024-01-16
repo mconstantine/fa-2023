@@ -14,17 +14,25 @@ import { result } from "../Result"
 import { type ImportError } from "../adapters/Adapter"
 import { MoreThanOrEqual, LessThanOrEqual, And, In } from "typeorm"
 import {
+  ArrayMinSize,
   IsDateString,
   IsEnum,
   IsNotEmpty,
   IsOptional,
   IsString,
   IsUUID,
+  ValidateIf,
 } from "class-validator"
 import { AppDataSource } from "../AppDataSource"
 
 interface ImportResponse {
   errors: string[]
+}
+
+enum FindTransactionsCategoryMode {
+  ALL = "all",
+  UNCATEGORIZED = "uncategorized",
+  SPECIFIC = "specific",
 }
 
 class FindQueryParams {
@@ -40,6 +48,19 @@ class FindQueryParams {
   @IsOptional()
   @IsDateString()
   public endDate?: string
+
+  @IsEnum(FindTransactionsCategoryMode)
+  public categoryMode!: FindTransactionsCategoryMode
+
+  @ValidateIf(
+    (data: FindQueryParams) =>
+      data.categoryMode === FindTransactionsCategoryMode.SPECIFIC,
+    {
+      each: true,
+    },
+  )
+  @ArrayMinSize(1)
+  public categories!: string[]
 }
 
 export enum CategoryUpdateMode {
@@ -69,6 +90,8 @@ export class TransactionController {
   public async find(
     @QueryParams() params: FindQueryParams,
   ): Promise<[Transaction[], number]> {
+    console.log("TODO:", { params })
+
     const searchQuery = params.query?.toLowerCase() ?? ""
 
     const startTimeCondition =
@@ -93,9 +116,12 @@ export class TransactionController {
       }
     })()
 
-    const query = Transaction.createQueryBuilder("t").where("1 = 1").orderBy({
-      date: "DESC",
-    })
+    const query = Transaction.createQueryBuilder("t")
+      .leftJoinAndSelect("t.categories", "categories")
+      .where("1 = 1")
+      .orderBy({
+        date: "DESC",
+      })
 
     if (searchQuery !== "") {
       query.andWhere("LOWER(t.description) LIKE :searchQuery", {
@@ -107,9 +133,7 @@ export class TransactionController {
       query.andWhere({ date: timeCondition })
     }
 
-    return await query
-      .leftJoinAndSelect("t.categories", "categories")
-      .getManyAndCount()
+    return await query.getManyAndCount()
   }
 
   @Post("/import")

@@ -18,13 +18,24 @@ export interface CategorySelection {
   additions: CategoryCreationBody[]
 }
 
-interface Props {
+interface BaseProps {
   networkResponse: NetworkResponse<Category[]>
   searchQuery: string
   selection: Category[]
   onSearchQueryChange(searchQuery: string): void
+}
+
+interface CreatableProps extends BaseProps {
+  creatable: true
   onSubmit(selection: CategorySelection): void
 }
+
+interface SelectableProps extends BaseProps {
+  creatable: false
+  onSubmit(category: Category[]): void
+}
+
+type Props = CreatableProps | SelectableProps
 
 export default function CategorySelect(props: Props) {
   const isLoading = props.networkResponse.isLoading()
@@ -37,14 +48,18 @@ export default function CategorySelect(props: Props) {
     _: SyntheticEvent<Element, Event>,
     selection: Array<string | Category | CategoryCreationBody>,
   ): void {
-    props.onSubmit({
-      categories: selection.filter(
-        (c) => typeof c !== "string" && isCategory(c),
-      ) as Category[],
-      additions: selection.filter(
-        (c) => typeof c !== "string" && !isCategory(c),
-      ) as CategoryCreationBody[],
-    })
+    if (props.creatable) {
+      props.onSubmit({
+        categories: selection.filter(
+          (c) => typeof c !== "string" && isCategory(c),
+        ) as Category[],
+        additions: selection.filter(
+          (c) => typeof c !== "string" && !isCategory(c),
+        ) as CategoryCreationBody[],
+      })
+    } else {
+      props.onSubmit(selection as Category[])
+    }
   }
 
   return (
@@ -54,9 +69,11 @@ export default function CategorySelect(props: Props) {
         selectOnFocus
         clearOnBlur
         handleHomeEndKeys
-        freeSolo
+        freeSolo={props.creatable}
         value={props.selection}
-        noOptionsText="Type to search categories"
+        noOptionsText={
+          props.creatable ? "Type to search categories" : "No categories found"
+        }
         options={props.networkResponse
           .map((categories) =>
             categories.filter(

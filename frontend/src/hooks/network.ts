@@ -57,17 +57,17 @@ type UseQueryOutput<O> = [
 ]
 
 export function useQuery<O>(path: string): UseQueryOutput<O>
-export function useQuery<I extends Record<string, string | undefined>, O>(
-  path: string,
-  query: I,
-): UseQueryOutput<O>
 export function useQuery<
-  I extends Record<string, string | undefined>,
+  I extends Record<string, string | string[] | undefined>,
+  O,
+>(path: string, query: I): UseQueryOutput<O>
+export function useQuery<
+  I extends Record<string, string | string[] | undefined>,
   O,
   T = O,
 >(path: string, query: I, transformer: (data: O) => T): UseQueryOutput<T>
 export function useQuery<
-  I extends Record<string, string | undefined>,
+  I extends Record<string, string | string[] | undefined>,
   O,
   T = O,
 >(
@@ -87,8 +87,12 @@ export function useQuery<
         const params = new URLSearchParams()
 
         Object.entries(query).forEach(([name, value]) => {
-          if (typeof value !== "undefined") {
+          if (typeof value === "string") {
             params.append(name, value)
+          } else if (typeof value !== "undefined") {
+            value.forEach((value) => {
+              params.append(name, value)
+            })
           }
         })
 
