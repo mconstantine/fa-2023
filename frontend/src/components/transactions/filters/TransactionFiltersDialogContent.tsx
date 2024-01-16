@@ -1,5 +1,4 @@
 import {
-  Box,
   Button,
   FormControl,
   FormControlLabel,
@@ -31,6 +30,7 @@ interface Props {
   categoriesNetworkResponse: NetworkResponse<Category[]>
   categoriesSearchQuery: string
   onCategoriesSearchQueryChange(searchQuery: string): void
+  onCancel(): void
 }
 
 type Mode = "RelativeTimeRange" | "DateRange"
@@ -137,7 +137,7 @@ export default function TransactionFiltersDialogContent(props: Props) {
             )
         }
       })()}
-      <Box>
+      <Stack direction="row" spacing={1.5}>
         <Button
           variant="contained"
           onClick={() => props.onFiltersChange(filters)}
@@ -145,7 +145,10 @@ export default function TransactionFiltersDialogContent(props: Props) {
         >
           Set filters
         </Button>
-      </Box>
+        <Button color="inherit" onClick={() => props.onCancel()}>
+          Cancel
+        </Button>
+      </Stack>
     </Stack>
   )
 }

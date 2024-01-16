@@ -25,7 +25,6 @@ interface Props {
 
 /*
 TODO:
-- Add cancel buttons to dialogs
 - Figure out why there are requests to /categories as soon as the app starts
 - Actually implement pagination
 */

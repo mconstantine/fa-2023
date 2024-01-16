@@ -77,6 +77,7 @@ export const Default: Story = {
         categoriesNetworkResponse={categoriesResponse}
         categoriesSearchQuery={categoriesSearchQuery}
         onCategoriesSearchQueryChange={onCategoriesSearchQueryChange}
+        onCancel={() => {}}
       />
     )
   },

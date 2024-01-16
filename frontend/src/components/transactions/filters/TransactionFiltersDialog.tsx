@@ -54,6 +54,7 @@ export default function TransactionFiltersDialog(props: Props) {
           categoriesNetworkResponse={categoriesResponse}
           categoriesSearchQuery={categoriesQuery}
           onCategoriesSearchQueryChange={onCategoriesQueryChange}
+          onCancel={() => props.onOpenChange(false)}
         />
       </DialogContent>
     </Dialog>
