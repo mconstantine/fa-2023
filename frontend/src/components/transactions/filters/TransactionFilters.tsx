@@ -1,28 +1,14 @@
-import { Edit, Search, Tune } from "@mui/icons-material"
-import {
-  Checkbox,
-  Dialog,
-  DialogContent,
-  FormControl,
-  FormControlLabel,
-  IconButton,
-  InputAdornment,
-  InputLabel,
-  OutlinedInput,
-  Stack,
-  Tooltip,
-} from "@mui/material"
-import { ChangeEvent, ChangeEventHandler, useState } from "react"
-import TransactionFiltersDialogContent from "./TransactionFiltersDialogContent"
+import { Edit, Tune } from "@mui/icons-material"
+import { IconButton, Stack } from "@mui/material"
+import { useState } from "react"
 import { FindTransactionsParams, Transaction } from "../domain"
 import { NetworkResponse } from "../../../network/NetworkResponse"
-import { useDebounce } from "../../../hooks/useDebounce"
-import BulkUpdateTransactionsForm, {
-  BulkUpdateTransactionsData,
-} from "../bulkUpdate/BulkUpdateTransactionsForm"
+import { BulkUpdateTransactionsData } from "../bulkUpdate/BulkUpdateTransactionsForm"
 import { PaginatedResponse } from "../../../globalDomain"
-import { useQuery } from "../../../hooks/network"
-import { Category, FindCategoryParams } from "../../categories/domain"
+import SelectAllCheckbox from "./SelectAllCheckbox"
+import BulkUpdateTransactionsDialog from "./BulkUpdateTransactionsDialog"
+import TransactionFiltersDialog from "./TransactionFiltersDialog"
+import SearchTransactionsInput from "./SearchTransactionsInput"
 
 interface Props {
   findTransactionsNetworkResponse: NetworkResponse<
@@ -38,79 +24,14 @@ interface Props {
 }
 
 /*
-TODO: this is doing 4 different things:
-1. Search for transactions
-2. Selection handling
-3. Filtering for transactions
-4. Bulk update for transactions
-
-Also:
+TODO:
 - Add cancel buttons to dialogs
 - Figure out why there are requests to /categories as soon as the app starts
 - Actually implement pagination
 */
 export default function TransactionFilters(props: Props) {
-  const [transactionsQuery, setTransactionsQuery] = useState(
-    props.params.query ?? "",
-  )
-
-  const [categoriesQuery, setCategoriesQuery] = useState("")
-  const [categoriesParams, setCategoriesParams] = useState<FindCategoryParams>(
-    {},
-  )
   const [filtersDialogIsOpen, setFiltersDialogIsOpen] = useState(false)
   const [updateDialogIsOpen, setUpdateDialogIsOpen] = useState(false)
-
-  const [categoriesResponse] = useQuery<FindCategoryParams, Category[]>(
-    "/categories",
-    categoriesParams,
-  )
-
-  const debounceTransactionsSearch = useDebounce(function search(
-    query: string,
-  ) {
-    props.onParamsChange({
-      ...props.params,
-      query: query === "" ? undefined : query,
-    })
-  },
-  500)
-
-  const debounceCategoriesSearch = useDebounce(function search(query: string) {
-    setCategoriesParams({ query })
-  }, 500)
-
-  const onTransactionsQueryChange: ChangeEventHandler<HTMLInputElement> = (
-    event,
-  ) => {
-    setTransactionsQuery(event.currentTarget.value)
-    debounceTransactionsSearch(event.currentTarget.value)
-  }
-
-  function onCategoriesQueryChange(query: string) {
-    setCategoriesQuery(query)
-    debounceCategoriesSearch(query)
-  }
-
-  function onFiltersChange(params: FindTransactionsParams): void {
-    props.onParamsChange(params)
-    setFiltersDialogIsOpen(false)
-  }
-
-  function onSelectAllChange(
-    _: ChangeEvent<HTMLInputElement>,
-    checked: boolean,
-  ): void {
-    props.onSelectAllChange(checked)
-  }
-
-  function onBulkUpdateSubmit(data: BulkUpdateTransactionsData): void {
-    props.onBulkUpdate(data).then((didSucceed) => {
-      if (didSucceed) {
-        setUpdateDialogIsOpen(false)
-      }
-    })
-  }
 
   return (
     <Stack
@@ -119,26 +40,11 @@ export default function TransactionFilters(props: Props) {
       alignItems="center"
       justifyContent="space-between"
     >
-      <Tooltip title="Select all">
-        {props.selectedCount > 0 ? (
-          <FormControlLabel
-            control={
-              <Checkbox
-                aria-label="Select all"
-                checked={props.allIsSelected}
-                onChange={onSelectAllChange}
-              />
-            }
-            label={`${props.selectedCount} selected`}
-          />
-        ) : (
-          <Checkbox
-            aria-label="Select all"
-            value={props.allIsSelected}
-            onChange={onSelectAllChange}
-          />
-        )}
-      </Tooltip>
+      <SelectAllCheckbox
+        allIsSelected={props.allIsSelected}
+        selectedCount={props.selectedCount}
+        onSelectAllChange={props.onSelectAllChange}
+      />
       {props.selectedCount > 0 ? (
         <>
           <IconButton
@@ -148,35 +54,21 @@ export default function TransactionFilters(props: Props) {
           >
             <Edit />
           </IconButton>
-          <Dialog
-            open={updateDialogIsOpen}
-            onClose={() => setUpdateDialogIsOpen(false)}
-          >
-            <DialogContent>
-              <BulkUpdateTransactionsForm
-                networkResponse={props.updateTransactionsNetworkResponse}
-                onSubmit={onBulkUpdateSubmit}
-                onCancel={() => setUpdateDialogIsOpen(false)}
-              />
-            </DialogContent>
-          </Dialog>
+          <BulkUpdateTransactionsDialog
+            isOpen={updateDialogIsOpen}
+            onOpenChange={setUpdateDialogIsOpen}
+            updateTransactionsNetworkResponse={
+              props.updateTransactionsNetworkResponse
+            }
+            onBulkUpdate={props.onBulkUpdate}
+          />
         </>
       ) : (
         <>
-          <FormControl variant="outlined" fullWidth>
-            <InputLabel htmlFor="search">Search</InputLabel>
-            <OutlinedInput
-              id="search"
-              endAdornment={
-                <InputAdornment position="end">
-                  <Search />
-                </InputAdornment>
-              }
-              label="Password"
-              value={transactionsQuery}
-              onChange={onTransactionsQueryChange}
-            />
-          </FormControl>
+          <SearchTransactionsInput
+            params={props.params}
+            onParamsChange={props.onParamsChange}
+          />
           <IconButton
             aria-label="Filters"
             sx={{ width: "40px" }}
@@ -184,23 +76,15 @@ export default function TransactionFilters(props: Props) {
           >
             <Tune />
           </IconButton>
-          <Dialog
-            open={filtersDialogIsOpen}
-            onClose={() => setFiltersDialogIsOpen(false)}
-          >
-            <DialogContent>
-              <TransactionFiltersDialogContent
-                params={props.params}
-                onFiltersChange={onFiltersChange}
-                transactionsNetworkResponse={
-                  props.findTransactionsNetworkResponse
-                }
-                categoriesNetworkResponse={categoriesResponse}
-                categoriesSearchQuery={categoriesQuery}
-                onCategoriesSearchQueryChange={onCategoriesQueryChange}
-              />
-            </DialogContent>
-          </Dialog>
+          <TransactionFiltersDialog
+            isOpen={filtersDialogIsOpen}
+            onOpenChange={setFiltersDialogIsOpen}
+            findTransactionsNetworkResponse={
+              props.findTransactionsNetworkResponse
+            }
+            params={props.params}
+            onParamsChange={props.onParamsChange}
+          />
         </>
       )}
     </Stack>
