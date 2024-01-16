@@ -80,9 +80,9 @@ export default function TransactionsTable(props: Props) {
                   color="primary"
                   indeterminate={
                     selectedRowsCount > 0 &&
-                    selectedRowsCount < props.transactionsCount
+                    selectedRowsCount < props.params.perPage
                   }
-                  checked={selectedRowsCount === props.transactionsCount}
+                  checked={selectedRowsCount === props.params.perPage}
                   onChange={onSelectAllClick}
                   inputProps={{
                     "aria-label": "select all transactions",
