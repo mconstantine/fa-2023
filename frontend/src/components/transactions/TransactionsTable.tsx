@@ -8,6 +8,8 @@ import {
   TableHead,
   TablePagination,
   TableRow,
+  Toolbar,
+  Typography,
 } from "@mui/material"
 import { Transaction } from "./domain"
 import { PaginationParams } from "../../globalDomain"
@@ -29,6 +31,10 @@ export default function TransactionsTable(props: Props) {
   const selectedRowsCount = props.transactions.filter(
     (transaction) => transaction.isSelected,
   ).length
+
+  const total = props.transactions
+    .reduce((sum, transaction) => sum + transaction.value, 0)
+    .toFixed(2)
 
   const onRowsPerPageChange: ChangeEventHandler<HTMLInputElement> = (event) => {
     const perPage = parseInt(event.target.value)
@@ -71,7 +77,7 @@ export default function TransactionsTable(props: Props) {
 
   return (
     <Paper>
-      <TableContainer sx={{ maxHeight: 520 }}>
+      <TableContainer sx={{ maxHeight: 568 }}>
         <Table stickyHeader>
           <TableHead>
             <TableRow>
@@ -91,7 +97,7 @@ export default function TransactionsTable(props: Props) {
               </TableCell>
               <TableCell>Date</TableCell>
               <TableCell>Description</TableCell>
-              <TableCell>Value</TableCell>
+              <TableCell align="right">Value</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -122,7 +128,13 @@ export default function TransactionsTable(props: Props) {
                     day: "2-digit",
                   })}
                 </TableCell>
-                <TableCell>{transaction.description}</TableCell>
+                <TableCell>
+                  {transaction.description}
+                  <br />
+                  {transaction.categories
+                    .map((category) => category.name)
+                    .join(", ")}
+                </TableCell>
                 <TableCell align="right">
                   {transaction.value.toFixed(2)}
                 </TableCell>
@@ -140,6 +152,9 @@ export default function TransactionsTable(props: Props) {
         onPageChange={onPageChange}
         onRowsPerPageChange={onRowsPerPageChange}
       />
+      <Toolbar sx={{ justifyContent: "end" }}>
+        <Typography>Total: {total}</Typography>
+      </Toolbar>
     </Paper>
   )
 }
