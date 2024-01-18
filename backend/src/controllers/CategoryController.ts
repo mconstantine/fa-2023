@@ -1,5 +1,6 @@
 import {
   IsArray,
+  IsBoolean,
   IsNotEmpty,
   IsOptional,
   IsUUID,
@@ -32,10 +33,14 @@ class CategoryCreationBody {
   @IsOptional()
   public keywords?: string[]
 
+  @IsBoolean()
+  public isMeta!: boolean
+
   public toCategory(): DeepPartial<Category> {
     return {
       name: this.name,
       keywords: this.keywords ?? [],
+      isMeta: this.isMeta,
     }
   }
 }

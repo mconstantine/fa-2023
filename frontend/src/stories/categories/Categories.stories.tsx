@@ -36,16 +36,19 @@ export const Default: Story = {
         id: v4(),
         name: "Miscellanea",
         keywords: [],
+        isMeta: false,
       },
       {
         id: v4(),
         name: "Taxes",
         keywords: ["f24", "agenzia delle entrate"],
+        isMeta: false,
       },
       {
         id: v4(),
         name: "Groceries",
         keywords: ["esselunga", "amazon it"],
+        isMeta: false,
       },
     ])
 

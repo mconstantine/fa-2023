@@ -113,6 +113,7 @@ export default function CategorySelect(props: Props) {
               {
                 name: props.searchQuery,
                 keywords: [],
+                isMeta: false,
               },
             ]
           } else {

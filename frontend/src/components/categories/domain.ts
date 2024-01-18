@@ -4,6 +4,7 @@ export interface Category extends Record<string, unknown> {
   id: string
   name: string
   keywords: string[]
+  isMeta: boolean
 }
 
 export interface FindCategoryParams extends Record<string, Param> {
@@ -13,6 +14,7 @@ export interface FindCategoryParams extends Record<string, Param> {
 export interface CategoryCreationBody {
   name: string
   keywords: string[]
+  isMeta: boolean
 }
 
 export function isCategory(

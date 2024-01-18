@@ -364,6 +364,7 @@ export class TransactionController {
           "transactionsTotal",
         )
         .where('EXTRACT("YEAR" FROM t.date) = :year', { year })
+        .andWhere("c.isMeta IS FALSE OR c.isMeta IS NULL")
         .orderBy("c.name")
         .execute()
 

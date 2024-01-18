@@ -5,7 +5,7 @@ export class Prediction1705599418740 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `CREATE TABLE "prediction" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "categoryId" uuid, CONSTRAINT "PK_23df2ceecea9f8bbb996ff056a3" PRIMARY KEY ("id"))`,
+      `CREATE TABLE "prediction" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "categoryId" uuid, "year" integer NOT NULL, "value" integer NOT NULL, CONSTRAINT "PK_23df2ceecea9f8bbb996ff056a3" PRIMARY KEY ("id"))`,
     )
 
     await queryRunner.query(

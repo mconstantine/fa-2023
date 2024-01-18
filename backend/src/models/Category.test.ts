@@ -18,6 +18,7 @@ describe("Category", () => {
 
       expect(category.name).toBe("Category creation test minimal data")
       expect(category.keywords).toEqual([])
+      expect(category.isMeta).toBe(false)
     })
 
     it("should work with empty array of keywords", async () => {

@@ -21,6 +21,7 @@ export const Default: Story = {
           id: "efgh",
           name: "Taxes",
           keywords: ["f24", "agenzia delle entrate"],
+          isMeta: false,
         }}
         onEditButtonClick={() => {}}
         onDeleteButtonClick={() => {}}

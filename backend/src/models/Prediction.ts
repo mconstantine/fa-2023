@@ -1,6 +1,7 @@
 import { Min } from "class-validator"
 import {
   BaseEntity,
+  Column,
   Entity,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -13,9 +14,11 @@ export class Prediction extends BaseEntity {
   @PrimaryGeneratedColumn("uuid")
   public id!: string
 
+  @Column()
   @Min(2023)
   public year!: number
 
+  @Column()
   @Min(0)
   public value!: number
 

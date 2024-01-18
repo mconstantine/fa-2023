@@ -24,16 +24,19 @@ let categories: Category[] = [
     id: v4(),
     name: "Accessories",
     keywords: [],
+    isMeta: false,
   },
   {
     id: v4(),
     name: "Bachelor party",
     keywords: [],
+    isMeta: false,
   },
   {
     id: v4(),
     name: "Crayons",
     keywords: [],
+    isMeta: false,
   },
 ]
 

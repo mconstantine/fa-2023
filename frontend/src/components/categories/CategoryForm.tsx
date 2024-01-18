@@ -1,4 +1,12 @@
-import { Container, Stack, Typography } from "@mui/material"
+import {
+  Checkbox,
+  Container,
+  FormControl,
+  FormControlLabel,
+  FormHelperText,
+  Stack,
+  Typography,
+} from "@mui/material"
 import NonBlankInput from "../forms/inputs/NonBlankInput"
 import { StringArrayInput } from "../forms/inputs/StringArrayInput"
 import { Category } from "./domain"
@@ -19,6 +27,7 @@ export default function CategoryForm(props: Props) {
       id: props.category?.id ?? null,
       name: props.category?.name ?? null,
       keywords: props.category?.keywords ?? [],
+      isMeta: props.category?.isMeta ?? false,
     },
     props.onSubmit,
   )
@@ -53,6 +62,22 @@ export default function CategoryForm(props: Props) {
             label="Keyword"
             errorMessageWhenBlank="A keyword cannot be blank"
           />
+          <FormControl>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  {...inputProps("isMeta", false)}
+                  onChange={(_, isMeta) =>
+                    inputProps("isMeta", false).onChange(isMeta)
+                  }
+                />
+              }
+              label="Is meta category"
+            />
+            <FormHelperText>
+              Meta categories are excluded from predictions.
+            </FormHelperText>
+          </FormControl>
         </Form>
       </Stack>
     </Container>

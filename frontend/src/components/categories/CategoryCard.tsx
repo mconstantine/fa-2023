@@ -19,9 +19,16 @@ export default function CategoryCard(props: Props) {
     <Card>
       <CardContent>
         <Stack spacing={1.5}>
-          <Typography variant="h5" component="div">
-            {props.category.name}
-          </Typography>
+          <Stack direction="row" justifyContent="space-between" spacing={1.5}>
+            <Typography variant="h5" component="div">
+              {props.category.name}
+            </Typography>
+            {props.category.isMeta ? (
+              <Typography variant="overline" color="primary">
+                Meta
+              </Typography>
+            ) : null}
+          </Stack>
           <Typography variant="body2">
             {(() => {
               if (props.category.keywords.length > 0) {

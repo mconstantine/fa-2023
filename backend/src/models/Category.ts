@@ -23,6 +23,9 @@ export class Category extends BaseEntity {
   @Column({ type: "simple-array", default: "" })
   public keywords!: string[]
 
+  @Column({ type: "boolean", default: false })
+  public isMeta!: boolean
+
   @ManyToMany(() => Transaction, (transaction) => transaction.categories)
   public transactions!: Relation<Transaction[]>
 

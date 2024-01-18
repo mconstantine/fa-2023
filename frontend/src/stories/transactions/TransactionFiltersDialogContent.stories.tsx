@@ -27,16 +27,19 @@ const categories: Category[] = [
     id: v4(),
     name: "Some category",
     keywords: [],
+    isMeta: false,
   },
   {
     id: v4(),
     name: "Some other category",
     keywords: [],
+    isMeta: false,
   },
   {
     id: v4(),
     name: "Yet another category",
     keywords: [],
+    isMeta: false,
   },
 ]
 

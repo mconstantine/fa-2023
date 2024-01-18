@@ -48,6 +48,7 @@ export const Default: Story = {
               id: "abcde",
               name: "Taxes",
               keywords: ["f24", "agenzia delle entrate"],
+              isMeta: false,
             }
         }
       })
