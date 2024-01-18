@@ -14,6 +14,7 @@ import {
 } from "@mui/material"
 import { useState } from "react"
 import { Link } from "react-router-dom"
+import { routes } from "../routes"
 
 export default function Header() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
@@ -49,16 +50,13 @@ export default function Header() {
           onKeyDown={() => setIsDrawerOpen(false)}
         >
           <List>
-            <ListItemButton>
-              <Link to="/">
-                <ListItemText>Transactions</ListItemText>
-              </Link>
-            </ListItemButton>
-            <ListItemButton>
-              <Link to="/categories">
-                <ListItemText>Categories</ListItemText>
-              </Link>
-            </ListItemButton>
+            {routes.map((route) => (
+              <ListItemButton key={route.path}>
+                <Link to={route.path}>
+                  <ListItemText>{route.label}</ListItemText>
+                </Link>
+              </ListItemButton>
+            ))}
           </List>
         </Box>
       </Drawer>

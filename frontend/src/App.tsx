@@ -1,43 +1,21 @@
 import { CssBaseline } from "@mui/material"
-import Header from "./components/Header"
 import { ThemeProvider } from "./contexts/ThemeContext"
-import CategoriesPage from "./components/categories/CategoriesPage"
-import { RouterProvider, createBrowserRouter } from "react-router-dom"
+import {
+  RouteObject,
+  RouterProvider,
+  createBrowserRouter,
+} from "react-router-dom"
 import ErrorPage from "./ErrorPage"
-import TransactionsPage from "./components/transactions/TransactionsPage"
-import { PropsWithChildren } from "react"
-
-function PageWithHeader(props: PropsWithChildren) {
-  return (
-    <>
-      <Header />
-      {props.children}
-    </>
-  )
-}
+import { routes } from "./routes"
 
 const router = createBrowserRouter(
-  [
-    {
-      path: "/",
-      element: (
-        <PageWithHeader>
-          <TransactionsPage />
-        </PageWithHeader>
-      ),
-    },
-    {
-      path: "/categories",
-      element: (
-        <PageWithHeader>
-          <CategoriesPage />
-        </PageWithHeader>
-      ),
-    },
-  ].map((route) => ({
-    ...route,
-    errorElement: <ErrorPage />,
-  })),
+  routes.map(
+    (route) =>
+      ({
+        ...route,
+        errorElement: <ErrorPage />,
+      } as RouteObject),
+  ),
 )
 
 function App() {
