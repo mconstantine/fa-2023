@@ -5,6 +5,7 @@ import {
   JsonController,
   Patch,
   Post,
+  QueryParam,
   QueryParams,
   UploadedFiles,
 } from "routing-controllers"
@@ -89,6 +90,18 @@ class BulkUpdateTransactionsBody {
 
   @IsEnum(CategoryUpdateMode)
   public categoryUpdateMode!: CategoryUpdateMode
+}
+
+interface CategoriesAggregationQueryResult {
+  categoryId: string
+  categoryName: string
+  transactionsTotal: string
+}
+
+interface CategoriesAggregation {
+  categoryId: string
+  categoryName: string
+  transactionsTotal: number
 }
 
 @JsonController("/transactions")
@@ -334,5 +347,29 @@ export class TransactionController {
     }
 
     return mutBankTransactions
+  }
+
+  @Get("/categories")
+  public async getCategoriesAggregation(
+    @QueryParam("year", { required: true }) year: number,
+  ): Promise<CategoriesAggregation[]> {
+    const result: CategoriesAggregationQueryResult[] =
+      await Transaction.createQueryBuilder("t")
+        .leftJoin("t.categories", "c")
+        .groupBy("c.id")
+        .select("c.id", "categoryId")
+        .addSelect("c.name", "categoryName")
+        .addSelect(
+          "ROUND(SUM(t.value)::NUMERIC(10, 2) / 100, 2)",
+          "transactionsTotal",
+        )
+        .where('EXTRACT("YEAR" FROM t.date) = :year', { year })
+        .orderBy("c.name")
+        .execute()
+
+    return result.map((entry) => ({
+      ...entry,
+      transactionsTotal: parseFloat(entry.transactionsTotal),
+    }))
   }
 }

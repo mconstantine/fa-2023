@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { NetworkResponse, networkResponse } from "../network/NetworkResponse"
 
-type Param = string | number | string[] | undefined
+export type Param = string | number | string[] | undefined
 
 if (!("VITE_API_URL" in import.meta.env)) {
   throw new ReferenceError('Unable to find environment variable "VITE_API_URL"')

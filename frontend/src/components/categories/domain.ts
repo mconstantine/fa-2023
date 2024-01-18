@@ -1,10 +1,12 @@
+import { Param } from "../../hooks/network"
+
 export interface Category extends Record<string, unknown> {
   id: string
   name: string
   keywords: string[]
 }
 
-export interface FindCategoryParams extends Record<string, string | undefined> {
+export interface FindCategoryParams extends Record<string, Param> {
   query?: string
 }
 

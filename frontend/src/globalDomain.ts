@@ -1,5 +1,6 @@
-export interface PaginationParams
-  extends Record<string, string | number | string[] | undefined> {
+import { Param } from "./hooks/network"
+
+export interface PaginationParams extends Record<string, Param> {
   page: number
   perPage: number
 }
