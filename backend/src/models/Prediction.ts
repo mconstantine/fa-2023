@@ -22,6 +22,6 @@ export class Prediction extends BaseEntity {
   @Min(0)
   public value!: number
 
-  @ManyToOne(() => Category)
-  public category!: Relation<Category>
+  @ManyToOne(() => Category, { nullable: true })
+  public category!: Relation<Category> | null
 }

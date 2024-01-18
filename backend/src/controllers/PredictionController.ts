@@ -1,4 +1,4 @@
-import { IsUUID, Min } from "class-validator"
+import { IsOptional, IsUUID, Min } from "class-validator"
 import {
   Body,
   Delete,
@@ -15,7 +15,8 @@ class PredictionCreationBody {
   public year!: number
 
   @IsUUID()
-  public categoryId!: string
+  @IsOptional()
+  public categoryId?: string | undefined
 
   @Min(0)
   public value!: number
@@ -32,7 +33,15 @@ export class PredictionController {
   public async createPrediction(
     @Body() body: PredictionCreationBody,
   ): Promise<Prediction> {
-    return await Prediction.create(body).save()
+    return await Prediction.create({
+      ...body,
+      category:
+        body.categoryId === null
+          ? {
+              id: body.categoryId,
+            }
+          : null,
+    }).save()
   }
 
   @Get("/:year")

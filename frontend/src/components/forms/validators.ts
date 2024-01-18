@@ -1,22 +1,3 @@
-// interface FailedValidationState {
-//   type: "failure"
-// }
-
-// interface SuccessfulValidationState<T> {
-//   type: "success"
-//   value: T
-// }
-
-// type ValidationState<T> = FailedValidationState | SuccessfulValidationState<T>
-
-// function failure<T>(): ValidationState<T> {
-//   return { type: "failure" }
-// }
-
-// function success<T>(value: T): ValidationState<T> {
-//   return { type: "success", value }
-// }
-
 class Validation<T> {
   protected constructor() {}
 
@@ -132,6 +113,11 @@ export const NonBlankString = Validator.fromPredicate(
 
 export const NumberFromString = Validator.fromPredicate(
   (input) => !isNaN(parseFloat(input.trim())),
+)
+
+export const NonNegativeNumberFromString = Validator.chain(
+  NumberFromString,
+  Validator.fromPredicate((input) => parseInt(input) >= 0),
 )
 
 export const IntFromString = Validator.fromPredicate(
