@@ -102,5 +102,7 @@ function getInitialParams(): FindTransactionsParams {
       .toISOString()
       .slice(0, 10),
     categoryMode: CategoryMode.ALL,
+    page: 1,
+    perPage: 1,
   }
 }
