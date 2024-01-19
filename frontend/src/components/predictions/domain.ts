@@ -20,7 +20,7 @@ export interface Prediction {
 export interface PredictionCreationBody {
   year: number
   value: number
-  categoryId?: string | undefined
+  categoryId?: string | null | undefined
 }
 
 export interface PredictionBulkCreationBody {

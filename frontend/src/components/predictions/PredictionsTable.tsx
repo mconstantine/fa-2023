@@ -83,7 +83,7 @@ export default function PredictionsTable(props: Props) {
         subject: {
           year: props.year,
           value: 0,
-          ...(categoryId === null ? {} : { categoryId }),
+          categoryId,
         } satisfies PredictionCreationBody,
       })
     } else {
