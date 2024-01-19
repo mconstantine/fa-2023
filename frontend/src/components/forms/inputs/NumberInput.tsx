@@ -1,4 +1,4 @@
-import { NonNegativeNumberFromString } from "../validators"
+import { NumberFromString } from "../validators"
 import { TextFieldProps } from "@mui/material"
 import ValidatedInput from "./ValidatedInput"
 
@@ -11,16 +11,14 @@ interface Props {
   fieldProps?: TextFieldProps
 }
 
-export default function NonNegativeNumberInput(props: Props) {
-  const validator = NonNegativeNumberFromString.withErrorMessage(
-    props.errorMessage,
-  )
+export default function NumberInput(props: Props) {
+  const validator = NumberFromString.withErrorMessage(props.errorMessage)
 
   const value: string | null =
     props.value === null ? null : props.value.toString(10)
 
   function onChange(validatedValue: string) {
-    props.onChange(parseInt(validatedValue))
+    props.onChange(parseFloat(validatedValue))
   }
 
   return (

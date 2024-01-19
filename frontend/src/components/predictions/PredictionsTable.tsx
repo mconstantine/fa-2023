@@ -10,16 +10,20 @@ import {
   CategoriesAggregation,
   Prediction,
   PredictionCreationBody,
+  PredictionUpdateBody,
   isPrediction,
 } from "./domain"
 import { useState } from "react"
 import PredictionsTableHead from "./PredictionsTableHead"
 import PredictionsTableBodyRow from "./PredictionsTableBodyRow"
+import { useCommand } from "../../hooks/network"
 
 interface Props {
   year: number
   categoriesAggregation: CategoriesAggregation[]
   predictions: Prediction[]
+  onPredictionsCreate(predictions: Prediction[]): void
+  onPredictionsUpdate(predictions: Prediction[]): void
 }
 
 interface IdleTableFormState {
@@ -41,12 +45,18 @@ export type TableFormState =
   | EditingTableFormState
   | BulkEditingTableFormState
 
-/*
-TODO:
-- Follow the todos in here
-*/
 export default function PredictionsTable(props: Props) {
   const [formState, setFormState] = useState<TableFormState>({ type: "idle" })
+
+  const [createPredictionResponse, createPrediction] = useCommand<
+    PredictionCreationBody,
+    Prediction
+  >("POST", "/predictions/")
+
+  const [updatePredictionResponse, updatePrediction] = useCommand<
+    PredictionUpdateBody,
+    Prediction
+  >("PATCH", "/predictions/")
 
   const incomes = props.categoriesAggregation.filter(
     (entry) => entry.transactionsTotal > 0,
@@ -64,7 +74,7 @@ export default function PredictionsTable(props: Props) {
 
   function onEditPredictionButtonClick(categoryId: string | null): void {
     const existingPrediction = props.predictions.find(
-      (prediction) => prediction.category.id === categoryId,
+      (prediction) => prediction.categoryId === categoryId,
     )
 
     if (typeof existingPrediction === "undefined") {
@@ -73,7 +83,7 @@ export default function PredictionsTable(props: Props) {
         subject: {
           year: props.year,
           value: 0,
-          categoryId,
+          ...(categoryId === null ? {} : { categoryId }),
         } satisfies PredictionCreationBody,
       })
     } else {
@@ -89,14 +99,16 @@ export default function PredictionsTable(props: Props) {
       Prediction | PredictionCreationBody
     >((entry) => {
       const existingPrediction = props.predictions.find(
-        (prediction) => prediction.category.id === entry.categoryId,
+        (prediction) => prediction.categoryId === entry.categoryId,
       )
 
       if (typeof existingPrediction === "undefined") {
         return {
           year: props.year,
           value: 0,
-          categoryId: entry.categoryId,
+          ...(entry.categoryId === null
+            ? {}
+            : { categoryId: entry.categoryId }),
         }
       } else {
         return existingPrediction
@@ -135,11 +147,7 @@ export default function PredictionsTable(props: Props) {
         setFormState({
           ...formState,
           subject: formState.subject.map((subject) => {
-            const subjectCategoryId = isPrediction(subject)
-              ? subject.category.id
-              : subject.categoryId
-
-            if (subjectCategoryId === categoryId) {
+            if (subject.categoryId === categoryId) {
               return { ...subject, value }
             } else {
               return subject
@@ -152,9 +160,31 @@ export default function PredictionsTable(props: Props) {
 
   function onSavePredictionButtonClick(): void {
     if (formState.type === "editing") {
-      console.log("TODO: save one", formState.subject)
+      if (isPrediction(formState.subject)) {
+        const { categoryId, ...prediction } = formState.subject
+
+        updatePrediction({
+          ...prediction,
+          ...(categoryId === null ? {} : { categoryId }),
+        }).then((result) => {
+          if (result !== null) {
+            props.onPredictionsUpdate([result])
+            setFormState({ type: "idle" })
+          }
+        })
+      } else {
+        createPrediction(formState.subject).then((result) => {
+          if (result !== null) {
+            props.onPredictionsCreate([result])
+            setFormState({ type: "idle" })
+          }
+        })
+      }
     }
   }
+
+  const isLoading =
+    createPredictionResponse.isLoading() || updatePredictionResponse.isLoading()
 
   return (
     <Paper>
@@ -166,6 +196,7 @@ export default function PredictionsTable(props: Props) {
             onEditButtonClick={onBulkEditButtonClick}
             onSaveButtonClick={onBulkSaveButtonClick}
             onCancel={onCancelEditing}
+            isLoading={isLoading}
           />
           <TableBody>
             {sorted.map((categoriesAggregation) => (
@@ -175,7 +206,7 @@ export default function PredictionsTable(props: Props) {
                 prediction={
                   props.predictions.find(
                     (prediction) =>
-                      prediction.category.id ===
+                      prediction.categoryId ===
                       categoriesAggregation.categoryId,
                   ) ?? null
                 }
@@ -191,6 +222,7 @@ export default function PredictionsTable(props: Props) {
                 }
                 onSaveButtonClick={onSavePredictionButtonClick}
                 onCancel={onCancelEditing}
+                isLoading={isLoading}
               />
             ))}
           </TableBody>

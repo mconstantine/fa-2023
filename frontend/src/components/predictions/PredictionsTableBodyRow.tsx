@@ -1,13 +1,14 @@
 import { Box, IconButton, Stack, TableCell, TableRow } from "@mui/material"
-import { CategoriesAggregation, Prediction, isPrediction } from "./domain"
+import { CategoriesAggregation, Prediction } from "./domain"
 import { TableFormState } from "./PredictionsTable"
-import NonNegativeNumberInput from "../forms/inputs/NonNegativeNumberInput"
+import NumberInput from "../forms/inputs/NumberInput"
 import { Check, Close, Edit } from "@mui/icons-material"
 
 interface Props {
   categoriesAggregation: CategoriesAggregation
   prediction: Prediction | null
   formState: TableFormState
+  isLoading: boolean
   onValueChange(value: number): void
   onEditButtonClick(): void
   onSaveButtonClick(): void
@@ -27,35 +28,40 @@ export default function PredictionsTableBodyRow(props: Props) {
         {(() => {
           switch (props.formState.type) {
             case "idle":
-              return props.prediction?.value ?? 0
+              return (props.prediction?.value ?? 0).toFixed(2)
             case "bulkEditing":
               return (
-                <NonNegativeNumberInput
+                <NumberInput
                   name={
                     props.categoriesAggregation.categoryId ?? "uncategorized"
                   }
                   value={props.prediction?.value ?? 0}
                   onChange={props.onValueChange}
-                  errorMessage="The value of a prediction should be a non negative number"
-                  fieldProps={{ sx: { maxWidth: "5em" } }}
+                  errorMessage="Should be a number"
+                  fieldProps={{
+                    sx: { maxWidth: "5em" },
+                    disabled: props.isLoading,
+                  }}
                 />
               )
             case "editing": {
-              const categoryId = isPrediction(props.formState.subject)
-                ? props.formState.subject.category.id
-                : props.formState.subject.categoryId
-
-              if (props.categoriesAggregation.categoryId === categoryId) {
+              if (
+                props.categoriesAggregation.categoryId ===
+                props.formState.subject.categoryId
+              ) {
                 return (
-                  <NonNegativeNumberInput
+                  <NumberInput
                     name={
                       props.categoriesAggregation.categoryId ?? "uncategorized"
                     }
-                    // label?
                     value={props.prediction?.value ?? 0}
                     onChange={props.onValueChange}
                     errorMessage="The value of a prediction should be a non negative number"
-                    fieldProps={{ sx: { maxWidth: "5em" } }}
+                    fieldProps={{
+                      sx: { maxWidth: "5em" },
+                      autoFocus: true,
+                      disabled: props.isLoading,
+                    }}
                   />
                 )
               } else {
@@ -73,6 +79,7 @@ export default function PredictionsTableBodyRow(props: Props) {
                 <IconButton
                   aria-label="Edit"
                   onClick={() => props.onEditButtonClick()}
+                  disabled={props.isLoading}
                 >
                   <Edit />
                 </IconButton>
@@ -80,22 +87,23 @@ export default function PredictionsTableBodyRow(props: Props) {
             case "bulkEditing":
               return <Box height={40} />
             case "editing": {
-              const categoryId = isPrediction(props.formState.subject)
-                ? props.formState.subject.category.id
-                : props.formState.subject.categoryId
-
-              if (props.categoriesAggregation.categoryId === categoryId) {
+              if (
+                props.categoriesAggregation.categoryId ===
+                props.formState.subject.categoryId
+              ) {
                 return (
                   <Stack direction="row" spacing={0.5}>
                     <IconButton
                       aria-label="Save"
                       onClick={() => props.onSaveButtonClick()}
+                      disabled={props.isLoading}
                     >
                       <Check color="primary" />
                     </IconButton>
                     <IconButton
                       aria-label="Cancel"
                       onClick={() => props.onCancel()}
+                      disabled={props.isLoading}
                     >
                       <Close />
                     </IconButton>

@@ -21,8 +21,8 @@ export default function PredictionsPage() {
     CategoriesAggregation[]
   >("/transactions/categories/", params)
 
-  const [predictions] = useQuery<Prediction[]>(
-    `/predictions/${params.year.toString(10)}`,
+  const [predictions, updatePredictions] = useQuery<Prediction[]>(
+    `/predictions/${(params.year + 1).toString(10)}`,
   )
 
   const [years, labels]: [Record<string, string>, Record<string, string>] =
@@ -57,6 +57,26 @@ export default function PredictionsPage() {
     }
   }
 
+  function onPredictionsCreate(newPredictions: Prediction[]): void {
+    updatePredictions((predictions) => [...predictions, ...newPredictions])
+  }
+
+  function onPredictionsUpdate(updatedPredictons: Prediction[]): void {
+    updatePredictions((predictions) =>
+      predictions.map((prediction) => {
+        const match = updatedPredictons.find(
+          (updatedPrediction) => updatedPrediction.id === prediction.id,
+        )
+
+        if (typeof match === "undefined") {
+          return prediction
+        } else {
+          return match
+        }
+      }),
+    )
+  }
+
   return (
     <Container>
       <Stack spacing={1.5} sx={{ mt: 1.5 }}>
@@ -88,6 +108,8 @@ export default function PredictionsPage() {
               year={params.year + 1}
               categoriesAggregation={categoriesAggregation}
               predictions={predictions}
+              onPredictionsCreate={onPredictionsCreate}
+              onPredictionsUpdate={onPredictionsUpdate}
             />
           )}
         />

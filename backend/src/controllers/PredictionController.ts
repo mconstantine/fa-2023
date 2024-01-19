@@ -19,7 +19,6 @@ class PredictionCreationBody {
   @IsOptional()
   public categoryId?: string | undefined
 
-  @Min(0)
   public value!: number
 }
 

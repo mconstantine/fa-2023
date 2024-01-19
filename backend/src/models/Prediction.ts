@@ -20,8 +20,17 @@ export class Prediction extends BaseEntity {
   @Min(2023)
   public year!: number
 
-  @Column()
-  @Min(0)
+  @Column({
+    type: "int",
+    transformer: {
+      from(n: number) {
+        return n / 100
+      },
+      to(n: number) {
+        return Math.floor(n * 100)
+      },
+    },
+  })
   public value!: number
 
   @ManyToOne(() => Category, { nullable: true })

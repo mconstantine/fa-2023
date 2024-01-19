@@ -12,6 +12,7 @@ import { TableFormState } from "./PredictionsTable"
 interface Props {
   year: number
   formState: TableFormState
+  isLoading: boolean
   onEditButtonClick(): void
   onSaveButtonClick(): void
   onCancel(): void
@@ -32,6 +33,7 @@ export default function PredictionsTableHead(props: Props) {
                   <IconButton
                     aria-label="Edit all"
                     onClick={() => props.onEditButtonClick()}
+                    disabled={props.isLoading}
                   >
                     <Edit />
                   </IconButton>
@@ -42,12 +44,14 @@ export default function PredictionsTableHead(props: Props) {
                     <IconButton
                       aria-label="Save all"
                       onClick={() => props.onSaveButtonClick()}
+                      disabled={props.isLoading}
                     >
                       <Check color="primary" />
                     </IconButton>
                     <IconButton
                       aria-label="Cancel"
                       onClick={() => props.onCancel()}
+                      disabled={props.isLoading}
                     >
                       <Close />
                     </IconButton>
