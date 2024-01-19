@@ -43,8 +43,6 @@ export type TableFormState =
 
 /*
 TODO:
-- bulkCreate on Prediction (BE)
-- bulkUpdate on Prediction (BE)
 - Follow the todos in here
 */
 export default function PredictionsTable(props: Props) {

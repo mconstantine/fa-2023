@@ -3,6 +3,7 @@ import {
   BaseEntity,
   Column,
   Entity,
+  Index,
   ManyToOne,
   PrimaryGeneratedColumn,
   type Relation,
@@ -10,6 +11,7 @@ import {
 import { Category } from "./Category"
 
 @Entity()
+@Index(["categoryId", "year"], { unique: true })
 export class Prediction extends BaseEntity {
   @PrimaryGeneratedColumn("uuid")
   public id!: string
@@ -24,4 +26,7 @@ export class Prediction extends BaseEntity {
 
   @ManyToOne(() => Category, { nullable: true })
   public category!: Relation<Category> | null
+
+  @Column({ nullable: true })
+  public categoryId?: string | null | undefined
 }
