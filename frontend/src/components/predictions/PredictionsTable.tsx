@@ -1,5 +1,6 @@
 import {
   Paper,
+  Stack,
   Table,
   TableBody,
   TableContainer,
@@ -9,6 +10,8 @@ import {
 import {
   CategoriesAggregation,
   Prediction,
+  PredictionBulkCreationBody,
+  PredictionBulkUpdateBody,
   PredictionCreationBody,
   PredictionUpdateBody,
   isPrediction,
@@ -45,6 +48,12 @@ export type TableFormState =
   | EditingTableFormState
   | BulkEditingTableFormState
 
+/*
+TODO:
+- Add "delta" table column
+- Add "create prediction" button with creatable category select
+*/
+
 export default function PredictionsTable(props: Props) {
   const [formState, setFormState] = useState<TableFormState>({ type: "idle" })
 
@@ -53,10 +62,20 @@ export default function PredictionsTable(props: Props) {
     Prediction
   >("POST", "/predictions/")
 
+  const [createPredictionsResponse, createPredictions] = useCommand<
+    PredictionBulkCreationBody,
+    Prediction[]
+  >("POST", "/predictions/bulk/")
+
   const [updatePredictionResponse, updatePrediction] = useCommand<
     PredictionUpdateBody,
     Prediction
   >("PATCH", "/predictions/")
+
+  const [updatePredictionsResponse, updatePredictions] = useCommand<
+    PredictionBulkUpdateBody,
+    Prediction[]
+  >("PATCH", "/predictions/bulk/")
 
   const incomes = props.categoriesAggregation.filter(
     (entry) => entry.transactionsTotal > 0,
@@ -66,9 +85,15 @@ export default function PredictionsTable(props: Props) {
     (entry) => entry.transactionsTotal <= 0,
   )
 
-  const total = props.categoriesAggregation
-    .reduce((sum, entry) => sum + entry.transactionsTotal, 0)
-    .toFixed(2)
+  const transactionsTotal = props.categoriesAggregation.reduce(
+    (sum, entry) => sum + entry.transactionsTotal,
+    0,
+  )
+
+  const predictionsTotal = props.predictions.reduce(
+    (sum, entry) => sum + entry.value,
+    0,
+  )
 
   const sorted = [...incomes, ...outcomes]
 
@@ -125,9 +150,37 @@ export default function PredictionsTable(props: Props) {
     setFormState({ type: "idle" })
   }
 
-  function onBulkSaveButtonClick(): void {
+  async function onBulkSaveButtonClick(): Promise<void> {
     if (formState.type === "bulkEditing") {
-      console.log("TODO: save all", formState.subject)
+      const newPredictions = formState.subject.filter(
+        (subject) => !isPrediction(subject),
+      ) as PredictionCreationBody[]
+
+      if (newPredictions.length > 0) {
+        const result = await createPredictions({
+          predictions: newPredictions,
+        })
+
+        if (result !== null) {
+          props.onPredictionsCreate(result)
+        }
+      }
+
+      const existingPredictions = formState.subject.filter((subject) =>
+        isPrediction(subject),
+      ) as Prediction[]
+
+      if (existingPredictions.length > 0) {
+        const result = await updatePredictions({
+          predictions: existingPredictions,
+        })
+
+        if (result !== null) {
+          props.onPredictionsUpdate(result)
+        }
+      }
+
+      setFormState({ type: "idle" })
     }
   }
 
@@ -135,38 +188,35 @@ export default function PredictionsTable(props: Props) {
     categoryId: string | null,
     value: number,
   ): void {
-    switch (formState.type) {
-      case "idle":
-        return
-      case "editing":
-        return setFormState({
-          ...formState,
-          subject: { ...formState.subject, value },
-        })
-      case "bulkEditing": {
-        setFormState({
-          ...formState,
-          subject: formState.subject.map((subject) => {
-            if (subject.categoryId === categoryId) {
-              return { ...subject, value }
-            } else {
-              return subject
-            }
-          }),
-        })
+    setFormState((formState) => {
+      switch (formState.type) {
+        case "idle":
+          return formState
+        case "editing":
+          return {
+            ...formState,
+            subject: { ...formState.subject, value },
+          }
+        case "bulkEditing": {
+          return {
+            ...formState,
+            subject: formState.subject.map((subject) => {
+              if (subject.categoryId === categoryId) {
+                return { ...subject, value }
+              } else {
+                return subject
+              }
+            }),
+          }
+        }
       }
-    }
+    })
   }
 
   function onSavePredictionButtonClick(): void {
     if (formState.type === "editing") {
       if (isPrediction(formState.subject)) {
-        const { categoryId, ...prediction } = formState.subject
-
-        updatePrediction({
-          ...prediction,
-          ...(categoryId === null ? {} : { categoryId }),
-        }).then((result) => {
+        updatePrediction(formState.subject).then((result) => {
           if (result !== null) {
             props.onPredictionsUpdate([result])
             setFormState({ type: "idle" })
@@ -184,7 +234,10 @@ export default function PredictionsTable(props: Props) {
   }
 
   const isLoading =
-    createPredictionResponse.isLoading() || updatePredictionResponse.isLoading()
+    createPredictionResponse.isLoading() ||
+    updatePredictionResponse.isLoading() ||
+    createPredictionsResponse.isLoading() ||
+    updatePredictionsResponse.isLoading()
 
   return (
     <Paper>
@@ -228,8 +281,18 @@ export default function PredictionsTable(props: Props) {
           </TableBody>
         </Table>
       </TableContainer>
-      <Toolbar sx={{ justifyContent: "end" }}>
-        <Typography>Total: {total}</Typography>
+      <Toolbar>
+        <Stack spacing={1.5} sx={{ mt: 1.5, mb: 1.5 }}>
+          <Typography>
+            {props.year - 1} transactions total: {transactionsTotal.toFixed(2)}
+          </Typography>
+          <Typography>
+            {props.year} predictions total: {predictionsTotal.toFixed(2)}
+          </Typography>
+          <Typography>
+            Total delta: {(predictionsTotal - transactionsTotal).toFixed(2)}
+          </Typography>
+        </Stack>
       </Toolbar>
     </Paper>
   )
