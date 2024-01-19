@@ -50,7 +50,6 @@ export type TableFormState =
 
 /*
 TODO:
-- Add "delta" table column
 - Add "create prediction" button with creatable category select
 */
 

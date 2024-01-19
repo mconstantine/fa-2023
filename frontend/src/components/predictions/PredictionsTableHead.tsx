@@ -25,6 +25,7 @@ export default function PredictionsTableHead(props: Props) {
         <TableCell>Category</TableCell>
         <TableCell align="right">Value of {props.year - 1} (€)</TableCell>
         <TableCell align="right">Prediction for {props.year} (€)</TableCell>
+        <TableCell align="right">Delta (€)</TableCell>
         <TableCell sx={{ minWidth: 116, maxWidth: 116, width: 116 }}>
           {(() => {
             switch (props.formState.type) {

@@ -71,6 +71,12 @@ export default function PredictionsTableBodyRow(props: Props) {
           }
         })()}
       </TableCell>
+      <TableCell align="right">
+        {(
+          (props.prediction?.value ?? 0) -
+          props.categoriesAggregation.transactionsTotal
+        ).toFixed(2)}
+      </TableCell>
       <TableCell sx={{ minWidth: 116, maxWidth: 116, width: 116 }}>
         {(() => {
           switch (props.formState.type) {
