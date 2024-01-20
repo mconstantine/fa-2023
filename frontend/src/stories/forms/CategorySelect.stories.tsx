@@ -2,7 +2,11 @@ import { Meta, StoryObj } from "@storybook/react"
 import CategorySelect, {
   CategorySelection,
 } from "../../components/forms/inputs/CategorySelect"
-import { Category } from "../../components/categories/domain"
+import {
+  Category,
+  CategoryCreationBody,
+  isCategory,
+} from "../../components/categories/domain"
 import { v4 } from "uuid"
 import { useMockNetworkResponse } from "../useMockNetworkResponse"
 import { useState } from "react"
@@ -13,7 +17,16 @@ const meta: Meta<typeof CategorySelect> = {
   component: CategorySelect,
   parameters: {},
   tags: ["autodocs"],
-  argTypes: {},
+  argTypes: {
+    creatable: {
+      type: "boolean",
+      control: { type: "boolean" },
+    },
+    multiple: {
+      type: "boolean",
+      control: { type: "boolean" },
+    },
+  },
 }
 
 export default meta
@@ -42,7 +55,7 @@ let categories: Category[] = [
 
 export const Default: Story = {
   args: {},
-  render: function CategorySelectStory() {
+  render: function CategorySelectStory(props) {
     const [query, setQuery] = useState("")
 
     const [selection, setSelection] = useState<Category[]>(
@@ -64,7 +77,30 @@ export const Default: Story = {
       )
     }
 
-    function onSubmit(selection: CategorySelection): void {
+    function onSelectionChange(selection: Category[]): void {
+      setSelection(selection)
+      fetchCategories(selection)
+    }
+
+    function onSubmitSingleCreatable(
+      selection: Category | CategoryCreationBody,
+    ): void {
+      if (isCategory(selection)) {
+        onSelectionChange([selection])
+      } else {
+        const newCategory: Category = {
+          ...selection,
+          id: v4(),
+        }
+
+        categories = [...categories, newCategory]
+        categories.sort((a, b) => a.name.localeCompare(b.name))
+
+        onSelectionChange([newCategory])
+      }
+    }
+
+    function onSubmitMultipleCreatable(selection: CategorySelection): void {
       const newCategories: Category[] = selection.additions.map((data) => ({
         ...data,
         id: v4(),
@@ -73,18 +109,67 @@ export const Default: Story = {
       categories = [...categories, ...newCategories]
       categories.sort((a, b) => a.name.localeCompare(b.name))
 
-      setSelection([...selection.categories, ...newCategories])
+      onSelectionChange([...selection.categories, ...newCategories])
     }
 
-    return (
-      <CategorySelect
-        creatable
-        networkResponse={categoriesResponse}
-        searchQuery={query}
-        onSearchQueryChange={onQueryChange}
-        selection={selection}
-        onSubmit={onSubmit}
-      />
-    )
+    function onSubmitSingleSelectable(selection: Category): void {
+      onSelectionChange([selection])
+    }
+
+    function onSubmitMultipleSelectable(selection: Category[]): void {
+      onSelectionChange(selection)
+    }
+
+    const commonProps = {
+      networkResponse: categoriesResponse,
+      searchQuery: query,
+      onSearchQueryChange: onQueryChange,
+    }
+
+    if (props.creatable) {
+      if (props.multiple) {
+        return (
+          <CategorySelect
+            {...commonProps}
+            creatable
+            multiple
+            selection={selection as Category[]}
+            onSubmit={onSubmitMultipleCreatable}
+          />
+        )
+      } else {
+        return (
+          <CategorySelect
+            {...commonProps}
+            creatable
+            multiple={false}
+            selection={selection[0] as Category}
+            onSubmit={onSubmitSingleCreatable}
+          />
+        )
+      }
+    } else {
+      if (props.multiple) {
+        return (
+          <CategorySelect
+            {...commonProps}
+            creatable={false}
+            multiple
+            selection={selection as Category[]}
+            onSubmit={onSubmitMultipleSelectable}
+          />
+        )
+      } else {
+        return (
+          <CategorySelect
+            {...commonProps}
+            creatable={false}
+            multiple={false}
+            selection={selection[0] as Category}
+            onSubmit={onSubmitSingleSelectable}
+          />
+        )
+      }
+    }
   },
 }

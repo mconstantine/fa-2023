@@ -345,6 +345,7 @@ function CategorySelectForm(props: SpecificCategoriesFiltersFormProps) {
   return (
     <CategorySelect
       creatable={false}
+      multiple
       networkResponse={props.networkResponse}
       searchQuery={props.searchQuery}
       onSearchQueryChange={props.onSearchQueryChange}

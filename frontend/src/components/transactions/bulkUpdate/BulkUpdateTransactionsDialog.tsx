@@ -173,6 +173,7 @@ export default function BulkUpdateTransactionsDialog(props: Props) {
             />
             <CategorySelect
               creatable
+              multiple
               networkResponse={categorySelectionResponse}
               searchQuery={searchQuery}
               onSearchQueryChange={onSearchQueryChange}
