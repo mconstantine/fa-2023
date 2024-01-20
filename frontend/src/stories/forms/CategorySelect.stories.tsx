@@ -58,9 +58,7 @@ export const Default: Story = {
   render: function CategorySelectStory(props) {
     const [query, setQuery] = useState("")
 
-    const [selection, setSelection] = useState<Category[]>(
-      categories.slice(0, 1),
-    )
+    const [selection, setSelection] = useState<Category[]>([])
 
     const [categoriesResponse, fetchCategories] =
       useMockNetworkResponse<Category[]>(categories)
@@ -143,7 +141,7 @@ export const Default: Story = {
             {...commonProps}
             creatable
             multiple={false}
-            selection={selection[0] as Category}
+            selection={selection[0] ?? (null as Category | null)}
             onSubmit={onSubmitSingleCreatable}
           />
         )
@@ -165,7 +163,7 @@ export const Default: Story = {
             {...commonProps}
             creatable={false}
             multiple={false}
-            selection={selection[0] as Category}
+            selection={selection[0] ?? (null as Category | null)}
             onSubmit={onSubmitSingleSelectable}
           />
         )

@@ -27,14 +27,14 @@ interface BaseProps {
 interface SingleCreatableProps extends BaseProps {
   creatable: true
   multiple: false
-  selection: Category
+  selection: Category | null
   onSubmit(selection: Category | CategoryCreationBody): void
 }
 
 interface SingleSelectableProps extends BaseProps {
   creatable: false
   multiple: false
-  selection: Category
+  selection: Category | null
   onSubmit(category: Category): void
 }
 

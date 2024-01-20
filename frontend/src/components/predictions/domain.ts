@@ -10,14 +10,14 @@ export interface CategoriesAggregation {
   transactionsTotal: number
 }
 
-export interface Prediction {
+export interface Prediction extends Record<string, unknown> {
   id: string
   year: number
   value: number
   categoryId: string | null
 }
 
-export interface PredictionCreationBody {
+export interface PredictionCreationBody extends Record<string, unknown> {
   year: number
   value: number
   categoryId?: string | null | undefined

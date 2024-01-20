@@ -5,16 +5,27 @@ import {
   CategoriesAggregationParams,
   Prediction,
 } from "./domain"
-import { Container, Paper, Stack, Typography } from "@mui/material"
+import {
+  Button,
+  Container,
+  Dialog,
+  DialogContent,
+  Paper,
+  Stack,
+  Typography,
+} from "@mui/material"
 import Query from "../Query"
 import PredictionsTable from "./PredictionsTable"
 import ValidatedSelect from "../forms/inputs/ValidatedSelect"
 import { networkResponse } from "../../network/NetworkResponse"
+import PredictionCreationForm from "./PredictionCreationForm"
 
 export default function PredictionsPage() {
   const [params, setParams] = useState<CategoriesAggregationParams>({
     year: new Date().getFullYear() - 1,
   })
+
+  const [creationDialogIsOpen, setCreationDialogOpen] = useState(false)
 
   const [categoriesAggregation] = useQuery<
     CategoriesAggregationParams,
@@ -90,13 +101,18 @@ export default function PredictionsPage() {
           }}
         >
           <Typography variant="h5">Predictions</Typography>
-          <ValidatedSelect
-            name="year"
-            value={params.year.toString(10)}
-            options={years}
-            optionLabels={labels}
-            onChange={onYearChange}
-          />
+          <Stack direction="row" spacing={1.5}>
+            <Button onClick={() => setCreationDialogOpen(true)}>
+              Create prediction
+            </Button>
+            <ValidatedSelect
+              name="year"
+              value={params.year.toString(10)}
+              options={years}
+              optionLabels={labels}
+              onChange={onYearChange}
+            />
+          </Stack>
         </Paper>
         <Query
           response={networkResponse.merge({
@@ -114,6 +130,14 @@ export default function PredictionsPage() {
           )}
         />
       </Stack>
+      <Dialog
+        open={creationDialogIsOpen}
+        onClose={() => setCreationDialogOpen(false)}
+      >
+        <DialogContent>
+          <PredictionCreationForm isVisible={creationDialogIsOpen} />
+        </DialogContent>
+      </Dialog>
     </Container>
   )
 }
