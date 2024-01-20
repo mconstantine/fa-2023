@@ -89,13 +89,13 @@ export class CategoryController {
 
   @Get("/")
   async find(@QueryParams() params: FindCategoryParams): Promise<Category[]> {
-    const query = Category.createQueryBuilder("c").where("1 = 1")
-
-    console.log(params)
+    const query = Category.createQueryBuilder("c")
+      .where("1 = 1")
+      .orderBy("name")
 
     if (typeof params.query !== "undefined") {
       query.andWhere("LOWER(c.name) LIKE :query", {
-        query: `%${params.query}%`,
+        query: `%${params.query.toLowerCase()}%`,
       })
     }
 
