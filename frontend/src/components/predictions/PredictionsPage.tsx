@@ -1,9 +1,14 @@
 import { useMemo, useState } from "react"
-import { useQuery } from "../../hooks/network"
+import { useCommand, useQuery } from "../../hooks/network"
 import {
   CategoriesAggregation,
   CategoriesAggregationParams,
   Prediction,
+  PredictionBulkCreationBody,
+  PredictionBulkUpdateBody,
+  PredictionCreationBody,
+  PredictionUpdateBody,
+  isPrediction,
 } from "./domain"
 import {
   Button,
@@ -32,9 +37,29 @@ export default function PredictionsPage() {
     CategoriesAggregation[]
   >("/transactions/categories/", params)
 
-  const [predictions, updatePredictions] = useQuery<Prediction[]>(
+  const [predictionsList, updatePredictionsList] = useQuery<Prediction[]>(
     `/predictions/${(params.year + 1).toString(10)}`,
   )
+
+  const [createPredictionResponse, createPrediction] = useCommand<
+    PredictionCreationBody,
+    Prediction
+  >("POST", "/predictions/")
+
+  const [createPredictionsResponse, createPredictions] = useCommand<
+    PredictionBulkCreationBody,
+    Prediction[]
+  >("POST", "/predictions/bulk/")
+
+  const [updatePredictionResponse, updatePrediction] = useCommand<
+    PredictionUpdateBody,
+    Prediction
+  >("PATCH", "/predictions/")
+
+  const [updatePredictionsResponse, updatePredictions] = useCommand<
+    PredictionBulkUpdateBody,
+    Prediction[]
+  >("PATCH", "/predictions/bulk/")
 
   const [years, labels]: [Record<string, string>, Record<string, string>] =
     useMemo(() => {
@@ -68,14 +93,87 @@ export default function PredictionsPage() {
     }
   }
 
-  function onPredictionsCreate(newPredictions: Prediction[]): void {
-    updatePredictions((predictions) => [...predictions, ...newPredictions])
+  async function onPredictionCreate(data: Prediction): Promise<void> {
+    const result = await createPrediction(data)
+
+    if (result !== null) {
+      updatePredictionsList((predictions) => [result, ...predictions])
+    }
   }
 
-  function onPredictionsUpdate(updatedPredictons: Prediction[]): void {
-    updatePredictions((predictions) =>
-      predictions.map((prediction) => {
-        const match = updatedPredictons.find(
+  async function onPredictionUpdate(
+    data: Prediction | PredictionCreationBody,
+  ): Promise<void> {
+    if (isPrediction(data)) {
+      const result = await updatePrediction(data)
+
+      if (result !== null) {
+        updatePredictionsList((predictions) => [result, ...predictions])
+      }
+    } else {
+      const result = await createPrediction(data)
+
+      if (result !== null) {
+        updatePredictionsList((predictions) =>
+          predictions.map((prediction) => {
+            if (prediction.id === result.id) {
+              return result
+            } else {
+              return prediction
+            }
+          }),
+        )
+      }
+    }
+  }
+
+  async function onPredictionsUpdate(
+    data: Array<Prediction | PredictionCreationBody>,
+  ): Promise<void> {
+    const created: Prediction[] = await (async () => {
+      const newPredictions = data.filter(
+        (subject) => !isPrediction(subject),
+      ) as PredictionCreationBody[]
+
+      if (newPredictions.length > 0) {
+        const result = await createPredictions({
+          predictions: newPredictions,
+        })
+
+        if (result !== null) {
+          return result
+        } else {
+          return []
+        }
+      } else {
+        return []
+      }
+    })()
+
+    const updated: Prediction[] = await (async () => {
+      const existingPredictions = data.filter((subject) =>
+        isPrediction(subject),
+      ) as Prediction[]
+
+      if (existingPredictions.length > 0) {
+        const result = await updatePredictions({
+          predictions: existingPredictions,
+        })
+
+        if (result !== null) {
+          return result
+        } else {
+          return []
+        }
+      } else {
+        return []
+      }
+    })()
+
+    updatePredictionsList((predictions) => [
+      ...created,
+      ...predictions.map((prediction) => {
+        const match = updated.find(
           (updatedPrediction) => updatedPrediction.id === prediction.id,
         )
 
@@ -85,8 +183,13 @@ export default function PredictionsPage() {
           return match
         }
       }),
-    )
+    ])
   }
+
+  const isTableLoading =
+    createPredictionsResponse.isLoading() ||
+    updatePredictionResponse.isLoading() ||
+    updatePredictionsResponse.isLoading()
 
   return (
     <Container>
@@ -117,14 +220,15 @@ export default function PredictionsPage() {
         <Query
           response={networkResponse.merge({
             categoriesAggregation,
-            predictions,
+            predictions: predictionsList,
           })}
           render={({ categoriesAggregation, predictions }) => (
             <PredictionsTable
               year={params.year + 1}
               categoriesAggregation={categoriesAggregation}
               predictions={predictions}
-              onPredictionsCreate={onPredictionsCreate}
+              isLoading={isTableLoading}
+              onPredictionUpdate={onPredictionUpdate}
               onPredictionsUpdate={onPredictionsUpdate}
             />
           )}
@@ -135,7 +239,12 @@ export default function PredictionsPage() {
         onClose={() => setCreationDialogOpen(false)}
       >
         <DialogContent>
-          <PredictionCreationForm isVisible={creationDialogIsOpen} />
+          <PredictionCreationForm
+            year={params.year + 1}
+            isVisible={creationDialogIsOpen}
+            networkResponse={createPredictionResponse}
+            onSubmit={onPredictionCreate}
+          />
         </DialogContent>
       </Dialog>
     </Container>

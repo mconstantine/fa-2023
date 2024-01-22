@@ -1,39 +1,88 @@
 import { Stack, Typography } from "@mui/material"
 import { useForm } from "../../hooks/useForm"
-import { PredictionCreationBody } from "./domain"
 import Form from "../forms/Form"
-import { networkResponse } from "../../network/NetworkResponse"
+import { NetworkResponse, networkResponse } from "../../network/NetworkResponse"
 import CategorySelect from "../forms/inputs/CategorySelect"
 import NumberInput from "../forms/inputs/NumberInput"
 import { useEffect, useState } from "react"
-import { Category, FindCategoryParams } from "../categories/domain"
-import { useLazyQuery } from "../../hooks/network"
+import {
+  Category,
+  CategoryCreationBody,
+  FindCategoryParams,
+  isCategory,
+} from "../categories/domain"
+import { useCommand, useLazyQuery } from "../../hooks/network"
+import { PredictionCreationBody } from "./domain"
 
 interface Props {
+  year: number
   isVisible: boolean
+  networkResponse: NetworkResponse<unknown>
+  onSubmit(prediction: PredictionCreationBody): void
+}
+
+interface FormData extends Record<string, unknown> {
+  year: number
+  category: Category
+  value: number
 }
 
 export default function PredictionCreationForm(props: Props) {
   const [searchQuery, setSearchQuery] = useState("")
+  const [category, setCategory] = useState<Category | null>(null)
 
-  const [categoriesResponse, , fetchCategories] = useLazyQuery<
+  const [categoriesResponse, updateCategories, fetchCategories] = useLazyQuery<
     Category[],
     FindCategoryParams
   >("/categories")
 
-  const { inputProps, submit, isValid } = useForm<PredictionCreationBody>(
+  const [createCategoryResponse, createCategory] = useCommand<
+    CategoryCreationBody,
+    Category
+  >("POST", "/categories")
+
+  const { inputProps, submit, isValid } = useForm<FormData>(
     {
-      // TODO: this should come from props
-      year: 2023,
+      year: props.year,
       category: null,
       value: 0,
     },
-    (data) => console.log("TODO: create prediction", data),
+    (data) => props.onSubmit({ ...data, categoryId: data.category.id }),
   )
+
+  const categorySelectionResponse = createCategoryResponse.match<
+    NetworkResponse<Category[]>
+  >({
+    whenIdle: () => categoriesResponse,
+    whenSuccessful: () => categoriesResponse,
+    whenFailed: (response) =>
+      networkResponse.fromFailure<Category[]>(
+        response.status,
+        response.message,
+      ),
+    whenLoading: () => networkResponse.make<Category[]>().load(),
+  })
 
   function onCategorySearchQueryChange(query: string): void {
     setSearchQuery(query)
     fetchCategories(query === "" ? {} : { query })
+  }
+
+  async function onCategorySelectionChange(
+    selection: Category | CategoryCreationBody,
+  ) {
+    if (isCategory(selection)) {
+      setCategory(selection)
+      inputProps("category", null).onChange(selection)
+    } else {
+      createCategory(selection).then((category) => {
+        if (category !== null) {
+          setCategory(category)
+          inputProps("category", null).onChange(category)
+          updateCategories((categories) => [category, ...categories])
+        }
+      })
+    }
   }
 
   useEffect(() => {
@@ -48,19 +97,17 @@ export default function PredictionCreationForm(props: Props) {
       <Form
         onSubmit={submit}
         isValid={isValid}
-        // TODO: this should come from props
-        networkResponse={networkResponse.make()}
+        networkResponse={props.networkResponse}
         submitButtonLabel="Save"
       >
         <CategorySelect
           multiple={false}
           creatable
-          networkResponse={categoriesResponse}
+          networkResponse={categorySelectionResponse}
           searchQuery={searchQuery}
           onSearchQueryChange={onCategorySearchQueryChange}
-          selection={null}
-          // TODO:
-          onSubmit={() => {}}
+          selection={category}
+          onSubmit={onCategorySelectionChange}
         />
 
         <NumberInput

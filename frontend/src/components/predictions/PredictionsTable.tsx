@@ -10,23 +10,21 @@ import {
 import {
   CategoriesAggregation,
   Prediction,
-  PredictionBulkCreationBody,
-  PredictionBulkUpdateBody,
   PredictionCreationBody,
-  PredictionUpdateBody,
-  isPrediction,
 } from "./domain"
 import { useState } from "react"
 import PredictionsTableHead from "./PredictionsTableHead"
 import PredictionsTableBodyRow from "./PredictionsTableBodyRow"
-import { useCommand } from "../../hooks/network"
 
 interface Props {
   year: number
   categoriesAggregation: CategoriesAggregation[]
   predictions: Prediction[]
-  onPredictionsCreate(predictions: Prediction[]): void
-  onPredictionsUpdate(predictions: Prediction[]): void
+  isLoading: boolean
+  onPredictionUpdate(prediction: Prediction | PredictionCreationBody): void
+  onPredictionsUpdate(
+    predictions: Array<Prediction | PredictionCreationBody>,
+  ): void
 }
 
 interface IdleTableFormState {
@@ -50,31 +48,13 @@ export type TableFormState =
 
 /*
 TODO:
-- Add "create prediction" button with creatable category select
+- Add delete button for predictions
+- Don't allow to create a prediction for a category that already has one
+- Show predictions for categories that have no transactions
 */
 
 export default function PredictionsTable(props: Props) {
   const [formState, setFormState] = useState<TableFormState>({ type: "idle" })
-
-  const [createPredictionResponse, createPrediction] = useCommand<
-    PredictionCreationBody,
-    Prediction
-  >("POST", "/predictions/")
-
-  const [createPredictionsResponse, createPredictions] = useCommand<
-    PredictionBulkCreationBody,
-    Prediction[]
-  >("POST", "/predictions/bulk/")
-
-  const [updatePredictionResponse, updatePrediction] = useCommand<
-    PredictionUpdateBody,
-    Prediction
-  >("PATCH", "/predictions/")
-
-  const [updatePredictionsResponse, updatePredictions] = useCommand<
-    PredictionBulkUpdateBody,
-    Prediction[]
-  >("PATCH", "/predictions/bulk/")
 
   const incomes = props.categoriesAggregation.filter(
     (entry) => entry.transactionsTotal > 0,
@@ -151,34 +131,7 @@ export default function PredictionsTable(props: Props) {
 
   async function onBulkSaveButtonClick(): Promise<void> {
     if (formState.type === "bulkEditing") {
-      const newPredictions = formState.subject.filter(
-        (subject) => !isPrediction(subject),
-      ) as PredictionCreationBody[]
-
-      if (newPredictions.length > 0) {
-        const result = await createPredictions({
-          predictions: newPredictions,
-        })
-
-        if (result !== null) {
-          props.onPredictionsCreate(result)
-        }
-      }
-
-      const existingPredictions = formState.subject.filter((subject) =>
-        isPrediction(subject),
-      ) as Prediction[]
-
-      if (existingPredictions.length > 0) {
-        const result = await updatePredictions({
-          predictions: existingPredictions,
-        })
-
-        if (result !== null) {
-          props.onPredictionsUpdate(result)
-        }
-      }
-
+      props.onPredictionsUpdate(formState.subject)
       setFormState({ type: "idle" })
     }
   }
@@ -214,29 +167,10 @@ export default function PredictionsTable(props: Props) {
 
   function onSavePredictionButtonClick(): void {
     if (formState.type === "editing") {
-      if (isPrediction(formState.subject)) {
-        updatePrediction(formState.subject).then((result) => {
-          if (result !== null) {
-            props.onPredictionsUpdate([result])
-            setFormState({ type: "idle" })
-          }
-        })
-      } else {
-        createPrediction(formState.subject).then((result) => {
-          if (result !== null) {
-            props.onPredictionsCreate([result])
-            setFormState({ type: "idle" })
-          }
-        })
-      }
+      props.onPredictionUpdate(formState.subject)
+      setFormState({ type: "idle" })
     }
   }
-
-  const isLoading =
-    createPredictionResponse.isLoading() ||
-    updatePredictionResponse.isLoading() ||
-    createPredictionsResponse.isLoading() ||
-    updatePredictionsResponse.isLoading()
 
   return (
     <Paper>
@@ -248,7 +182,7 @@ export default function PredictionsTable(props: Props) {
             onEditButtonClick={onBulkEditButtonClick}
             onSaveButtonClick={onBulkSaveButtonClick}
             onCancel={onCancelEditing}
-            isLoading={isLoading}
+            isLoading={props.isLoading}
           />
           <TableBody>
             {sorted.map((categoriesAggregation) => (
@@ -274,7 +208,7 @@ export default function PredictionsTable(props: Props) {
                 }
                 onSaveButtonClick={onSavePredictionButtonClick}
                 onCancel={onCancelEditing}
-                isLoading={isLoading}
+                isLoading={props.isLoading}
               />
             ))}
           </TableBody>
