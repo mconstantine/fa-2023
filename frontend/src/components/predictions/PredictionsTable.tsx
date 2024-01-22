@@ -25,6 +25,7 @@ interface Props {
   onPredictionsUpdate(
     predictions: Array<Prediction | PredictionCreationBody>,
   ): void
+  onPredictionDelete(prediction: Prediction): void
 }
 
 interface IdleTableFormState {
@@ -48,7 +49,6 @@ export type TableFormState =
 
 /*
 TODO:
-- Add delete button for predictions
 - Don't allow to create a prediction for a category that already has one
 - Show predictions for categories that have no transactions
 */
@@ -172,6 +172,16 @@ export default function PredictionsTable(props: Props) {
     }
   }
 
+  function onDeletePredictionButtonClick(categoryId: string | null) {
+    const prediction = props.predictions.find(
+      (prediction) => prediction.categoryId === categoryId,
+    )
+
+    if (typeof prediction !== "undefined") {
+      props.onPredictionDelete(prediction)
+    }
+  }
+
   return (
     <Paper>
       <TableContainer sx={{ maxHeight: 587 }}>
@@ -207,6 +217,11 @@ export default function PredictionsTable(props: Props) {
                   onEditPredictionButtonClick(categoriesAggregation.categoryId)
                 }
                 onSaveButtonClick={onSavePredictionButtonClick}
+                onDeleteButtonClick={() =>
+                  onDeletePredictionButtonClick(
+                    categoriesAggregation.categoryId,
+                  )
+                }
                 onCancel={onCancelEditing}
                 isLoading={props.isLoading}
               />

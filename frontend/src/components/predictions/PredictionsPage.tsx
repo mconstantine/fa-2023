@@ -61,6 +61,11 @@ export default function PredictionsPage() {
     Prediction[]
   >("PATCH", "/predictions/bulk/")
 
+  const [deletePredictionResponse, deletePrediction] = useCommand<
+    Prediction,
+    Prediction
+  >("DELETE", "/predictions/")
+
   const [years, labels]: [Record<string, string>, Record<string, string>] =
     useMemo(() => {
       const min = 2023
@@ -186,10 +191,23 @@ export default function PredictionsPage() {
     ])
   }
 
+  async function onPredictionDelete(prediction: Prediction): Promise<void> {
+    const result = await deletePrediction(prediction)
+
+    if (result !== null) {
+      updatePredictionsList((predictions) =>
+        predictions.filter(
+          (prediction) => prediction.categoryId !== result.categoryId,
+        ),
+      )
+    }
+  }
+
   const isTableLoading =
     createPredictionsResponse.isLoading() ||
     updatePredictionResponse.isLoading() ||
-    updatePredictionsResponse.isLoading()
+    updatePredictionsResponse.isLoading() ||
+    deletePredictionResponse.isLoading()
 
   return (
     <Container>
@@ -230,6 +248,7 @@ export default function PredictionsPage() {
               isLoading={isTableLoading}
               onPredictionUpdate={onPredictionUpdate}
               onPredictionsUpdate={onPredictionsUpdate}
+              onPredictionDelete={onPredictionDelete}
             />
           )}
         />

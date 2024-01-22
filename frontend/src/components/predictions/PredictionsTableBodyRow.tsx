@@ -2,7 +2,7 @@ import { Box, IconButton, Stack, TableCell, TableRow } from "@mui/material"
 import { CategoriesAggregation, Prediction } from "./domain"
 import { TableFormState } from "./PredictionsTable"
 import NumberInput from "../forms/inputs/NumberInput"
-import { Check, Close, Edit } from "@mui/icons-material"
+import { Check, Close, Delete, Edit } from "@mui/icons-material"
 
 interface Props {
   categoriesAggregation: CategoriesAggregation
@@ -12,6 +12,7 @@ interface Props {
   onValueChange(value: number): void
   onEditButtonClick(): void
   onSaveButtonClick(): void
+  onDeleteButtonClick(): void
   onCancel(): void
 }
 
@@ -82,13 +83,24 @@ export default function PredictionsTableBodyRow(props: Props) {
           switch (props.formState.type) {
             case "idle":
               return (
-                <IconButton
-                  aria-label="Edit"
-                  onClick={() => props.onEditButtonClick()}
-                  disabled={props.isLoading}
-                >
-                  <Edit />
-                </IconButton>
+                <Stack direction="row" spacing={0.5}>
+                  <IconButton
+                    aria-label="Edit"
+                    onClick={() => props.onEditButtonClick()}
+                    disabled={props.isLoading}
+                  >
+                    <Edit />
+                  </IconButton>
+                  {props.prediction !== null ? (
+                    <IconButton
+                      aria-label="Delete"
+                      onClick={() => props.onDeleteButtonClick()}
+                      disabled={props.isLoading}
+                    >
+                      <Delete />
+                    </IconButton>
+                  ) : null}
+                </Stack>
               )
             case "bulkEditing":
               return <Box height={40} />
