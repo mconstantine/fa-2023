@@ -10,11 +10,30 @@ export interface Transaction extends Record<string, unknown> {
   categories: Category[]
 }
 
-interface BaseFindTransactionsParams extends PaginationParams {
-  query?: string | undefined
-  startDate?: string | undefined
-  endDate?: string | undefined
+export enum FindTransactionsBy {
+  DESCRIPTION = "description",
+  VALUE = "value",
 }
+
+interface BaseFindTransactionsByDescriptionParams {
+  findBy: FindTransactionsBy.DESCRIPTION
+  query?: string | undefined
+}
+
+interface BaseFindTransactionsByValueParams {
+  findBy: FindTransactionsBy.VALUE
+  min: number
+  max: number
+}
+
+type BaseFindTransactionsParams = PaginationParams &
+  (
+    | BaseFindTransactionsByDescriptionParams
+    | BaseFindTransactionsByValueParams
+  ) & {
+    startDate?: string | undefined
+    endDate?: string | undefined
+  }
 
 export enum CategoryMode {
   ALL = "all",
@@ -22,16 +41,15 @@ export enum CategoryMode {
   SPECIFIC = "specific",
 }
 
-interface SpecificCategoriesFindTransactionsParams
-  extends BaseFindTransactionsParams {
+type SpecificCategoriesFindTransactionsParams = BaseFindTransactionsParams & {
   categoryMode: CategoryMode.SPECIFIC
   categories: string[]
 }
 
-interface NonSpecificCategoriesFindTransactionsParams
-  extends BaseFindTransactionsParams {
-  categoryMode: CategoryMode.ALL | CategoryMode.UNCATEGORIZED
-}
+type NonSpecificCategoriesFindTransactionsParams =
+  BaseFindTransactionsParams & {
+    categoryMode: CategoryMode.ALL | CategoryMode.UNCATEGORIZED
+  }
 
 export type FindTransactionsParams =
   | SpecificCategoriesFindTransactionsParams

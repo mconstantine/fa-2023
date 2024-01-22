@@ -7,6 +7,7 @@ import { PaginatedResponse, PaginationParams } from "../../globalDomain"
 import {
   BulkUpdateTransactionsBody,
   CategoryMode,
+  FindTransactionsBy,
   FindTransactionsParams,
   Transaction,
 } from "./domain"
@@ -32,6 +33,7 @@ export default function TransactionsPage() {
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false)
 
   const [params, setParams] = useState<FindTransactionsParams>({
+    findBy: FindTransactionsBy.DESCRIPTION,
     page: 0,
     perPage: 100,
     startDate: new Date(
@@ -68,10 +70,6 @@ export default function TransactionsPage() {
   function onImportSubmit(): void {
     setIsImportDialogOpen(false)
     fetchTransactions()
-  }
-
-  function onParamsChange(params: FindTransactionsParams): void {
-    setParams(params)
   }
 
   function onTransactionsSelectionChange(
@@ -148,7 +146,7 @@ export default function TransactionsPage() {
           findTransactionsNetworkResponse={paginatedTransactions}
           updateTransactionsNetworkResponse={bulkUpdateNetworkResponse}
           params={params}
-          onParamsChange={onParamsChange}
+          onParamsChange={setParams}
           selectedCount={selectedCount}
           onBulkUpdate={onBulkUpdate}
         />

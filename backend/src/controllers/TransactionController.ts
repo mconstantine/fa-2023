@@ -19,6 +19,7 @@ import {
   IsDateString,
   IsEnum,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
   IsUUID,
@@ -37,6 +38,11 @@ enum FindTransactionsCategoryMode {
   SPECIFIC = "specific",
 }
 
+enum FindTransactionsBy {
+  DESCRIPTION = "description",
+  VALUE = "value",
+}
+
 class FindQueryParams {
   @Min(0)
   public page!: number
@@ -45,9 +51,29 @@ class FindQueryParams {
   public perPage!: number
 
   @IsOptional()
+  @IsEnum(FindTransactionsBy)
+  public findBy: FindTransactionsBy = FindTransactionsBy.DESCRIPTION
+
+  @IsOptional()
   @IsNotEmpty()
   @IsString()
+  @ValidateIf(
+    (params: FindQueryParams) =>
+      params.findBy === FindTransactionsBy.DESCRIPTION,
+  )
   public query?: string
+
+  @IsNumber()
+  @ValidateIf(
+    (params: FindQueryParams) => params.findBy === FindTransactionsBy.VALUE,
+  )
+  public min!: number
+
+  @IsNumber()
+  @ValidateIf(
+    (params: FindQueryParams) => params.findBy === FindTransactionsBy.VALUE,
+  )
+  public max!: number
 
   @IsOptional()
   @IsDateString()
@@ -110,8 +136,6 @@ export class TransactionController {
   public async find(
     @QueryParams() params: FindQueryParams,
   ): Promise<[Transaction[], number]> {
-    const searchQuery = params.query?.toLowerCase() ?? ""
-
     const startTimeCondition =
       typeof params.startDate !== "undefined"
         ? MoreThanOrEqual(new Date(params.startDate))
@@ -141,14 +165,32 @@ export class TransactionController {
       .skip(params.perPage * params.page)
       .orderBy({ "transaction.date": "DESC" })
 
-    if (searchQuery !== "") {
-      query.andWhere("LOWER(transaction.description) LIKE :searchQuery", {
-        searchQuery: `%${searchQuery}%`,
-      })
-    }
+    switch (params.findBy) {
+      case FindTransactionsBy.DESCRIPTION: {
+        const searchQuery = params.query?.toLowerCase() ?? ""
 
-    if (timeCondition !== null) {
-      query.andWhere({ date: timeCondition })
+        if (searchQuery !== "") {
+          query.andWhere("LOWER(transaction.description) LIKE :searchQuery", {
+            searchQuery: `%${searchQuery}%`,
+          })
+        }
+
+        if (timeCondition !== null) {
+          query.andWhere({ date: timeCondition })
+        }
+
+        break
+      }
+      case FindTransactionsBy.VALUE: {
+        query
+          .andWhere("transaction.value >= ROUND(:min * 100)", {
+            min: params.min,
+          })
+          .andWhere("transaction.value <= ROUND(:max * 100)", {
+            max: params.max,
+          })
+        break
+      }
     }
 
     switch (params.categoryMode) {

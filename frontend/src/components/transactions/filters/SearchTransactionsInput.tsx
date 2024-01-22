@@ -1,6 +1,5 @@
 import { ChangeEventHandler, useState } from "react"
 import { FindTransactionsParams } from "../domain"
-import { useDebounce } from "../../../hooks/useDebounce"
 import {
   FormControl,
   InputAdornment,
@@ -19,21 +18,17 @@ export default function SearchTransactionsInput(props: Props) {
     props.params.query ?? "",
   )
 
-  const debounceTransactionsSearch = useDebounce(function search(
-    query: string,
-  ) {
+  const onTransactionsQueryChange: ChangeEventHandler<HTMLInputElement> = (
+    event,
+  ) => {
+    const query = event.currentTarget.value
+
+    setTransactionsQuery(query)
+
     props.onParamsChange({
       ...props.params,
       query: query === "" ? undefined : query,
     })
-  },
-  500)
-
-  const onTransactionsQueryChange: ChangeEventHandler<HTMLInputElement> = (
-    event,
-  ) => {
-    setTransactionsQuery(event.currentTarget.value)
-    debounceTransactionsSearch(event.currentTarget.value)
   }
 
   return (
