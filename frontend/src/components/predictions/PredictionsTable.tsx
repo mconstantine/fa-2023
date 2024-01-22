@@ -1,11 +1,11 @@
 import {
   Paper,
-  Stack,
   Table,
   TableBody,
+  TableCell,
   TableContainer,
-  Toolbar,
-  Typography,
+  TableRow,
+  useTheme,
 } from "@mui/material"
 import {
   CategoriesAggregation,
@@ -47,13 +47,8 @@ export type TableFormState =
   | EditingTableFormState
   | BulkEditingTableFormState
 
-/*
-TODO:
-- Don't allow to create a prediction for a category that already has one
-- Show predictions for categories that have no transactions
-*/
-
 export default function PredictionsTable(props: Props) {
+  const theme = useTheme()
   const [formState, setFormState] = useState<TableFormState>({ type: "idle" })
 
   const incomes = props.categoriesAggregation.filter(
@@ -63,6 +58,19 @@ export default function PredictionsTable(props: Props) {
   const outcomes = props.categoriesAggregation.filter(
     (entry) => entry.transactionsTotal <= 0,
   )
+
+  const rogue = props.predictions
+    .filter(
+      (prediction) =>
+        !props.categoriesAggregation.find(
+          (aggregation) => aggregation.categoryId === prediction.categoryId,
+        ),
+    )
+    .map<CategoriesAggregation>((prediction) => ({
+      categoryId: prediction.category.id,
+      categoryName: prediction.category.name,
+      transactionsTotal: 0,
+    }))
 
   const transactionsTotal = props.categoriesAggregation.reduce(
     (sum, entry) => sum + entry.transactionsTotal,
@@ -74,7 +82,7 @@ export default function PredictionsTable(props: Props) {
     0,
   )
 
-  const sorted = [...incomes, ...outcomes]
+  const sorted = [...incomes, ...outcomes, ...rogue]
 
   function onEditPredictionButtonClick(categoryId: string | null): void {
     const existingPrediction = props.predictions.find(
@@ -184,7 +192,7 @@ export default function PredictionsTable(props: Props) {
 
   return (
     <Paper>
-      <TableContainer sx={{ maxHeight: 587 }}>
+      <TableContainer sx={{ maxHeight: 637 }}>
         <Table stickyHeader>
           <PredictionsTableHead
             year={props.year}
@@ -226,22 +234,26 @@ export default function PredictionsTable(props: Props) {
                 isLoading={props.isLoading}
               />
             ))}
+            <TableRow
+              sx={{
+                position: "sticky",
+                bottom: 0,
+                backgroundColor: theme.palette.background.default,
+              }}
+            >
+              <TableCell>Total</TableCell>
+              <TableCell align="right">
+                {transactionsTotal.toFixed(2)}
+              </TableCell>
+              <TableCell align="right">{predictionsTotal.toFixed(2)}</TableCell>
+              <TableCell align="right">
+                {(predictionsTotal + transactionsTotal).toFixed(2)}
+              </TableCell>
+              <TableCell />
+            </TableRow>
           </TableBody>
         </Table>
       </TableContainer>
-      <Toolbar>
-        <Stack spacing={1.5} sx={{ mt: 1.5, mb: 1.5 }}>
-          <Typography>
-            {props.year - 1} transactions total: {transactionsTotal.toFixed(2)}
-          </Typography>
-          <Typography>
-            {props.year} predictions total: {predictionsTotal.toFixed(2)}
-          </Typography>
-          <Typography>
-            Total delta: {(predictionsTotal - transactionsTotal).toFixed(2)}
-          </Typography>
-        </Stack>
-      </Toolbar>
     </Paper>
   )
 }

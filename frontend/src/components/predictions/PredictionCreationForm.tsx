@@ -17,6 +17,7 @@ import { PredictionCreationBody } from "./domain"
 interface Props {
   year: number
   isVisible: boolean
+  excludedCategoriesIds: Array<string | null>
   networkResponse: NetworkResponse<unknown>
   onSubmit(prediction: PredictionCreationBody): void
 }
@@ -50,18 +51,24 @@ export default function PredictionCreationForm(props: Props) {
     (data) => props.onSubmit({ ...data, categoryId: data.category.id }),
   )
 
-  const categorySelectionResponse = createCategoryResponse.match<
-    NetworkResponse<Category[]>
-  >({
-    whenIdle: () => categoriesResponse,
-    whenSuccessful: () => categoriesResponse,
-    whenFailed: (response) =>
-      networkResponse.fromFailure<Category[]>(
-        response.status,
-        response.message,
+  const categorySelectionResponse = createCategoryResponse
+    .match<NetworkResponse<Category[]>>({
+      whenIdle: () => categoriesResponse,
+      whenSuccessful: () => categoriesResponse,
+      whenFailed: (response) =>
+        networkResponse.fromFailure<Category[]>(
+          response.status,
+          response.message,
+        ),
+      whenLoading: () => networkResponse.make<Category[]>().load(),
+    })
+    .map((categories) =>
+      categories.filter(
+        (category) =>
+          !props.excludedCategoriesIds.includes(category.id) &&
+          !category.isMeta,
       ),
-    whenLoading: () => networkResponse.make<Category[]>().load(),
-  })
+    )
 
   function onCategorySearchQueryChange(query: string): void {
     setSearchQuery(query)

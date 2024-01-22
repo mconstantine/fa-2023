@@ -8,7 +8,7 @@ export default function ErrorPage() {
     <Container>
       <Paper sx={{ m: 3, p: 3 }}>
         <Typography variant="h5" sx={{ mb: 1.5 }}>
-          Something went unexcpectedly!
+          Something went unexpectedly!
         </Typography>
         <Typography>
           <em>

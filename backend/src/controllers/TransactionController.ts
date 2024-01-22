@@ -139,9 +139,7 @@ export class TransactionController {
       .where("1 = 1")
       .take(params.perPage)
       .skip(params.perPage * params.page)
-      .orderBy({
-        "transaction.date": "DESC",
-      })
+      .orderBy({ "transaction.date": "DESC" })
 
     if (searchQuery !== "") {
       query.andWhere("LOWER(transaction.description) LIKE :searchQuery", {

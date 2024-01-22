@@ -70,7 +70,7 @@ export class PredictionController {
 
   @Get("/:year")
   public async findByYear(@Param("year") year: number): Promise<Prediction[]> {
-    return await Prediction.findBy({ year })
+    return await Prediction.find({ where: { year }, relations: ["category"] })
   }
 
   @Patch()

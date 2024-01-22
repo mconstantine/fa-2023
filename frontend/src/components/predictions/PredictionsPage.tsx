@@ -103,6 +103,7 @@ export default function PredictionsPage() {
 
     if (result !== null) {
       updatePredictionsList((predictions) => [result, ...predictions])
+      setCreationDialogOpen(false)
     }
   }
 
@@ -263,6 +264,11 @@ export default function PredictionsPage() {
             isVisible={creationDialogIsOpen}
             networkResponse={createPredictionResponse}
             onSubmit={onPredictionCreate}
+            excludedCategoriesIds={predictionsList
+              .map((predictions) =>
+                predictions.map((prediction) => prediction.categoryId),
+              )
+              .getOrElse([])}
           />
         </DialogContent>
       </Dialog>

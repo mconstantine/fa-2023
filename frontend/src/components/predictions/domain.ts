@@ -1,4 +1,5 @@
 import { Param } from "../../hooks/network"
+import { Category } from "../categories/domain"
 
 export interface CategoriesAggregationParams extends Record<string, Param> {
   year: number
@@ -15,6 +16,7 @@ export interface Prediction extends Record<string, unknown> {
   year: number
   value: number
   categoryId: string | null
+  category: Category
 }
 
 export interface PredictionCreationBody extends Record<string, unknown> {
