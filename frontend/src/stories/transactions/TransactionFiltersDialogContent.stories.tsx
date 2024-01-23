@@ -3,6 +3,7 @@ import TransactionFiltersDialogContent from "../../components/transactions/filte
 import { useState } from "react"
 import {
   CategoryMode,
+  FindTransactionsBy,
   FindTransactionsParams,
   Transaction,
 } from "../../components/transactions/domain"
@@ -90,6 +91,7 @@ function getInitialParams(): FindTransactionsParams {
   const now = new Date()
 
   return {
+    findBy: FindTransactionsBy.DESCRIPTION,
     startDate: new Date(
       Date.UTC(now.getUTCFullYear() - 1, now.getUTCMonth(), now.getUTCDate()),
     )

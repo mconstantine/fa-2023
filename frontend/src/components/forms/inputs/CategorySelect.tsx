@@ -19,7 +19,7 @@ export interface CategorySelection {
 }
 
 interface BaseProps {
-  networkResponse: NetworkResponse<Category[]>
+  categories: NetworkResponse<Category[]>
   searchQuery: string
   onSearchQueryChange(searchQuery: string): void
 }
@@ -28,28 +28,28 @@ interface SingleCreatableProps extends BaseProps {
   creatable: true
   multiple: false
   selection: Category | null
-  onSubmit(selection: Category | CategoryCreationBody): void
+  onSelectionChange(selection: Category | CategoryCreationBody): void
 }
 
 interface SingleSelectableProps extends BaseProps {
   creatable: false
   multiple: false
   selection: Category | null
-  onSubmit(category: Category): void
+  onSelectionChange(category: Category): void
 }
 
 interface MultipleCreatableProps extends BaseProps {
   creatable: true
   multiple: true
   selection: Category[]
-  onSubmit(selection: CategorySelection): void
+  onSelectionChange(selection: CategorySelection): void
 }
 
 interface MultipleSelectableProps extends BaseProps {
   creatable: false
   multiple: true
   selection: Category[]
-  onSubmit(category: Category[]): void
+  onSelectionChange(category: Category[]): void
 }
 
 type Props =
@@ -59,11 +59,11 @@ type Props =
   | MultipleSelectableProps
 
 export default function CategorySelect(props: Props) {
-  const isLoading = props.networkResponse.isLoading()
+  const isLoading = props.categories.isLoading()
   const value = props.selection
 
   const options: Array<Category | CategoryCreationBody> =
-    props.networkResponse.getOrElse([])
+    props.categories.getOrElse([])
 
   const onQueryChange: ChangeEventHandler<HTMLInputElement> = (event) => {
     props.onSearchQueryChange(event.currentTarget.value)
@@ -119,7 +119,7 @@ export default function CategorySelect(props: Props) {
     if (
       props.creatable &&
       options.length === 0 &&
-      props.networkResponse.isSuccessful() &&
+      props.categories.isSuccessful() &&
       props.searchQuery !== ""
     ) {
       return [
@@ -150,7 +150,7 @@ export default function CategorySelect(props: Props) {
         >
 
         if (props.creatable) {
-          props.onSubmit({
+          props.onSelectionChange({
             categories: selection.filter(
               (c) => typeof c !== "string" && isCategory(c),
             ) as Category[],
@@ -159,15 +159,15 @@ export default function CategorySelect(props: Props) {
             ) as CategoryCreationBody[],
           })
         } else {
-          props.onSubmit(selection as Category[])
+          props.onSelectionChange(selection as Category[])
         }
       } else if (typeof value !== "string") {
         const selection = value as Category | CategoryCreationBody
 
         if (props.creatable) {
-          props.onSubmit(selection as CategoryCreationBody)
+          props.onSelectionChange(selection as CategoryCreationBody)
         } else {
-          props.onSubmit(selection as Category)
+          props.onSelectionChange(selection as Category)
         }
       }
     }

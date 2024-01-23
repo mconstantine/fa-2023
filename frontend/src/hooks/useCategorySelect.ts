@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { UseCommandOutput, UseLazyQueryOutput } from "./network"
 import {
   Category,
@@ -44,24 +44,32 @@ interface MultipleSelectableUseCategorySelectOutput
 }
 
 export function useCategorySelect(
+  visible: boolean,
   creatable: false,
   multiple: false,
+  initialValue: Category | null,
   categoriesQuery: UseLazyQueryOutput<Category[], FindCategoryParams>,
 ): SingleSelectableUseCategorySelectOutput
 export function useCategorySelect(
+  visible: boolean,
   creatable: true,
   multiple: false,
+  initialValue: Category | null,
   categoriesQuery: UseLazyQueryOutput<Category[], FindCategoryParams>,
   createCategoryCommand: UseCommandOutput<CategoryCreationBody, Category>,
 ): SingleCreatableUseCategorySelectOutput
 export function useCategorySelect(
+  visible: boolean,
   creatable: false,
   multiple: true,
+  initialValue: Category[],
   categoriesQuery: UseLazyQueryOutput<Category[], FindCategoryParams>,
 ): MultipleSelectableUseCategorySelectOutput
 export function useCategorySelect(
+  visible: boolean,
   creatable: true,
   multiple: true,
+  initialValue: Category[],
   categoriesQuery: UseLazyQueryOutput<Category[], FindCategoryParams>,
   createCategoryCommand: UseCommandOutput<CategoryCreationBody, Category>,
   bulkCreateCategoriesCommand: UseCommandOutput<
@@ -70,8 +78,10 @@ export function useCategorySelect(
   >,
 ): MultipleCreatableUseCategorySelectOutput
 export function useCategorySelect(
+  visible: boolean,
   creatable: boolean,
   multiple: boolean,
+  initialValue: Selection,
   categoriesQuery: UseLazyQueryOutput<Category[], FindCategoryParams>,
   createCategoryCommand?: UseCommandOutput<CategoryCreationBody, Category>,
   bulkCreateCategoriesCommand?: UseCommandOutput<
@@ -84,14 +94,7 @@ export function useCategorySelect(
   | MultipleSelectableUseCategorySelectOutput
   | MultipleCreatableUseCategorySelectOutput {
   const [searchQuery, setSearchQuery] = useState("")
-
-  const [selection, setSelection] = useState<Selection>(() => {
-    if (multiple) {
-      return []
-    } else {
-      return null
-    }
-  })
+  const [selection, setSelection] = useState<Selection>(initialValue)
 
   const [categoriesResponse, updateCategories, fetchCategories] =
     categoriesQuery
@@ -135,7 +138,7 @@ export function useCategorySelect(
 
   function onSearchQueryChange(searchQuery: string): void {
     setSearchQuery(searchQuery)
-    debounceFetchCategory({ query: searchQuery })
+    debounceFetchCategory(searchQuery === "" ? {} : { query: searchQuery })
   }
 
   const result = {
@@ -143,6 +146,12 @@ export function useCategorySelect(
     searchQuery,
     onSearchQueryChange,
   }
+
+  useEffect(() => {
+    if (visible && categoriesResponse.isIdle()) {
+      fetchCategories({})
+    }
+  }, [visible, categoriesResponse, fetchCategories])
 
   if (!multiple && !creatable) {
     return {

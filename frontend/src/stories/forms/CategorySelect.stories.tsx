@@ -126,17 +126,17 @@ export const SingleSelectable: Story = {
       selection,
       onSearchQueryChange,
       onSelectionChange,
-    } = useCategorySelect(false, false, query)
+    } = useCategorySelect(true, false, false, null, query)
 
     return (
       <CategorySelect
         creatable={false}
         multiple={false}
-        networkResponse={categories}
+        categories={categories}
         searchQuery={searchQuery}
         onSearchQueryChange={onSearchQueryChange}
         selection={selection}
-        onSubmit={onSelectionChange}
+        onSelectionChange={onSelectionChange}
       />
     )
   },
@@ -153,17 +153,17 @@ export const MultipleSelectable: Story = {
       selection,
       onSearchQueryChange,
       onSelectionChange,
-    } = useCategorySelect(false, true, query)
+    } = useCategorySelect(true, false, true, [], query)
 
     return (
       <CategorySelect
         creatable={false}
         multiple
-        networkResponse={categories}
+        categories={categories}
         searchQuery={searchQuery}
         onSearchQueryChange={onSearchQueryChange}
         selection={selection}
-        onSubmit={onSelectionChange}
+        onSelectionChange={onSelectionChange}
       />
     )
   },
@@ -181,17 +181,17 @@ export const SingleCreatable: Story = {
       selection,
       onSearchQueryChange,
       onSelectionChange,
-    } = useCategorySelect(true, false, query, createCategoryCommand)
+    } = useCategorySelect(true, true, false, null, query, createCategoryCommand)
 
     return (
       <CategorySelect
         creatable
         multiple={false}
-        networkResponse={categories}
+        categories={categories}
         searchQuery={searchQuery}
         onSearchQueryChange={onSearchQueryChange}
         selection={selection}
-        onSubmit={onSelectionChange}
+        onSelectionChange={onSelectionChange}
       />
     )
   },
@@ -213,6 +213,8 @@ export const MultipleCreatable: Story = {
     } = useCategorySelect(
       true,
       true,
+      true,
+      [],
       query,
       createCategoryCommand,
       bulkCreateCategoriesCommand,
@@ -222,11 +224,11 @@ export const MultipleCreatable: Story = {
       <CategorySelect
         creatable
         multiple
-        networkResponse={categories}
+        categories={categories}
         searchQuery={searchQuery}
         onSearchQueryChange={onSearchQueryChange}
         selection={selection}
-        onSubmit={onSelectionChange}
+        onSelectionChange={onSelectionChange}
       />
     )
   },

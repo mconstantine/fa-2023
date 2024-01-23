@@ -1,18 +1,17 @@
 import { Stack, Typography } from "@mui/material"
 import { useForm } from "../../hooks/useForm"
 import Form from "../forms/Form"
-import { NetworkResponse, networkResponse } from "../../network/NetworkResponse"
+import { NetworkResponse } from "../../network/NetworkResponse"
 import CategorySelect from "../forms/inputs/CategorySelect"
 import NumberInput from "../forms/inputs/NumberInput"
-import { useEffect, useState } from "react"
 import {
   Category,
   CategoryCreationBody,
   FindCategoryParams,
-  isCategory,
 } from "../categories/domain"
 import { useCommand, useLazyQuery } from "../../hooks/network"
 import { PredictionCreationBody } from "./domain"
+import { useCategorySelect } from "../../hooks/useCategorySelect"
 
 interface Props {
   year: number
@@ -20,101 +19,81 @@ interface Props {
   excludedCategoriesIds: Array<string | null>
   networkResponse: NetworkResponse<unknown>
   onSubmit(prediction: PredictionCreationBody): void
+  onCancel(): void
 }
 
 interface FormData extends Record<string, unknown> {
   year: number
-  category: Category
   value: number
 }
 
 export default function PredictionCreationForm(props: Props) {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [category, setCategory] = useState<Category | null>(null)
+  const categoriesQuery = useLazyQuery<Category[], FindCategoryParams>(
+    "/categories",
+  )
 
-  const [categoriesResponse, updateCategories, fetchCategories] = useLazyQuery<
-    Category[],
-    FindCategoryParams
-  >("/categories")
+  const createCategoryCommand = useCommand<CategoryCreationBody, Category>(
+    "POST",
+    "/categories",
+  )
 
-  const [createCategoryResponse, createCategory] = useCommand<
-    CategoryCreationBody,
-    Category
-  >("POST", "/categories")
+  const {
+    categories,
+    searchQuery,
+    onSearchQueryChange,
+    selection,
+    onSelectionChange,
+  } = useCategorySelect(
+    props.isVisible,
+    true,
+    false,
+    null,
+    categoriesQuery,
+    createCategoryCommand,
+  )
 
   const { inputProps, submit, isValid } = useForm<FormData>(
     {
       year: props.year,
-      category: null,
       value: 0,
     },
-    (data) => props.onSubmit({ ...data, categoryId: data.category.id }),
+    (data) => {
+      if (selection !== null) {
+        props.onSubmit({ ...data, categoryId: selection.id })
+      }
+    },
   )
 
-  const categorySelectionResponse = createCategoryResponse
-    .match<NetworkResponse<Category[]>>({
-      whenIdle: () => categoriesResponse,
-      whenSuccessful: () => categoriesResponse,
-      whenFailed: (response) =>
-        networkResponse.fromFailure<Category[]>(
-          response.status,
-          response.message,
-        ),
-      whenLoading: () => networkResponse.make<Category[]>().load(),
-    })
-    .map((categories) =>
-      categories.filter(
-        (category) =>
-          !props.excludedCategoriesIds.includes(category.id) &&
-          !category.isMeta,
-      ),
-    )
+  const availableCategories = categories.map((categories) =>
+    categories.filter(
+      (category) =>
+        !props.excludedCategoriesIds.includes(category.id) && !category.isMeta,
+    ),
+  )
 
-  function onCategorySearchQueryChange(query: string): void {
-    setSearchQuery(query)
-    fetchCategories(query === "" ? {} : { query })
+  function onSelectionChangeUpdateForm(selection: Category): void {
+    onSelectionChange(selection)
+    inputProps("category", null).onChange(selection)
   }
-
-  async function onCategorySelectionChange(
-    selection: Category | CategoryCreationBody,
-  ) {
-    if (isCategory(selection)) {
-      setCategory(selection)
-      inputProps("category", null).onChange(selection)
-    } else {
-      createCategory(selection).then((category) => {
-        if (category !== null) {
-          setCategory(category)
-          inputProps("category", null).onChange(category)
-          updateCategories((categories) => [category, ...categories])
-        }
-      })
-    }
-  }
-
-  useEffect(() => {
-    if (props.isVisible && categoriesResponse.isIdle()) {
-      fetchCategories({})
-    }
-  }, [props.isVisible, categoriesResponse, fetchCategories])
 
   return (
     <Stack spacing={3}>
       <Typography variant="h5">Create prediction</Typography>
       <Form
         onSubmit={submit}
-        isValid={isValid}
+        isValid={() => isValid() && selection !== null}
         networkResponse={props.networkResponse}
         submitButtonLabel="Save"
+        cancelAction={props.onCancel}
       >
         <CategorySelect
           multiple={false}
           creatable
-          networkResponse={categorySelectionResponse}
+          categories={availableCategories}
           searchQuery={searchQuery}
-          onSearchQueryChange={onCategorySearchQueryChange}
-          selection={category}
-          onSubmit={onCategorySelectionChange}
+          onSearchQueryChange={onSearchQueryChange}
+          selection={selection}
+          onSelectionChange={onSelectionChangeUpdateForm}
         />
 
         <NumberInput

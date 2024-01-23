@@ -1,5 +1,6 @@
 import {
   Body,
+  Delete,
   Get,
   HttpError,
   JsonController,
@@ -27,6 +28,20 @@ import {
   ValidateIf,
 } from "class-validator"
 import { AppDataSource } from "../AppDataSource"
+
+class TransactionCreationBody {
+  @IsNotEmpty()
+  public description!: string
+
+  @IsNumber()
+  public value!: number
+
+  @IsDateString()
+  public date!: Date
+
+  @IsUUID(4, { each: true })
+  public categoryIds!: string[]
+}
 
 interface ImportResponse {
   errors: string[]
@@ -102,6 +117,11 @@ export enum CategoryUpdateMode {
   ADD = "add",
 }
 
+class TransactionUpdateBody extends TransactionCreationBody {
+  @IsUUID()
+  public id!: string
+}
+
 class BulkUpdateTransactionsBody {
   @IsUUID("4", { each: true })
   public ids!: string[]
@@ -132,6 +152,16 @@ interface CategoriesAggregation {
 
 @JsonController("/transactions")
 export class TransactionController {
+  @Post()
+  public async create(
+    @Body() body: TransactionCreationBody,
+  ): Promise<Transaction> {
+    return await Transaction.create({
+      ...body,
+      categories: body.categoryIds.map((id) => ({ id })),
+    }).save()
+  }
+
   @Get("/")
   public async find(
     @QueryParams() params: FindQueryParams,
@@ -306,6 +336,26 @@ export class TransactionController {
   }
 
   @Patch()
+  public async update(
+    @Body() body: TransactionUpdateBody,
+  ): Promise<Transaction> {
+    const transaction = await Transaction.findOneByOrFail({ id: body.id })
+
+    return await Transaction.merge(transaction, {
+      ...body,
+      categories: body.categoryIds.map((id) => ({ id })),
+    }).save()
+  }
+
+  @Delete()
+  public async delete(
+    @Body() body: TransactionUpdateBody,
+  ): Promise<Transaction> {
+    const transaction = await Transaction.findOneByOrFail({ id: body.id })
+    return await transaction.remove()
+  }
+
+  @Patch("/bulk")
   public async bulkUpdate(
     @Body() body: BulkUpdateTransactionsBody,
   ): Promise<Transaction[]> {

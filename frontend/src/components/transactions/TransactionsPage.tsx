@@ -1,4 +1,12 @@
-import { Button, Container, Paper, Stack, Typography } from "@mui/material"
+import {
+  Button,
+  Container,
+  Dialog,
+  DialogContent,
+  Paper,
+  Stack,
+  Typography,
+} from "@mui/material"
 import { useState } from "react"
 import ImportTransactionsDialog from "./ImportTransactionsDialog"
 import { useCommand, useQuery } from "../../hooks/network"
@@ -10,10 +18,17 @@ import {
   FindTransactionsBy,
   FindTransactionsParams,
   Transaction,
+  TransactionCreationBody,
 } from "./domain"
 import TransactionsTable, { SelectableTransaction } from "./TransactionsTable"
 import TransactionFilters from "./filters/TransactionFilters"
 import { BulkUpdateTransactionsData } from "./bulkUpdate/BulkUpdateTransactionsDialog"
+import TransactionForm from "./TransactionForm"
+
+interface TransactionFormState {
+  open: boolean
+  subject: Transaction | null
+}
 
 function transactionsQueryTransformer(
   response: PaginatedResponse<Transaction>,
@@ -30,7 +45,12 @@ function transactionsQueryTransformer(
 }
 
 export default function TransactionsPage() {
-  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false)
+  const [importDialogIsOpen, setImportDialogOpen] = useState(false)
+
+  const [formState, setFormState] = useState<TransactionFormState>({
+    open: false,
+    subject: null,
+  })
 
   const [params, setParams] = useState<FindTransactionsParams>({
     findBy: FindTransactionsBy.DESCRIPTION,
@@ -53,7 +73,7 @@ export default function TransactionsPage() {
   const [bulkUpdateNetworkResponse, bulkUpdate] = useCommand<
     BulkUpdateTransactionsBody,
     Transaction[]
-  >("PATCH", "/transactions/")
+  >("PATCH", "/transactions/bulk/")
 
   const selectedCount = paginatedTransactions
     .map(([transactions]) =>
@@ -68,7 +88,7 @@ export default function TransactionsPage() {
     .getOrElse(0)
 
   function onImportSubmit(): void {
-    setIsImportDialogOpen(false)
+    setImportDialogOpen(false)
     fetchTransactions()
   }
 
@@ -125,6 +145,18 @@ export default function TransactionsPage() {
     }
   }
 
+  function onEditTransactionButtonClick(transaction: Transaction): void {
+    setFormState({ open: true, subject: transaction })
+  }
+
+  function onDeleteTransactionButtonClick(transaction: Transaction): void {
+    console.log("TODO: delete transaction", { transaction })
+  }
+
+  function onTransactionFormSubmit(data: TransactionCreationBody): void {
+    console.log("TODO: submit form", { data })
+  }
+
   return (
     <Container>
       <Stack spacing={1.5} sx={{ mt: 1.5 }}>
@@ -138,9 +170,14 @@ export default function TransactionsPage() {
           }}
         >
           <Typography variant="h5">Transactions</Typography>
-          <Button onClick={() => setIsImportDialogOpen(true)}>
-            Import transactions
-          </Button>
+          <Stack direction="row" spacing={0.5}>
+            <Button onClick={() => setFormState({ open: true, subject: null })}>
+              Add transaction
+            </Button>
+            <Button onClick={() => setImportDialogOpen(true)}>
+              Import transactions
+            </Button>
+          </Stack>
         </Paper>
         <TransactionFilters
           findTransactionsNetworkResponse={paginatedTransactions}
@@ -159,15 +196,34 @@ export default function TransactionsPage() {
               onTransactionsSelectionChange={onTransactionsSelectionChange}
               params={params}
               onParamsChange={onPaginationParamsChange}
+              onEditTransactionButtonClick={onEditTransactionButtonClick}
+              onDeleteTransactionButtonClick={onDeleteTransactionButtonClick}
             />
           )}
         />
       </Stack>
       <ImportTransactionsDialog
-        isOpen={isImportDialogOpen}
-        onClose={() => setIsImportDialogOpen(false)}
+        isOpen={importDialogIsOpen}
+        onClose={() => setImportDialogOpen(false)}
         onSubmit={onImportSubmit}
       />
+      <Dialog
+        open={formState.open}
+        onClose={() => setFormState((state) => ({ ...state, open: false }))}
+      >
+        <DialogContent>
+          <TransactionForm
+            isVisible={formState.open}
+            transaction={formState.subject}
+            // TODO:
+            isLoading={false}
+            onSubmit={onTransactionFormSubmit}
+            onCancel={() =>
+              setFormState((state) => ({ ...state, open: false }))
+            }
+          />
+        </DialogContent>
+      </Dialog>
     </Container>
   )
 }

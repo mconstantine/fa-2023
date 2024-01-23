@@ -5,26 +5,22 @@ import {
   TextField,
   Typography,
 } from "@mui/material"
-import {
-  NetworkResponse,
-  networkResponse,
-} from "../../../network/NetworkResponse"
+import { NetworkResponse } from "../../../network/NetworkResponse"
 import { Transaction } from "../domain"
 import { useForm } from "../../../hooks/useForm"
 import {
   Category,
   CategoryBulkCreationBody,
+  CategoryCreationBody,
   FindCategoryParams,
 } from "../../categories/domain"
 import { CategoryUpdateMode } from "./CategoryUpdateMode"
-import { ChangeEventHandler, useEffect, useState } from "react"
-import { useDebounce } from "../../../hooks/useDebounce"
+import { ChangeEventHandler } from "react"
 import { useCommand, useLazyQuery } from "../../../hooks/network"
-import CategorySelect, {
-  CategorySelection,
-} from "../../forms/inputs/CategorySelect"
+import CategorySelect from "../../forms/inputs/CategorySelect"
 import Form from "../../forms/Form"
 import ValidatedSelect from "../../forms/inputs/ValidatedSelect"
+import { useCategorySelect } from "../../../hooks/useCategorySelect"
 
 interface Props {
   isOpen: boolean
@@ -41,103 +37,71 @@ export interface BulkUpdateTransactionsData {
 
 interface BulkUpdateTransactionFormData extends Record<string, unknown> {
   description: string
-  categorySelection: Category[]
   categoryUpdateMode: CategoryUpdateMode
 }
 
 export default function BulkUpdateTransactionsDialog(props: Props) {
-  const [searchQuery, setSearchQuery] = useState("")
+  const categoriesQuery = useLazyQuery<Category[], FindCategoryParams>(
+    "/categories",
+  )
 
-  const [categoriesListResponse, updateCategoriesList, fetchCategories] =
-    useLazyQuery<Category[], FindCategoryParams>("/categories")
+  const createCategoryCommand = useCommand<CategoryCreationBody, Category>(
+    "POST",
+    "/categories",
+  )
 
-  const debounceFetchCategories = useDebounce(function (query: string) {
-    fetchCategories(query === "" ? {} : { query })
-  }, 500)
-
-  const [createCategoriesResponse, createCategories] = useCommand<
+  const bulkCreateCategoriesCommand = useCommand<
     CategoryBulkCreationBody,
     Category[]
   >("POST", "/categories/bulk")
 
-  const { inputProps, submit } = useForm<BulkUpdateTransactionFormData>(
-    {
-      description: "",
-      categorySelection: [],
-      categoryUpdateMode: CategoryUpdateMode.REPLACE,
-    },
-    (data) => {
-      if (data.description !== "" || data.categorySelection.length > 0) {
-        onBulkUpdateSubmit({
-          ...(data.description !== ""
-            ? {
-                description: data.description,
-              }
-            : {}),
-          ...(data.categorySelection.length > 0
-            ? {
-                categoryIds: data.categorySelection.map(
-                  (category) => category.id,
-                ),
-              }
-            : {}),
-          categoryUpdateMode: data.categoryUpdateMode,
-        })
-      } else {
-        props.onOpenChange(false)
-      }
-    },
+  const {
+    categories,
+    searchQuery,
+    onSearchQueryChange,
+    selection,
+    onSelectionChange,
+  } = useCategorySelect(
+    props.isOpen,
+    true,
+    true,
+    [],
+    categoriesQuery,
+    createCategoryCommand,
+    bulkCreateCategoriesCommand,
   )
 
-  const categorySelectionResponse: NetworkResponse<Category[]> =
-    categoriesListResponse
-      .flatMap((categories) =>
-        createCategoriesResponse.match({
-          whenIdle: () => networkResponse.fromSuccess(categories),
-          whenLoading: () => createCategoriesResponse,
-          whenFailed: () => createCategoriesResponse,
-          whenSuccessful: () => networkResponse.fromSuccess(categories),
-        }),
-      )
-      .flatMap((categories) =>
-        props.updateTransactionsNetworkResponse.match<
-          NetworkResponse<Category[]>
-        >({
-          whenIdle: () => networkResponse.fromSuccess(categories),
-          whenLoading: () => networkResponse.make<Category[]>().load(),
-          whenFailed: (response) =>
-            networkResponse.fromFailure<Category[]>(
-              response.status,
-              response.message,
-            ),
-          whenSuccessful: () => networkResponse.fromSuccess(categories),
-        }),
-      )
+  const { inputProps, submit, isValid } =
+    useForm<BulkUpdateTransactionFormData>(
+      {
+        description: "",
+        categoryUpdateMode: CategoryUpdateMode.REPLACE,
+      },
+      (data) => {
+        console.log(selection)
+
+        if (data.description !== "" || selection.length > 0) {
+          onBulkUpdateSubmit({
+            ...(data.description !== ""
+              ? {
+                  description: data.description,
+                }
+              : {}),
+            ...(selection.length > 0
+              ? {
+                  categoryIds: selection.map((category) => category.id),
+                }
+              : {}),
+            categoryUpdateMode: data.categoryUpdateMode,
+          })
+        } else {
+          props.onOpenChange(false)
+        }
+      },
+    )
 
   const onDescriptionChange: ChangeEventHandler<HTMLInputElement> = (event) => {
     inputProps("description", "").onChange(event.currentTarget.value)
-  }
-
-  function onSearchQueryChange(query: string): void {
-    setSearchQuery(query)
-    debounceFetchCategories(query)
-  }
-
-  function onCategorySelectionChange(selection: CategorySelection): void {
-    if (selection.additions.length > 0) {
-      createCategories({ categories: selection.additions }).then((response) => {
-        if (response !== null) {
-          updateCategoriesList((list) => [...list, ...response])
-
-          inputProps("categorySelection", []).onChange([
-            ...selection.categories,
-            ...response,
-          ])
-        }
-      })
-    } else {
-      inputProps("categorySelection", []).onChange(selection.categories)
-    }
   }
 
   function onBulkUpdateSubmit(data: BulkUpdateTransactionsData): void {
@@ -148,12 +112,6 @@ export default function BulkUpdateTransactionsDialog(props: Props) {
     })
   }
 
-  useEffect(() => {
-    if (props.isOpen && categoriesListResponse.isIdle()) {
-      fetchCategories({})
-    }
-  }, [props.isOpen, categoriesListResponse, fetchCategories])
-
   return (
     <Dialog open={props.isOpen} onClose={() => props.onOpenChange(false)}>
       <DialogContent>
@@ -161,10 +119,10 @@ export default function BulkUpdateTransactionsDialog(props: Props) {
           <Typography variant="h5">Update transactions</Typography>
           <Form
             onSubmit={submit}
-            networkResponse={categorySelectionResponse}
+            networkResponse={categories}
             submitButtonLabel="Save"
             cancelAction={() => props.onOpenChange(false)}
-            isValid={() => true}
+            isValid={isValid}
           >
             <TextField
               label="Description"
@@ -174,11 +132,11 @@ export default function BulkUpdateTransactionsDialog(props: Props) {
             <CategorySelect
               creatable
               multiple
-              networkResponse={categorySelectionResponse}
+              categories={categories}
               searchQuery={searchQuery}
               onSearchQueryChange={onSearchQueryChange}
-              selection={inputProps("categorySelection", []).value}
-              onSubmit={onCategorySelectionChange}
+              selection={selection}
+              onSelectionChange={onSelectionChange}
             />
             <ValidatedSelect
               label="Categories update mode"

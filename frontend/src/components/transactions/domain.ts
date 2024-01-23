@@ -61,3 +61,10 @@ export interface BulkUpdateTransactionsBody {
   categoryIds?: string[] | undefined
   categoryUpdateMode: CategoryUpdateMode
 }
+
+export interface TransactionCreationBody {
+  description: string
+  value: number
+  date: string
+  categoryIds: string[]
+}

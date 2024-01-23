@@ -346,11 +346,11 @@ function CategorySelectForm(props: SpecificCategoriesFiltersFormProps) {
     <CategorySelect
       creatable={false}
       multiple
-      networkResponse={props.networkResponse}
+      categories={props.networkResponse}
       searchQuery={props.searchQuery}
       onSearchQueryChange={props.onSearchQueryChange}
       selection={props.categories}
-      onSubmit={props.onSelectionChange}
+      onSelectionChange={props.onSelectionChange}
     />
   )
 }

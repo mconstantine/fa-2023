@@ -264,6 +264,7 @@ export default function PredictionsPage() {
             isVisible={creationDialogIsOpen}
             networkResponse={createPredictionResponse}
             onSubmit={onPredictionCreate}
+            onCancel={() => setCreationDialogOpen(false)}
             excludedCategoriesIds={predictionsList
               .map((predictions) =>
                 predictions.map((prediction) => prediction.categoryId),

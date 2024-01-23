@@ -52,7 +52,7 @@ async function sendNetworkRequest<O>(
   }
 }
 
-type UseLazyQueryOutput<O, I> = [
+export type UseLazyQueryOutput<O, I> = [
   response: NetworkResponse<O>,
   optimisticlyUpdate: (update: O | ((oldValue: O) => O)) => void,
   refresh: (query: I) => void,
@@ -129,7 +129,7 @@ export function useLazyQuery<O, I extends Record<string, Param>, T = O>(
   ]
 }
 
-type UseQueryOutput<O> = [
+export type UseQueryOutput<O> = [
   response: NetworkResponse<O>,
   optimisticlyUpdate: (update: O | ((oldValue: O) => O)) => void,
   refresh: () => void,
@@ -166,7 +166,7 @@ export function useQuery<I extends Record<string, Param>, O, T = O>(
   ]
 }
 
-type UseCommandOutput<I, O> = [
+export type UseCommandOutput<I, O> = [
   response: NetworkResponse<O>,
   sendRequest: (data: I) => Promise<O | null>,
 ]

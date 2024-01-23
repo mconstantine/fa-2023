@@ -100,86 +100,88 @@ export default function CategoriesList(props: Props) {
   }
 
   return (
-    <Container>
-      <Stack spacing={1.5} sx={{ mt: 1.5 }}>
-        <Paper
-          sx={{
-            mt: 1.5,
-            p: 1.5,
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Typography variant="h5">Categories</Typography>
-          <Button onClick={onAddCategoryButtonClick}>Add category</Button>
-        </Paper>
-        <Query
-          response={props.readingResponse}
-          render={(categories) => (
-            <Stack spacing={1.5}>
-              {categories.map((category) => {
-                const card = (
-                  <CategoryCard
-                    key={category.id}
-                    category={category}
-                    onEditButtonClick={() =>
-                      onCategoryEditButtonClick(category)
-                    }
-                    onDeleteButtonClick={() =>
-                      onCategoryDeleteButtonClick(category)
-                    }
-                  />
-                )
-
-                if (
-                  deletingCategory !== null &&
-                  deletingCategory.id === category.id
-                ) {
-                  return (
-                    <Query
+    <>
+      <Container>
+        <Stack spacing={1.5} sx={{ mt: 1.5 }}>
+          <Paper
+            sx={{
+              mt: 1.5,
+              p: 1.5,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Typography variant="h5">Categories</Typography>
+            <Button onClick={onAddCategoryButtonClick}>Add category</Button>
+          </Paper>
+          <Query
+            response={props.readingResponse}
+            render={(categories) => (
+              <Stack spacing={1.5}>
+                {categories.map((category) => {
+                  const card = (
+                    <CategoryCard
                       key={category.id}
-                      response={props.deletionResponse}
-                      render={() => card}
+                      category={category}
+                      onEditButtonClick={() =>
+                        onCategoryEditButtonClick(category)
+                      }
+                      onDeleteButtonClick={() =>
+                        onCategoryDeleteButtonClick(category)
+                      }
                     />
                   )
-                } else {
-                  return card
-                }
-              })}
-            </Stack>
-          )}
-        />
-      </Stack>
-      <Backdrop open={isBackdropOpen}>
-        <Paper sx={{ pt: 3, pb: 3, pl: 1.5, pr: 1.5 }}>
-          <CategoryForm
-            key={mode.type}
-            category={(() => {
-              switch (mode.type) {
-                case "reading":
-                case "creating":
-                  return null
-                case "updating":
-                  return mode.category
-              }
-            })()}
-            onSubmit={onSubmit}
-            networkResponse={(() => {
-              switch (mode.type) {
-                case "creating":
-                  return props.creationResponse
-                case "updating":
-                  return props.updateResponse
-                case "reading":
-                  return networkResponse.make()
-              }
-            })()}
-            cancelAction={cancel}
+
+                  if (
+                    deletingCategory !== null &&
+                    deletingCategory.id === category.id
+                  ) {
+                    return (
+                      <Query
+                        key={category.id}
+                        response={props.deletionResponse}
+                        render={() => card}
+                      />
+                    )
+                  } else {
+                    return card
+                  }
+                })}
+              </Stack>
+            )}
           />
-        </Paper>
-      </Backdrop>
+        </Stack>
+        <Backdrop open={isBackdropOpen}>
+          <Paper sx={{ pt: 3, pb: 3, pl: 1.5, pr: 1.5 }}>
+            <CategoryForm
+              key={mode.type}
+              category={(() => {
+                switch (mode.type) {
+                  case "reading":
+                  case "creating":
+                    return null
+                  case "updating":
+                    return mode.category
+                }
+              })()}
+              onSubmit={onSubmit}
+              networkResponse={(() => {
+                switch (mode.type) {
+                  case "creating":
+                    return props.creationResponse
+                  case "updating":
+                    return props.updateResponse
+                  case "reading":
+                    return networkResponse.make()
+                }
+              })()}
+              cancelAction={cancel}
+            />
+          </Paper>
+        </Backdrop>
+      </Container>
       {deleteConfirmationDialog}
-    </Container>
+    </>
   )
 }
