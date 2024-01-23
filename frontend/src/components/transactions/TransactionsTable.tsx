@@ -115,7 +115,7 @@ export default function TransactionsTable(props: Props) {
   return (
     <>
       <Paper>
-        <TableContainer sx={{ maxHeight: 568 }}>
+        <TableContainer sx={{ maxHeight: 535 }}>
           <Table stickyHeader>
             <TableHead>
               <TableRow>
