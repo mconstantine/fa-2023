@@ -19,6 +19,7 @@ import {
   FindTransactionsParams,
   Transaction,
   TransactionCreationBody,
+  TransactionUpdateBody,
 } from "./domain"
 import TransactionsTable, { SelectableTransaction } from "./TransactionsTable"
 import TransactionFilters from "./filters/TransactionFilters"
@@ -74,6 +75,21 @@ export default function TransactionsPage() {
     BulkUpdateTransactionsBody,
     Transaction[]
   >("PATCH", "/transactions/bulk/")
+
+  const [createTransactionResponse, createTransaction] = useCommand<
+    TransactionCreationBody,
+    Transaction
+  >("POST", "/transactions/")
+
+  const [updateTransactionResponse, updateTransaction] = useCommand<
+    TransactionUpdateBody,
+    Transaction
+  >("PATCH", "/transactions/")
+
+  const [, deleteTransaction] = useCommand<TransactionUpdateBody, Transaction>(
+    "DELETE",
+    "/transactions/",
+  )
 
   const selectedCount = paginatedTransactions
     .map(([transactions]) =>
@@ -149,12 +165,61 @@ export default function TransactionsPage() {
     setFormState({ open: true, subject: transaction })
   }
 
-  function onDeleteTransactionButtonClick(transaction: Transaction): void {
-    console.log("TODO: delete transaction", { transaction })
+  async function onDeleteTransactionButtonClick(
+    deleted: Transaction,
+  ): Promise<void> {
+    const result = await deleteTransaction({
+      ...deleted,
+      categoryIds: deleted.categories.map((category) => category.id),
+    })
+
+    if (result !== null) {
+      updateTransactions(([transactions, count]) => [
+        transactions.filter((transaction) => transaction.id !== deleted.id),
+        count,
+      ])
+    }
   }
 
-  function onTransactionFormSubmit(data: TransactionCreationBody): void {
-    console.log("TODO: submit form", { data })
+  async function onTransactionFormSubmit(
+    data: TransactionCreationBody,
+  ): Promise<void> {
+    if (formState.subject === null) {
+      const result = await createTransaction(data)
+
+      if (result !== null) {
+        updateTransactions(([transactions, count]) => [
+          [
+            {
+              ...result,
+              isSelected: false,
+            },
+            ...transactions,
+          ],
+          count,
+        ])
+      }
+    } else {
+      const result = await updateTransaction({
+        ...data,
+        id: formState.subject.id,
+      })
+
+      if (result !== null) {
+        updateTransactions(([transactions, count]) => [
+          transactions.map((transaction) => {
+            if (transaction.id === result.id) {
+              return { ...result, isSelected: false }
+            } else {
+              return transaction
+            }
+          }),
+          count,
+        ])
+      }
+    }
+
+    setFormState((formState) => ({ ...formState, open: false }))
   }
 
   return (
@@ -215,8 +280,11 @@ export default function TransactionsPage() {
           <TransactionForm
             isVisible={formState.open}
             transaction={formState.subject}
-            // TODO:
-            isLoading={false}
+            networkResponse={
+              formState.subject === null
+                ? createTransactionResponse
+                : updateTransactionResponse
+            }
             onSubmit={onTransactionFormSubmit}
             onCancel={() =>
               setFormState((state) => ({ ...state, open: false }))

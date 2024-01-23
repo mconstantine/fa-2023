@@ -68,3 +68,7 @@ export interface TransactionCreationBody {
   date: string
   categoryIds: string[]
 }
+
+export interface TransactionUpdateBody extends TransactionCreationBody {
+  id: string
+}

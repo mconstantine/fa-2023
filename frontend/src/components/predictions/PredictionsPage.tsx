@@ -63,7 +63,7 @@ export default function PredictionsPage() {
 
   const [deletePredictionResponse, deletePrediction] = useCommand<
     Prediction,
-    Prediction
+    Omit<Prediction, "id">
   >("DELETE", "/predictions/")
 
   const [years, labels]: [Record<string, string>, Record<string, string>] =
@@ -192,14 +192,12 @@ export default function PredictionsPage() {
     ])
   }
 
-  async function onPredictionDelete(prediction: Prediction): Promise<void> {
-    const result = await deletePrediction(prediction)
+  async function onPredictionDelete(deleted: Prediction): Promise<void> {
+    const result = await deletePrediction(deleted)
 
     if (result !== null) {
       updatePredictionsList((predictions) =>
-        predictions.filter(
-          (prediction) => prediction.categoryId !== result.categoryId,
-        ),
+        predictions.filter((prediction) => prediction.id !== deleted.id),
       )
     }
   }

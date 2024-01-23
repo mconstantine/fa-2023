@@ -33,7 +33,7 @@ interface Props {
   readingResponse: NetworkResponse<Category[]>
   creationResponse: NetworkResponse<Category>
   updateResponse: NetworkResponse<Category>
-  deletionResponse: NetworkResponse<Category>
+  deletionResponse: NetworkResponse<Omit<Category, "id">>
   onCategoryCreate(category: Category): Promise<boolean>
   onCategoryUpdate(category: Category): Promise<boolean>
   onCategoryDelete(category: Category): Promise<boolean>

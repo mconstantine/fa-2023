@@ -1,6 +1,6 @@
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers"
 import { useForm } from "../../hooks/useForm"
-import { networkResponse } from "../../network/NetworkResponse"
+import { NetworkResponse } from "../../network/NetworkResponse"
 import {
   Category,
   CategoryBulkCreationBody,
@@ -20,8 +20,8 @@ import CategorySelect from "../forms/inputs/CategorySelect"
 
 interface Props {
   isVisible: boolean
-  isLoading: boolean
   transaction: Transaction | null
+  networkResponse: NetworkResponse<Transaction>
   onSubmit(data: TransactionCreationBody): void
   onCancel(): void
 }
@@ -95,8 +95,7 @@ export default function TransactionForm(props: Props) {
       <Typography variant="h6">{title}</Typography>
 
       <Form
-        // TODO:
-        networkResponse={networkResponse.make()}
+        networkResponse={props.networkResponse}
         onSubmit={submit}
         isValid={isValid}
         cancelAction={props.onCancel}

@@ -16,10 +16,10 @@ export default function CategoriesPage() {
     "/categories/",
   )
 
-  const [deletionResponse, deleteCategory] = useCommand<Category, Category>(
-    "DELETE",
-    "/categories/",
-  )
+  const [deletionResponse, deleteCategory] = useCommand<
+    Category,
+    Omit<Category, "id">
+  >("DELETE", "/categories/")
 
   async function onCategoryCreate(category: Category): Promise<boolean> {
     const response = await createCategory(category)
