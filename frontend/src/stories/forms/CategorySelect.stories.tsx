@@ -1,16 +1,15 @@
 import { Meta, StoryObj } from "@storybook/react"
-import CategorySelect, {
-  CategorySelection,
-} from "../../components/forms/inputs/CategorySelect"
+import CategorySelect from "../../components/forms/inputs/CategorySelect"
 import {
   Category,
+  CategoryBulkCreationBody,
   CategoryCreationBody,
-  isCategory,
+  FindCategoryParams,
 } from "../../components/categories/domain"
 import { v4 } from "uuid"
 import { useMockNetworkResponse } from "../useMockNetworkResponse"
-import { useState } from "react"
-import { useDebounce } from "../../hooks/useDebounce"
+import { UseCommandOutput, UseLazyQueryOutput } from "../../hooks/network"
+import { useCategorySelect } from "../../hooks/useCategorySelect"
 
 const meta: Meta<typeof CategorySelect> = {
   title: "Forms/CategorySelect",
@@ -53,121 +52,182 @@ let categories: Category[] = [
   },
 ]
 
-export const Default: Story = {
-  args: {},
-  render: function CategorySelectStory(props) {
-    const [query, setQuery] = useState("")
+function useMockLazyCategoriesQuery(): UseLazyQueryOutput<
+  Category[],
+  FindCategoryParams
+> {
+  const [response, trigger, , update] =
+    useMockNetworkResponse<Category[]>(categories)
 
-    const [selection, setSelection] = useState<Category[]>([])
-
-    const [categoriesResponse, fetchCategories] =
-      useMockNetworkResponse<Category[]>(categories)
-
-    const debounceFetchCategories = useDebounce(fetchCategories, 500)
-
-    function onQueryChange(query: string): void {
-      setQuery(query)
-
-      debounceFetchCategories(
-        categories.filter((category) =>
-          category.name.toLowerCase().includes(query.toLowerCase()),
-        ),
-      )
-    }
-
-    function onSelectionChange(selection: Category[]): void {
-      setSelection(selection)
-      fetchCategories(selection)
-    }
-
-    function onSubmitSingleCreatable(
-      selection: Category | CategoryCreationBody,
-    ): void {
-      if (isCategory(selection)) {
-        onSelectionChange([selection])
-      } else {
-        const newCategory: Category = {
-          ...selection,
-          id: v4(),
-        }
-
-        categories = [...categories, newCategory]
-        categories.sort((a, b) => a.name.localeCompare(b.name))
-
-        onSelectionChange([newCategory])
+  return [
+    response,
+    update,
+    (params) => {
+      if (typeof params.query !== "undefined") {
+        trigger(
+          categories.filter((category) =>
+            category.name.toLowerCase().includes(params.query!.toLowerCase()),
+          ),
+        )
       }
-    }
+    },
+  ]
+}
 
-    function onSubmitMultipleCreatable(selection: CategorySelection): void {
-      const newCategories: Category[] = selection.additions.map((data) => ({
-        ...data,
+function useMockCreateCategoryCommand(): UseCommandOutput<
+  CategoryCreationBody,
+  Category
+> {
+  const [response, trigger] = useMockNetworkResponse<Category>()
+
+  return [
+    response,
+    (body) => {
+      const category = { ...body, id: v4() }
+
+      categories = [category, ...categories]
+      categories.sort((a, b) => a.name.localeCompare(b.name))
+
+      return trigger(category)
+    },
+  ]
+}
+
+function useMockBulkCreateCategoriesCommand(): UseCommandOutput<
+  CategoryBulkCreationBody,
+  Category[]
+> {
+  const [response, trigger] = useMockNetworkResponse<Category[]>()
+
+  return [
+    response,
+    (body) => {
+      const newCategories = body.categories.map((category) => ({
+        ...category,
         id: v4(),
       }))
 
-      categories = [...categories, ...newCategories]
+      categories = [...newCategories, ...categories]
       categories.sort((a, b) => a.name.localeCompare(b.name))
 
-      onSelectionChange([...selection.categories, ...newCategories])
-    }
+      return trigger(newCategories)
+    },
+  ]
+}
 
-    function onSubmitSingleSelectable(selection: Category): void {
-      onSelectionChange([selection])
-    }
+export const SingleSelectable: Story = {
+  args: {},
+  render: function CategorySelectStory() {
+    const query = useMockLazyCategoriesQuery()
 
-    function onSubmitMultipleSelectable(selection: Category[]): void {
-      onSelectionChange(selection)
-    }
+    const {
+      searchQuery,
+      categories,
+      selection,
+      onSearchQueryChange,
+      onSelectionChange,
+    } = useCategorySelect(false, false, query)
 
-    const commonProps = {
-      networkResponse: categoriesResponse,
-      searchQuery: query,
-      onSearchQueryChange: onQueryChange,
-    }
+    return (
+      <CategorySelect
+        creatable={false}
+        multiple={false}
+        networkResponse={categories}
+        searchQuery={searchQuery}
+        onSearchQueryChange={onSearchQueryChange}
+        selection={selection}
+        onSubmit={onSelectionChange}
+      />
+    )
+  },
+}
 
-    if (props.creatable) {
-      if (props.multiple) {
-        return (
-          <CategorySelect
-            {...commonProps}
-            creatable
-            multiple
-            selection={selection as Category[]}
-            onSubmit={onSubmitMultipleCreatable}
-          />
-        )
-      } else {
-        return (
-          <CategorySelect
-            {...commonProps}
-            creatable
-            multiple={false}
-            selection={selection[0] ?? (null as Category | null)}
-            onSubmit={onSubmitSingleCreatable}
-          />
-        )
-      }
-    } else {
-      if (props.multiple) {
-        return (
-          <CategorySelect
-            {...commonProps}
-            creatable={false}
-            multiple
-            selection={selection as Category[]}
-            onSubmit={onSubmitMultipleSelectable}
-          />
-        )
-      } else {
-        return (
-          <CategorySelect
-            {...commonProps}
-            creatable={false}
-            multiple={false}
-            selection={selection[0] ?? (null as Category | null)}
-            onSubmit={onSubmitSingleSelectable}
-          />
-        )
-      }
-    }
+export const MultipleSelectable: Story = {
+  args: {},
+  render: function CategorySelectStory() {
+    const query = useMockLazyCategoriesQuery()
+
+    const {
+      searchQuery,
+      categories,
+      selection,
+      onSearchQueryChange,
+      onSelectionChange,
+    } = useCategorySelect(false, true, query)
+
+    return (
+      <CategorySelect
+        creatable={false}
+        multiple
+        networkResponse={categories}
+        searchQuery={searchQuery}
+        onSearchQueryChange={onSearchQueryChange}
+        selection={selection}
+        onSubmit={onSelectionChange}
+      />
+    )
+  },
+}
+
+export const SingleCreatable: Story = {
+  args: {},
+  render: function CategorySelectStory() {
+    const query = useMockLazyCategoriesQuery()
+    const createCategoryCommand = useMockCreateCategoryCommand()
+
+    const {
+      searchQuery,
+      categories,
+      selection,
+      onSearchQueryChange,
+      onSelectionChange,
+    } = useCategorySelect(true, false, query, createCategoryCommand)
+
+    return (
+      <CategorySelect
+        creatable
+        multiple={false}
+        networkResponse={categories}
+        searchQuery={searchQuery}
+        onSearchQueryChange={onSearchQueryChange}
+        selection={selection}
+        onSubmit={onSelectionChange}
+      />
+    )
+  },
+}
+
+export const MultipleCreatable: Story = {
+  args: {},
+  render: function CategorySelectStory() {
+    const query = useMockLazyCategoriesQuery()
+    const createCategoryCommand = useMockCreateCategoryCommand()
+    const bulkCreateCategoriesCommand = useMockBulkCreateCategoriesCommand()
+
+    const {
+      searchQuery,
+      categories,
+      selection,
+      onSearchQueryChange,
+      onSelectionChange,
+    } = useCategorySelect(
+      true,
+      true,
+      query,
+      createCategoryCommand,
+      bulkCreateCategoriesCommand,
+    )
+
+    return (
+      <CategorySelect
+        creatable
+        multiple
+        networkResponse={categories}
+        searchQuery={searchQuery}
+        onSearchQueryChange={onSearchQueryChange}
+        selection={selection}
+        onSubmit={onSelectionChange}
+      />
+    )
   },
 }
