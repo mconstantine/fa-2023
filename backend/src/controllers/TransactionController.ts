@@ -156,10 +156,13 @@ export class TransactionController {
   public async create(
     @Body() body: TransactionCreationBody,
   ): Promise<Transaction> {
-    return await Transaction.create({
+    const mutTransaction = await Transaction.create({
       ...body,
       categories: body.categoryIds.map((id) => ({ id })),
     }).save()
+
+    await mutTransaction.reload()
+    return mutTransaction
   }
 
   @Get("/")
@@ -339,15 +342,17 @@ export class TransactionController {
   public async update(
     @Body() body: TransactionUpdateBody,
   ): Promise<Transaction> {
-    const mutTransaction = await Transaction.findOneByOrFail({ id: body.id })
+    const transaction = await Transaction.findOneByOrFail({ id: body.id })
+    const { categoryIds, ...data } = body
+    const mutUpdated = Transaction.merge<Transaction>(transaction, data)
 
-    await Transaction.merge(mutTransaction, {
-      ...body,
-      categories: body.categoryIds.map((id) => ({ id })),
-    }).save()
+    // @ts-expect-error this is ok for TypeORM
+    mutUpdated.categories = categoryIds.map((id) => ({ id }))
 
-    await mutTransaction.reload()
-    return mutTransaction
+    await mutUpdated.save()
+    await mutUpdated.reload()
+
+    return mutUpdated
   }
 
   @Delete()
