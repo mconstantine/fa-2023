@@ -78,8 +78,6 @@ export default function BulkUpdateTransactionsDialog(props: Props) {
         categoryUpdateMode: CategoryUpdateMode.REPLACE,
       },
       (data) => {
-        console.log(selection)
-
         if (data.description !== "" || selection.length > 0) {
           onBulkUpdateSubmit({
             ...(data.description !== ""
