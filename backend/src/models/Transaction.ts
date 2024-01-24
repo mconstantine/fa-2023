@@ -45,7 +45,9 @@ export class Transaction extends BaseEntity {
   @Column("date")
   public date!: Date
 
-  @ManyToMany(() => Category, (category) => category.transactions)
+  @ManyToMany(() => Category, (category) => category.transactions, {
+    eager: true,
+  })
   @JoinTable()
   public categories!: Relation<Category[]>
 

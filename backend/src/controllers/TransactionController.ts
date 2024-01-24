@@ -339,12 +339,15 @@ export class TransactionController {
   public async update(
     @Body() body: TransactionUpdateBody,
   ): Promise<Transaction> {
-    const transaction = await Transaction.findOneByOrFail({ id: body.id })
+    const mutTransaction = await Transaction.findOneByOrFail({ id: body.id })
 
-    return await Transaction.merge(transaction, {
+    await Transaction.merge(mutTransaction, {
       ...body,
       categories: body.categoryIds.map((id) => ({ id })),
     }).save()
+
+    await mutTransaction.reload()
+    return mutTransaction
   }
 
   @Delete()
