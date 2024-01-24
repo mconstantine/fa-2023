@@ -1,8 +1,6 @@
 import {
   Checkbox,
-  IconButton,
   Paper,
-  Stack,
   Table,
   TableBody,
   TableCell,
@@ -21,8 +19,8 @@ import {
   MouseEvent,
   MouseEventHandler,
 } from "react"
-import { Delete, Edit } from "@mui/icons-material"
 import { useConfirmation } from "../../hooks/useConfirmation"
+import TransactionsTableRow from "./TransactonsTableRow"
 
 export interface SelectableTransaction extends Transaction {
   isSelected: boolean
@@ -143,59 +141,13 @@ export default function TransactionsTable(props: Props) {
             </TableHead>
             <TableBody>
               {props.transactions.map((transaction) => (
-                <TableRow
+                <TransactionsTableRow
                   key={transaction.id}
-                  hover
-                  onClick={onSelectOneClick(transaction.id)}
-                  role="checkbox"
-                  aria-checked={transaction.isSelected}
-                  tabIndex={-1}
-                  selected={transaction.isSelected}
-                  sx={{ cursor: "pointer" }}
-                >
-                  <TableCell padding="checkbox">
-                    <Checkbox
-                      color="primary"
-                      checked={transaction.isSelected}
-                      inputProps={{
-                        "aria-labelledby": transaction.id,
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    {new Date(transaction.date).toLocaleDateString(undefined, {
-                      year: "numeric",
-                      month: "short",
-                      day: "2-digit",
-                    })}
-                  </TableCell>
-                  <TableCell>
-                    {transaction.description}
-                    <br />
-                    {transaction.categories
-                      .map((category) => category.name)
-                      .join(", ")}
-                  </TableCell>
-                  <TableCell align="right">
-                    {transaction.value.toFixed(2)}
-                  </TableCell>
-                  <TableCell sx={{ minWidth: 116, maxWidth: 116, width: 116 }}>
-                    <Stack direction="row" spacing={0.5}>
-                      <IconButton
-                        aria-label="Edit"
-                        onClick={onEditButtonClick(transaction)}
-                      >
-                        <Edit />
-                      </IconButton>
-                      <IconButton
-                        aria-label="Delete"
-                        onClick={onDeleteButtonClick(transaction)}
-                      >
-                        <Delete />
-                      </IconButton>
-                    </Stack>
-                  </TableCell>
-                </TableRow>
+                  transaction={transaction}
+                  onSelectClick={onSelectOneClick(transaction.id)}
+                  onEditButtonClick={onEditButtonClick(transaction)}
+                  onDeleteButtonClick={onDeleteButtonClick(transaction)}
+                />
               ))}
             </TableBody>
           </Table>
