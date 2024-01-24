@@ -30,7 +30,6 @@ interface FormData extends Record<string, unknown> {
   date: Date
   description: string
   value: number
-  categories: Category[]
 }
 
 export default function TransactionForm(props: Props) {
@@ -71,13 +70,12 @@ export default function TransactionForm(props: Props) {
         : new Date(),
       description: props.transaction?.description ?? "",
       value: props.transaction?.value ?? 0,
-      categories: props.transaction?.categories ?? [],
     },
     (data) =>
       props.onSubmit({
         ...data,
         date: data.date.toISOString(),
-        categoryIds: data.categories.map((category) => category.id),
+        categoryIds: selection.map((category) => category.id),
       }),
   )
 
