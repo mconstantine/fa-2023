@@ -150,6 +150,20 @@ interface CategoriesAggregation {
   transactionsTotal: number
 }
 
+interface MonthlyAggregationQueryResult {
+  month: string
+  income: string
+  outcome: string
+  total: string
+}
+
+interface MonthlyAggregation {
+  month: number
+  income: number
+  outcome: number
+  total: number
+}
+
 @JsonController("/transactions")
 export class TransactionController {
   @Post()
@@ -469,6 +483,51 @@ export class TransactionController {
     return result.map((entry) => ({
       ...entry,
       transactionsTotal: parseFloat(entry.transactionsTotal),
+    }))
+  }
+
+  @Get("/monthly")
+  public async getMonthlyAggregation(
+    @QueryParam("year", { required: true }) year: number,
+  ): Promise<MonthlyAggregation[]> {
+    const result: MonthlyAggregationQueryResult[] =
+      await Transaction.createQueryBuilder("t")
+        .where("EXTRACT('YEAR' FROM t.date) = :year", { year })
+        .groupBy("EXTRACT('MONTH' FROM t.date)")
+        .select("EXTRACT('MONTH' FROM t.date)", "month")
+        .addSelect(
+          `
+          ROUND(SUM(
+            CASE
+            WHEN t.value > 0
+            THEN t.value
+            ELSE 0
+            END
+          )::NUMERIC(10, 2) / 100, 2)
+          `,
+          "income",
+        )
+        .addSelect(
+          `
+          ROUND(SUM(
+            CASE
+            WHEN t.value < 0
+            THEN t.value
+            ELSE 0
+            END
+          )::NUMERIC(10, 2) / 100, 2)
+          `,
+          "outcome",
+        )
+        .addSelect("ROUND(SUM(t.value)::NUMERIC(10, 2) / 100, 2)", "total")
+        .orderBy("EXTRACT('MONTH' FROM t.date)")
+        .execute()
+
+    return result.map((entry) => ({
+      month: parseInt(entry.month),
+      income: parseFloat(entry.income),
+      outcome: parseFloat(entry.outcome),
+      total: parseFloat(entry.total),
     }))
   }
 }

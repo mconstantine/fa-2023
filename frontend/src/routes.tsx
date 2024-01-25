@@ -3,11 +3,13 @@ import CategoriesPage from "./components/categories/CategoriesPage"
 import TransactionsPage from "./components/transactions/TransactionsPage"
 import PredictionsPage from "./components/predictions/PredictionsPage"
 import { PageWithHeader } from "./components/PageWithHeader"
+import MonthlyPage from "./components/monthly/MonthlyPage"
 
 enum Routes {
   HOME = "/",
   CATEGORIES = "/categories",
   PREDICTIONS = "/predictions",
+  MONTHLY = "/monthly",
 }
 
 interface Route extends Omit<RouteObject, "path"> {
@@ -42,5 +44,14 @@ export const routes: Route[] = [
       </PageWithHeader>
     ),
     label: "Predictions",
+  },
+  {
+    path: Routes.MONTHLY,
+    element: (
+      <PageWithHeader>
+        <MonthlyPage />
+      </PageWithHeader>
+    ),
+    label: "Monthly aggregation",
   },
 ]
