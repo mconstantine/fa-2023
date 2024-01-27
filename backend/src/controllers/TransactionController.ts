@@ -164,6 +164,33 @@ interface MonthlyAggregation {
   total: number
 }
 
+enum TimeRange {
+  WEEK = "WEEK",
+  MONTH = "MONTH",
+}
+
+class CategoriesAndTimeAggregationParams {
+  @IsEnum(TimeRange)
+  public timeRange!: TimeRange
+
+  @IsOptional()
+  @IsUUID(4, { each: true })
+  public categoryIds: string[] = []
+
+  @IsNumber()
+  public year!: number
+}
+
+interface CategoriesAndTimeAggregationQueryResult {
+  time: string
+  total: string
+}
+
+interface CategoriesAndTimeAggregation {
+  time: number
+  total: number
+}
+
 @JsonController("/transactions")
 export class TransactionController {
   @Post()
@@ -205,7 +232,7 @@ export class TransactionController {
       }
     })()
 
-    const query = Transaction.createQueryBuilder("transaction")
+    const mutQuery = Transaction.createQueryBuilder("transaction")
       .leftJoinAndSelect("transaction.categories", "categories")
       .where("1 = 1")
       .take(params.perPage)
@@ -217,19 +244,22 @@ export class TransactionController {
         const searchQuery = params.query?.toLowerCase() ?? ""
 
         if (searchQuery !== "") {
-          query.andWhere("LOWER(transaction.description) LIKE :searchQuery", {
-            searchQuery: `%${searchQuery}%`,
-          })
+          mutQuery.andWhere(
+            "LOWER(transaction.description) LIKE :searchQuery",
+            {
+              searchQuery: `%${searchQuery}%`,
+            },
+          )
         }
 
         if (timeCondition !== null) {
-          query.andWhere({ date: timeCondition })
+          mutQuery.andWhere({ date: timeCondition })
         }
 
         break
       }
       case FindTransactionsBy.VALUE: {
-        query
+        mutQuery
           .andWhere("transaction.value >= ROUND(:min * 100)", {
             min: params.min,
           })
@@ -244,10 +274,10 @@ export class TransactionController {
       case FindTransactionsCategoryMode.ALL:
         break
       case FindTransactionsCategoryMode.UNCATEGORIZED:
-        query.andWhere("transaction_categories.categoryId IS NULL")
+        mutQuery.andWhere("transaction_categories.categoryId IS NULL")
         break
       case FindTransactionsCategoryMode.SPECIFIC:
-        query.andWhere(
+        mutQuery.andWhere(
           "transaction_categories.categoryId IN (:...categories)",
           {
             categories: params.categories,
@@ -256,7 +286,7 @@ export class TransactionController {
         break
     }
 
-    return await query.getManyAndCount()
+    return await mutQuery.getManyAndCount()
   }
 
   @Post("/import")
@@ -527,6 +557,40 @@ export class TransactionController {
       month: parseInt(entry.month),
       income: parseFloat(entry.income),
       outcome: parseFloat(entry.outcome),
+      total: parseFloat(entry.total),
+    }))
+  }
+
+  @Get("/category-time")
+  public async getCategoriesAndTimeAggregation(
+    @QueryParams({ required: true }) params: CategoriesAndTimeAggregationParams,
+  ): Promise<CategoriesAndTimeAggregation[]> {
+    const result: CategoriesAndTimeAggregationQueryResult[] =
+      await AppDataSource.createQueryBuilder()
+        .from((mutQuery) => {
+          mutQuery
+            .from(Transaction, "t")
+            .innerJoin("t.categories", "c")
+            .groupBy("t.id")
+            .select("t.*")
+            .where("EXTRACT('YEAR' FROM t.date) = :year", { year: params.year })
+
+          if (params.categoryIds.length > 0) {
+            mutQuery.andWhere("c.id IN (:...categoryIds)", {
+              categoryIds: params.categoryIds,
+            })
+          }
+
+          return mutQuery
+        }, "t")
+        .groupBy(`EXTRACT('${params.timeRange}' FROM t.date)`)
+        .select(`EXTRACT('${params.timeRange}' FROM t.date)`, "time")
+        .addSelect("ROUND(SUM(t.value)::NUMERIC(10, 2) / 100, 2)", "total")
+        .orderBy(`EXTRACT('${params.timeRange}' FROM t.date)`)
+        .execute()
+
+    return result.map((entry) => ({
+      time: parseInt(entry.time),
       total: parseFloat(entry.total),
     }))
   }

@@ -3,7 +3,9 @@ import {
   Chip,
   CircularProgress,
   Stack,
+  SxProps,
   TextField,
+  Theme,
 } from "@mui/material"
 import { NetworkResponse } from "../../../network/NetworkResponse"
 import {
@@ -22,6 +24,7 @@ interface BaseProps {
   categories: NetworkResponse<Category[]>
   searchQuery: string
   onSearchQueryChange(searchQuery: string): void
+  sx?: SxProps<Theme>
 }
 
 interface SingleCreatableProps extends BaseProps {
@@ -174,7 +177,7 @@ export default function CategorySelect(props: Props) {
   }
 
   return (
-    <Stack>
+    <Stack {...(props.sx ? { sx: props.sx } : {})}>
       <Autocomplete
         multiple={props.multiple}
         selectOnFocus

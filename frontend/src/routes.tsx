@@ -4,12 +4,14 @@ import TransactionsPage from "./components/transactions/TransactionsPage"
 import PredictionsPage from "./components/predictions/PredictionsPage"
 import { PageWithHeader } from "./components/PageWithHeader"
 import MonthlyPage from "./components/monthly/MonthlyPage"
+import CategoryTimePage from "./components/category-time/CategoryTimePage"
 
 enum Routes {
   HOME = "/",
   CATEGORIES = "/categories",
   PREDICTIONS = "/predictions",
   MONTHLY = "/monthly",
+  CATEGORY_TIME = "/category-time",
 }
 
 interface Route extends Omit<RouteObject, "path"> {
@@ -53,5 +55,14 @@ export const routes: Route[] = [
       </PageWithHeader>
     ),
     label: "Monthly aggregation",
+  },
+  {
+    path: Routes.CATEGORY_TIME,
+    element: (
+      <PageWithHeader>
+        <CategoryTimePage />
+      </PageWithHeader>
+    ),
+    label: "Categories/Time aggregation",
   },
 ]

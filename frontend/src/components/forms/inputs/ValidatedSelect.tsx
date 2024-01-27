@@ -4,6 +4,8 @@ import {
   MenuItem,
   Select,
   SelectChangeEvent,
+  SxProps,
+  Theme,
 } from "@mui/material"
 
 interface Props<T extends Record<string, string>> {
@@ -13,6 +15,7 @@ interface Props<T extends Record<string, string>> {
   onChange(value: T[string]): void
   label?: string
   optionLabels?: { [key in keyof T]: string }
+  sx?: SxProps<Theme>
 }
 
 export default function ValidatedSelect<T extends Record<string, string>>(
@@ -27,7 +30,7 @@ export default function ValidatedSelect<T extends Record<string, string>>(
   }
 
   return (
-    <FormControl>
+    <FormControl {...(props.sx ? { sx: props.sx } : {})}>
       {typeof props.label !== "undefined" ? (
         <InputLabel>{props.label}</InputLabel>
       ) : null}
