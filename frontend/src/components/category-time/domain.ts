@@ -13,7 +13,22 @@ export interface CategoriesAndTimeAggregationParams
   year: number
 }
 
-export interface CategoriesAndTimeAggregation extends Record<string, number> {
+export interface TimeAggregation extends Record<string, number> {
   time: number
   total: number
+}
+
+export interface CategoryAggregation {
+  id: string
+  name: string
+  keywords: string
+  isMeta: boolean
+  max_transaction_value: number
+  min_transaction_value: number
+  total: number
+}
+
+export interface CategoriesAndTimeAggregation {
+  time: TimeAggregation[]
+  categories: CategoryAggregation[]
 }

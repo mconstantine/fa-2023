@@ -28,6 +28,7 @@ import {
   ValidateIf,
 } from "class-validator"
 import { AppDataSource } from "../AppDataSource"
+import { Category } from "../models/Category"
 
 class TransactionCreationBody {
   @IsNotEmpty()
@@ -182,13 +183,34 @@ class CategoriesAndTimeAggregationParams {
   public year!: number
 }
 
-interface CategoriesAndTimeAggregationQueryResult {
+interface TimeAggregationQueryResult {
   time: string
   total: string
 }
 
-interface CategoriesAndTimeAggregation {
+interface TimeAggregation {
   time: number
+  total: number
+}
+
+interface SubCategoryAggregationQueryResult {
+  id: string
+  name: string
+  keywords: string
+  isMeta: boolean
+  max_transaction_value: string
+  min_transaction_value: string
+  total: string
+}
+
+interface SubCategoryAggregation {
+  id: string
+  name: string
+  // TODO: check what is returned if keywords exist
+  keywords: string
+  isMeta: boolean
+  max_transaction_value: number
+  min_transaction_value: number
   total: number
 }
 
@@ -565,9 +587,12 @@ export class TransactionController {
   @Get("/category-time")
   public async getCategoriesAndTimeAggregation(
     @QueryParams({ required: true }) params: CategoriesAndTimeAggregationParams,
-  ): Promise<CategoriesAndTimeAggregation[]> {
-    const result: CategoriesAndTimeAggregationQueryResult[] =
-      await AppDataSource.createQueryBuilder()
+  ): Promise<{
+    time: TimeAggregation[]
+    categories: SubCategoryAggregation[]
+  }> {
+    const timeQuery: Promise<TimeAggregationQueryResult[]> =
+      AppDataSource.createQueryBuilder()
         .from((mutQuery) => {
           mutQuery
             .from(Transaction, "t")
@@ -590,9 +615,48 @@ export class TransactionController {
         .orderBy(`EXTRACT('${params.timeRange}' FROM t.date)`)
         .execute()
 
-    return result.map((entry) => ({
-      time: parseInt(entry.time),
-      total: parseFloat(entry.total),
-    }))
+    const subCategoriesQuery: Promise<SubCategoryAggregationQueryResult[]> =
+      params.categoryIds.length > 0
+        ? Category.createQueryBuilder("s")
+            .innerJoin("s.transactions", "t")
+            .innerJoin("t.categories", "c")
+            .where("s.id IN (:...categoryIds)", {
+              categoryIds: params.categoryIds,
+            })
+            .andWhere("EXTRACT('YEAR' FROM t.date) = :year", {
+              year: params.year,
+            })
+            .groupBy("c.id")
+            .select("c.*")
+            .addSelect(
+              "ROUND(MAX(t.value)::NUMERIC(10, 2) / 100, 2)",
+              "max_transaction_value",
+            )
+            .addSelect(
+              "ROUND(MIN(t.value)::NUMERIC(10, 2) / 100, 2)",
+              "min_transaction_value",
+            )
+            .addSelect("ROUND(SUM(t.value)::NUMERIC(10, 2) / 100, 2)", "total")
+            .orderBy("c.name")
+            .execute()
+        : Promise.resolve([])
+
+    const [timeResult, subCategoriesResult] = await Promise.all([
+      timeQuery,
+      subCategoriesQuery,
+    ])
+
+    return {
+      time: timeResult.map((entry) => ({
+        time: parseInt(entry.time),
+        total: parseFloat(entry.total),
+      })),
+      categories: subCategoriesResult.map((entry) => ({
+        ...entry,
+        min_transaction_value: parseFloat(entry.min_transaction_value),
+        max_transaction_value: parseFloat(entry.max_transaction_value),
+        total: parseFloat(entry.total),
+      })),
+    }
   }
 }
