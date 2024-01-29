@@ -53,15 +53,15 @@ export default function TransactionForm(props: Props) {
     onSearchQueryChange,
     selection,
     onSelectionChange,
-  } = useCategorySelect(
-    props.isVisible,
-    true,
-    true,
-    props.transaction?.categories ?? [],
+  } = useCategorySelect({
+    visible: props.isVisible,
+    multiple: true,
+    creatable: true,
+    initialValue: props.transaction?.categories ?? [],
     categoriesQuery,
     createCategoryCommand,
     bulkCreateCategoriesCommand,
-  )
+  })
 
   const { inputProps, submit, isValid } = useForm<FormData>(
     {

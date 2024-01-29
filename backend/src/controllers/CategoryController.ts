@@ -23,6 +23,10 @@ class FindCategoryParams {
   @IsOptional()
   @IsNotEmpty()
   public query?: string
+
+  @IsOptional()
+  @IsBoolean()
+  public isMeta?: boolean
 }
 
 class CategoryCreationBody {
@@ -89,17 +93,21 @@ export class CategoryController {
 
   @Get("/")
   async find(@QueryParams() params: FindCategoryParams): Promise<Category[]> {
-    const query = Category.createQueryBuilder("c")
+    const mutQuery = Category.createQueryBuilder("c")
       .where("1 = 1")
       .orderBy("name")
 
     if (typeof params.query !== "undefined") {
-      query.andWhere("LOWER(c.name) LIKE :query", {
+      mutQuery.andWhere("LOWER(c.name) LIKE :query", {
         query: `%${params.query.toLowerCase()}%`,
       })
     }
 
-    return await query.getMany()
+    if (typeof params.isMeta !== "undefined") {
+      mutQuery.andWhere("c.isMeta = :isMeta", { isMeta: params.isMeta })
+    }
+
+    return await mutQuery.getMany()
   }
 
   @Put("/")

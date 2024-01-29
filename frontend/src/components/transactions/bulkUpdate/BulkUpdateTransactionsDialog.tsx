@@ -61,15 +61,15 @@ export default function BulkUpdateTransactionsDialog(props: Props) {
     onSearchQueryChange,
     selection,
     onSelectionChange,
-  } = useCategorySelect(
-    props.isOpen,
-    true,
-    true,
-    [],
+  } = useCategorySelect({
+    visible: props.isOpen,
+    multiple: true,
+    creatable: true,
+    initialValue: [],
     categoriesQuery,
     createCategoryCommand,
     bulkCreateCategoriesCommand,
-  )
+  })
 
   const { inputProps, submit, isValid } =
     useForm<BulkUpdateTransactionFormData>(

@@ -43,14 +43,15 @@ export default function PredictionCreationForm(props: Props) {
     onSearchQueryChange,
     selection,
     onSelectionChange,
-  } = useCategorySelect(
-    props.isVisible,
-    true,
-    false,
-    null,
+  } = useCategorySelect({
+    visible: props.isVisible,
+    creatable: true,
+    multiple: false,
+    excludeMeta: true,
+    initialValue: null,
     categoriesQuery,
     createCategoryCommand,
-  )
+  })
 
   const { inputProps, submit, isValid } = useForm<FormData>(
     {
@@ -66,8 +67,7 @@ export default function PredictionCreationForm(props: Props) {
 
   const availableCategories = categories.map((categories) =>
     categories.filter(
-      (category) =>
-        !props.excludedCategoriesIds.includes(category.id) && !category.isMeta,
+      (category) => !props.excludedCategoriesIds.includes(category.id),
     ),
   )
 

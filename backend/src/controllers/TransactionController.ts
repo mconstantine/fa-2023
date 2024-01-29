@@ -167,6 +167,7 @@ interface MonthlyAggregation {
 enum TimeRange {
   WEEK = "WEEK",
   MONTH = "MONTH",
+  DAY = "DOY",
 }
 
 class CategoriesAndTimeAggregationParams {

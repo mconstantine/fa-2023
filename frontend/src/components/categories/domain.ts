@@ -9,6 +9,7 @@ export interface Category extends Record<string, unknown> {
 
 export interface FindCategoryParams extends Record<string, Param> {
   query?: string
+  isMeta?: boolean
 }
 
 export interface CategoryCreationBody {

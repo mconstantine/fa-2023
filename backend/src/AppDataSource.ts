@@ -9,5 +9,5 @@ export const AppDataSource = new DataSource({
   entities: [Category, Transaction, Prediction],
   migrations: ["./src/migrations/*.ts"],
   useUTC: true,
-  logging: "all",
+  logging: ["error"],
 })

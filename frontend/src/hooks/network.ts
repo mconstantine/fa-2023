@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { NetworkResponse, networkResponse } from "../network/NetworkResponse"
 
-export type Param = string | number | string[] | undefined
+export type Param = string | number | string[] | boolean | undefined
 
 if (!("VITE_API_URL" in import.meta.env)) {
   throw new ReferenceError('Unable to find environment variable "VITE_API_URL"')
@@ -89,6 +89,8 @@ export function useLazyQuery<O, I extends Record<string, Param>, T = O>(
               params.append(name, value)
             } else if (typeof value === "number") {
               params.append(name, value.toString(10))
+            } else if (typeof value === "boolean") {
+              params.append(name, value ? "true" : "false")
             } else if (typeof value !== "undefined") {
               value.forEach((value) => {
                 params.append(name, value)

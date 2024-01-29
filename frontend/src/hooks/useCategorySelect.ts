@@ -13,6 +13,52 @@ import { useDebounce } from "./useDebounce"
 
 type Selection = Category | null | Category[]
 
+interface BaseUseCategorySelectionInput {
+  visible: boolean
+  categoriesQuery: UseLazyQueryOutput<Category[], FindCategoryParams>
+  excludeMeta?: boolean
+}
+
+interface SingleCreatableUseCategorySelectInput
+  extends BaseUseCategorySelectionInput {
+  multiple: false
+  creatable: true
+  initialValue: Category | null
+  createCategoryCommand: UseCommandOutput<CategoryCreationBody, Category>
+}
+
+interface SingleSelectableUseCategorySelectInput
+  extends BaseUseCategorySelectionInput {
+  multiple: false
+  creatable: false
+  initialValue: Category | null
+}
+
+interface MultipleCreatableUseCategorySelectInput
+  extends BaseUseCategorySelectionInput {
+  multiple: true
+  creatable: true
+  initialValue: Category[]
+  createCategoryCommand: UseCommandOutput<CategoryCreationBody, Category>
+  bulkCreateCategoriesCommand: UseCommandOutput<
+    CategoryBulkCreationBody,
+    Category[]
+  >
+}
+
+interface MultipleSelectableUseCategorySelectInput
+  extends BaseUseCategorySelectionInput {
+  multiple: true
+  creatable: false
+  initialValue: Category[]
+}
+
+type UseCategorySelectInput =
+  | SingleCreatableUseCategorySelectInput
+  | SingleSelectableUseCategorySelectInput
+  | MultipleCreatableUseCategorySelectInput
+  | MultipleSelectableUseCategorySelectInput
+
 interface BaseUseCategorySelectOutput {
   categories: NetworkResponse<Category[]>
   searchQuery: string
@@ -43,67 +89,50 @@ interface MultipleSelectableUseCategorySelectOutput
   onSelectionChange(category: Category[]): void
 }
 
+type UseCategorySelectOutput =
+  | SingleCreatableUseCategorySelectOutput
+  | SingleSelectableUseCategorySelectOutput
+  | MultipleCreatableUseCategorySelectOutput
+  | MultipleSelectableUseCategorySelectOutput
+
 export function useCategorySelect(
-  visible: boolean,
-  creatable: false,
-  multiple: false,
-  initialValue: Category | null,
-  categoriesQuery: UseLazyQueryOutput<Category[], FindCategoryParams>,
+  input: SingleSelectableUseCategorySelectInput,
 ): SingleSelectableUseCategorySelectOutput
 export function useCategorySelect(
-  visible: boolean,
-  creatable: true,
-  multiple: false,
-  initialValue: Category | null,
-  categoriesQuery: UseLazyQueryOutput<Category[], FindCategoryParams>,
-  createCategoryCommand: UseCommandOutput<CategoryCreationBody, Category>,
+  input: SingleCreatableUseCategorySelectInput,
 ): SingleCreatableUseCategorySelectOutput
 export function useCategorySelect(
-  visible: boolean,
-  creatable: false,
-  multiple: true,
-  initialValue: Category[],
-  categoriesQuery: UseLazyQueryOutput<Category[], FindCategoryParams>,
+  input: MultipleSelectableUseCategorySelectInput,
 ): MultipleSelectableUseCategorySelectOutput
 export function useCategorySelect(
-  visible: boolean,
-  creatable: true,
-  multiple: true,
-  initialValue: Category[],
-  categoriesQuery: UseLazyQueryOutput<Category[], FindCategoryParams>,
-  createCategoryCommand: UseCommandOutput<CategoryCreationBody, Category>,
-  bulkCreateCategoriesCommand: UseCommandOutput<
-    CategoryBulkCreationBody,
-    Category[]
-  >,
+  input: MultipleCreatableUseCategorySelectInput,
 ): MultipleCreatableUseCategorySelectOutput
 export function useCategorySelect(
-  visible: boolean,
-  creatable: boolean,
-  multiple: boolean,
-  initialValue: Selection,
-  categoriesQuery: UseLazyQueryOutput<Category[], FindCategoryParams>,
-  createCategoryCommand?: UseCommandOutput<CategoryCreationBody, Category>,
-  bulkCreateCategoriesCommand?: UseCommandOutput<
-    CategoryBulkCreationBody,
-    Category[]
-  >,
-):
-  | SingleSelectableUseCategorySelectOutput
-  | SingleCreatableUseCategorySelectOutput
-  | MultipleSelectableUseCategorySelectOutput
-  | MultipleCreatableUseCategorySelectOutput {
+  input: UseCategorySelectInput,
+): UseCategorySelectOutput {
   const [searchQuery, setSearchQuery] = useState("")
-  const [selection, setSelection] = useState<Selection>(initialValue)
+  const [selection, setSelection] = useState<Selection>(input.initialValue)
 
   const [categoriesResponse, updateCategories, fetchCategories] =
-    categoriesQuery
+    input.categoriesQuery
 
   const debounceFetchCategory = useDebounce(fetchCategories, 500)
-  const createCategoryResponse = createCategoryCommand?.[0]
-  const createCategory = createCategoryCommand?.[1]
-  const bulkCreateCategoriesResponse = bulkCreateCategoriesCommand?.[0]
-  const bulkCreateCategories = bulkCreateCategoriesCommand?.[1]
+
+  const createCategoryResponse = input.creatable
+    ? input.createCategoryCommand[0]
+    : null
+
+  const createCategory = input.creatable ? input.createCategoryCommand[1] : null
+
+  const bulkCreateCategoriesResponse =
+    input.creatable && input.multiple
+      ? input.bulkCreateCategoriesCommand[0]
+      : null
+
+  const bulkCreateCategories =
+    input.creatable && input.multiple
+      ? input.bulkCreateCategoriesCommand[1]
+      : null
 
   const categorySelectionResponse =
     createCategoryResponse
@@ -118,7 +147,7 @@ export function useCategorySelect(
         whenLoading: () => networkResponse.make<Category[]>().load(),
       })
       .flatMap<Category[]>(() => {
-        if (typeof bulkCreateCategoriesResponse === "undefined") {
+        if (bulkCreateCategoriesResponse === null) {
           return categoriesResponse
         } else {
           return bulkCreateCategoriesResponse.match<
@@ -148,24 +177,24 @@ export function useCategorySelect(
   }
 
   useEffect(() => {
-    if (visible && categoriesResponse.isIdle()) {
-      fetchCategories({})
+    if (input.visible && categoriesResponse.isIdle()) {
+      fetchCategories(input.excludeMeta ? { isMeta: false } : {})
     }
-  }, [visible, categoriesResponse, fetchCategories])
+  }, [input.visible, categoriesResponse, fetchCategories, input.excludeMeta])
 
-  if (!multiple && !creatable) {
+  if (!input.multiple && !input.creatable) {
     return {
       ...result,
       selection: selection as Category | null,
       onSelectionChange: setSelection,
     }
-  } else if (multiple && !creatable) {
+  } else if (input.multiple && !input.creatable) {
     return {
       ...result,
       selection: selection as Category[],
       onSelectionChange: setSelection,
     }
-  } else if (!multiple && creatable) {
+  } else if (!input.multiple && input.creatable) {
     return {
       ...result,
       selection: selection as Category | null,
@@ -190,10 +219,7 @@ export function useCategorySelect(
         selection: CategorySelection,
       ): Promise<void> => {
         const creationResult = await (async () => {
-          if (
-            selection.additions.length &&
-            typeof bulkCreateCategories !== "undefined"
-          ) {
+          if (selection.additions.length && bulkCreateCategories !== null) {
             return await bulkCreateCategories({
               categories: selection.additions,
             })

@@ -118,7 +118,7 @@ function useMockBulkCreateCategoriesCommand(): UseCommandOutput<
 export const SingleSelectable: Story = {
   args: {},
   render: function CategorySelectStory() {
-    const query = useMockLazyCategoriesQuery()
+    const categoriesQuery = useMockLazyCategoriesQuery()
 
     const {
       searchQuery,
@@ -126,7 +126,13 @@ export const SingleSelectable: Story = {
       selection,
       onSearchQueryChange,
       onSelectionChange,
-    } = useCategorySelect(true, false, false, null, query)
+    } = useCategorySelect({
+      visible: true,
+      multiple: false,
+      creatable: false,
+      initialValue: null,
+      categoriesQuery,
+    })
 
     return (
       <CategorySelect
@@ -145,7 +151,7 @@ export const SingleSelectable: Story = {
 export const MultipleSelectable: Story = {
   args: {},
   render: function CategorySelectStory() {
-    const query = useMockLazyCategoriesQuery()
+    const categoriesQuery = useMockLazyCategoriesQuery()
 
     const {
       searchQuery,
@@ -153,7 +159,13 @@ export const MultipleSelectable: Story = {
       selection,
       onSearchQueryChange,
       onSelectionChange,
-    } = useCategorySelect(true, false, true, [], query)
+    } = useCategorySelect({
+      visible: true,
+      multiple: true,
+      creatable: false,
+      initialValue: [],
+      categoriesQuery,
+    })
 
     return (
       <CategorySelect
@@ -172,7 +184,7 @@ export const MultipleSelectable: Story = {
 export const SingleCreatable: Story = {
   args: {},
   render: function CategorySelectStory() {
-    const query = useMockLazyCategoriesQuery()
+    const categoriesQuery = useMockLazyCategoriesQuery()
     const createCategoryCommand = useMockCreateCategoryCommand()
 
     const {
@@ -181,7 +193,14 @@ export const SingleCreatable: Story = {
       selection,
       onSearchQueryChange,
       onSelectionChange,
-    } = useCategorySelect(true, true, false, null, query, createCategoryCommand)
+    } = useCategorySelect({
+      visible: true,
+      multiple: false,
+      creatable: true,
+      initialValue: null,
+      categoriesQuery,
+      createCategoryCommand,
+    })
 
     return (
       <CategorySelect
@@ -200,7 +219,7 @@ export const SingleCreatable: Story = {
 export const MultipleCreatable: Story = {
   args: {},
   render: function CategorySelectStory() {
-    const query = useMockLazyCategoriesQuery()
+    const categoriesQuery = useMockLazyCategoriesQuery()
     const createCategoryCommand = useMockCreateCategoryCommand()
     const bulkCreateCategoriesCommand = useMockBulkCreateCategoriesCommand()
 
@@ -210,15 +229,15 @@ export const MultipleCreatable: Story = {
       selection,
       onSearchQueryChange,
       onSelectionChange,
-    } = useCategorySelect(
-      true,
-      true,
-      true,
-      [],
-      query,
+    } = useCategorySelect({
+      visible: true,
+      multiple: true,
+      creatable: true,
+      initialValue: [],
+      categoriesQuery,
       createCategoryCommand,
       bulkCreateCategoriesCommand,
-    )
+    })
 
     return (
       <CategorySelect

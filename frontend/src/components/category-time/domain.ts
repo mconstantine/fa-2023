@@ -3,6 +3,7 @@ import { Param } from "../../hooks/network"
 export enum TimeRange {
   WEEK = "WEEK",
   MONTH = "MONTH",
+  DAY = "DOY",
 }
 
 export interface CategoriesAndTimeAggregationParams
