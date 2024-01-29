@@ -4,7 +4,6 @@ import {
   TableBody,
   TableCell,
   TableContainer,
-  TableHead,
   TableRow,
   Typography,
   useTheme,
@@ -18,7 +17,7 @@ interface Props {
   data: TimeAggregation[]
 }
 
-export default function CategoryTimeData(props: Props) {
+export default function TimeData(props: Props) {
   const theme = useTheme()
 
   const filledData = (() => {
@@ -80,9 +79,16 @@ export default function CategoryTimeData(props: Props) {
     }
   })()
 
+  const total = props.data.reduce((sum, entry) => sum + entry.total, 0)
+  const values = props.data.map((entry) => entry.total)
+  const max = Math.max(...values)
+  const min = Math.min(...values)
+  const maxTimeValue = Math.max(...props.data.map((entry) => entry.time))
+
   if (props.data.length > 0) {
     return (
-      <Stack spacing={3}>
+      <Stack>
+        <Typography variant="h5">Time</Typography>
         <BarChart
           dataset={filledData}
           xAxis={[
@@ -133,37 +139,22 @@ export default function CategoryTimeData(props: Props) {
         />
         <TableContainer>
           <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>{timeRangeTitle} Avg (€)</TableCell>
-                <TableCell>{timeRangeTitle} Min (€)</TableCell>
-                <TableCell>{timeRangeTitle} Max (€)</TableCell>
-                <TableCell>Total (€)</TableCell>
-              </TableRow>
-            </TableHead>
             <TableBody>
               <TableRow>
-                <TableCell>
-                  {(
-                    filledData.reduce((sum, entry) => sum + entry.total, 0) /
-                    filledData.length
-                  ).toFixed(2)}
-                </TableCell>
-                <TableCell>
-                  {Math.min(...filledData.map((entry) => entry.total)).toFixed(
-                    2,
-                  )}
-                </TableCell>
-                <TableCell>
-                  {Math.max(...filledData.map((entry) => entry.total)).toFixed(
-                    2,
-                  )}
-                </TableCell>
-                <TableCell>
-                  {filledData
-                    .reduce((sum, entry) => sum + entry.total, 0)
-                    .toFixed(2)}
-                </TableCell>
+                <TableCell>{timeRangeTitle} average (€)</TableCell>
+                <TableCell>{(total / maxTimeValue).toFixed(2)}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>{timeRangeTitle} min (€)</TableCell>
+                <TableCell>{min.toFixed(2)}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>{timeRangeTitle} max (€)</TableCell>
+                <TableCell>{max.toFixed(2)}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Total (€)</TableCell>
+                <TableCell>{total.toFixed(2)}</TableCell>
               </TableRow>
             </TableBody>
           </Table>

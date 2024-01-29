@@ -637,7 +637,8 @@ export class TransactionController {
               "min_transaction_value",
             )
             .addSelect("ROUND(SUM(t.value)::NUMERIC(10, 2) / 100, 2)", "total")
-            .orderBy("c.name")
+            .orderBy("c.isMeta")
+            .addOrderBy("c.name")
             .execute()
         : Promise.resolve([])
 

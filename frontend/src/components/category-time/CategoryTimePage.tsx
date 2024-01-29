@@ -11,7 +11,8 @@ import ValidatedSelect from "../forms/inputs/ValidatedSelect"
 import { useCategorySelect } from "../../hooks/useCategorySelect"
 import { Category, FindCategoryParams } from "../categories/domain"
 import CategorySelect from "../forms/inputs/CategorySelect"
-import CategoryTimeData from "./CategoryTimeData"
+import TimeData from "./TimeData"
+import CategoriesData from "./CategoriesData"
 
 export default function CategoryTimePage() {
   const [params, setParams] = useState<CategoriesAndTimeAggregationParams>({
@@ -134,12 +135,14 @@ export default function CategoryTimePage() {
           <Query
             response={categoriesTimeAggregationResponse}
             render={(data) => (
-              <CategoryTimeData
-                year={params.year}
-                timeRange={params.timeRange}
-                data={data.time}
-              />
-              // TODO: use data.categories
+              <Stack spacing={3}>
+                <TimeData
+                  year={params.year}
+                  timeRange={params.timeRange}
+                  data={data.time}
+                />
+                <CategoriesData data={data.categories} selection={selection} />
+              </Stack>
             )}
           />
         </Paper>
