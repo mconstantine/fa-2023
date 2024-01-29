@@ -231,7 +231,14 @@ export default function CategoryTimePage() {
                               case TimeRange.WEEK:
                                 return `Week ${n}`
                               case TimeRange.DAY:
-                                return `Day ${n}`
+                                return new Date(
+                                  params.year,
+                                  0,
+                                  n,
+                                ).toLocaleDateString(undefined, {
+                                  month: "short",
+                                  day: "numeric",
+                                })
                             }
                           },
                         },

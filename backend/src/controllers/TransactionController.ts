@@ -261,11 +261,11 @@ export class TransactionController {
       }
       case FindTransactionsBy.VALUE: {
         mutQuery
-          .andWhere("transaction.value >= ROUND(:min * 100)", {
-            min: params.min,
+          .andWhere("transaction.value >= :min", {
+            min: Math.round(params.min * 100),
           })
-          .andWhere("transaction.value <= ROUND(:max * 100)", {
-            max: params.max,
+          .andWhere("transaction.value <= :max", {
+            max: Math.round(params.max * 100),
           })
         break
       }

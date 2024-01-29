@@ -67,6 +67,7 @@ export default function CategoryForm(props: Props) {
               control={
                 <Checkbox
                   {...inputProps("isMeta", false)}
+                  checked={inputProps("isMeta", false).value}
                   onChange={(_, isMeta) =>
                     inputProps("isMeta", false).onChange(isMeta)
                   }
