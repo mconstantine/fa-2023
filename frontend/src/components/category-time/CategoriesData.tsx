@@ -26,9 +26,9 @@ export default function CategoriesData(props: Props) {
 
     const selectedCategoryIds = props.selection.map((category) => category.id)
 
-    const nonSelectedCategories = props.data.filter(
-      (category) => !selectedCategoryIds.includes(category.id),
-    )
+    const nonSelectedCategories = props.data
+      .filter((category) => !selectedCategoryIds.includes(category.id))
+      .sort((a, b) => a.total - b.total)
 
     if (nonSelectedCategories.length > 0) {
       return (
@@ -47,10 +47,14 @@ export default function CategoriesData(props: Props) {
               {
                 dataKey: "total",
                 valueFormatter: (n: number) => {
+                  const percentage = Math.round(
+                    (n / nonMetaCategoriesTotalValue) * 100,
+                  ).toFixed(2)
+
                   if (n >= 0) {
-                    return `€${n.toFixed(2)}`
+                    return `€${n.toFixed(2)} (${percentage}%)`
                   } else {
-                    return `-€${Math.abs(n).toFixed(2)}`
+                    return `-€${Math.abs(n).toFixed(2)} (${percentage}%)`
                   }
                 },
               },
