@@ -8,7 +8,9 @@
     "ecmaVersion": "latest",
     "sourceType": "module"
   },
-  "rules": {},
+  "rules": {
+    "@typescript-eslint/no-redeclare": 0
+  },
   "overrides": [
     {
       "files": "**/*.test.ts",
