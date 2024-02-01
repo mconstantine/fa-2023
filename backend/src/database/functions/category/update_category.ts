@@ -1,4 +1,4 @@
-import { type FunctionTemplate } from "./template"
+import { type FunctionTemplate } from "../template"
 import * as S from "@effect/schema/Schema"
 
 export default {

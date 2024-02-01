@@ -1,5 +1,5 @@
-import { type FunctionTemplate } from "./template"
 import * as S from "@effect/schema/Schema"
+import { type FunctionTemplate } from "../template"
 
 export default {
   name: "insert_category",
@@ -26,3 +26,10 @@ const InsertCategoryInput = S.struct({
 
 export interface InsertCategoryInput
   extends S.Schema.To<typeof InsertCategoryInput> {}
+
+/*
+TODO:
+- create category codec
+- create insertCategory function
+- test insertCategory function
+*/

@@ -39,7 +39,7 @@ const FunctionArgs = S.struct({
 
 interface FunctionArgs extends S.Schema.To<typeof FunctionArgs> {}
 
-const FunctionTemplate = FunctionArgs.pipe(S.omit("body"))
+export const FunctionTemplate = FunctionArgs.pipe(S.omit("body"))
 
 export interface FunctionTemplate
   extends S.Schema.To<typeof FunctionTemplate> {}

@@ -1,3 +1,4 @@
+import * as S from "@effect/schema/Schema"
 import {
   Pool,
   type PoolClient,
@@ -9,6 +10,7 @@ import {
   type Submittable,
 } from "pg"
 import { env } from "../env"
+import { Effect, pipe } from "effect"
 
 const db = new Pool({
   host: env.DB_HOST,
@@ -65,4 +67,32 @@ export async function query(
   const result = await client.query(...args)
   client.release()
   return result
+}
+
+export async function getMany<I, O>(
+  codec: S.Schema<never, I, O>,
+  queryText: string,
+): Promise<readonly O[]> {
+  const result = await query<I[]>(queryText)
+  const validation = pipe(result.rows, S.decodeUnknown(S.array(codec)))
+
+  return await Effect.runPromise(validation)
+}
+
+export async function transact<O>(
+  callback: (client: PoolClient) => Promise<O>,
+): Promise<O> {
+  const client = await db.connect()
+
+  try {
+    await client.query("begin")
+    const result = await callback(client)
+    await client.query("commit")
+    return result
+  } catch (e) {
+    await client.query("rollback")
+    throw e
+  } finally {
+    client.release()
+  }
 }

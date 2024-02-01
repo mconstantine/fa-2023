@@ -1,6 +1,6 @@
 /** @type {import('ts-jest').JestConfigWithTsJest} */
 module.exports = {
-  preset: "ts-jest",
+  transform: { "^.+\\.ts$": "@swc/jest" },
   testEnvironment: "node",
   rootDir: "./src",
   globalSetup: "./setupTests.ts",

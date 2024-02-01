@@ -1,4 +1,4 @@
-import { type FunctionTemplate } from "./template"
+import { type FunctionTemplate } from "../template"
 
 export default {
   name: "delete_category",
