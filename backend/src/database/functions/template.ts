@@ -1,46 +1,70 @@
-type ArgMode = "IN" | "OUT" | "INOUT" | "VARIADIC"
-type ArgVolatility = "VOLATILE" | "STABLE" | "IMMUTABLE"
-type ArgParallel = "UNSAFE" | "RESTRICTED" | "SAFE"
+import * as S from "@effect/schema/Schema"
 
-interface FunctionTemplateArg {
-  mode?: ArgMode | undefined
-  name: string
-  type?: string | undefined
-  defaultExpr?: string | undefined
-}
+const ArgMode = S.union(
+  S.literal("IN"),
+  S.literal("OUT"),
+  S.literal("INOUT"),
+  S.literal("VARIADIC"),
+)
 
-interface FunctionArgs {
-  name: string
-  args: FunctionTemplateArg[]
-  returns?: string | undefined
-  volatility: ArgVolatility
-  leakproof: boolean
-  parallel: ArgParallel
-  cost?: number | undefined
-  body: string
-}
+const ArgVolatility = S.union(
+  S.literal("VOLATILE"),
+  S.literal("STABLE"),
+  S.literal("IMMUTABLE"),
+)
 
-export interface FunctionTemplate extends Omit<FunctionArgs, "body"> {}
+const ArgParallel = S.union(
+  S.literal("UNSAFE"),
+  S.literal("RESTRICTED"),
+  S.literal("SAFE"),
+)
+
+const FunctionTemplateArg = S.struct({
+  mode: ArgMode,
+  name: S.string.pipe(S.nonEmpty()),
+  type: S.string.pipe(S.nonEmpty()),
+  defaultExpr: S.nullable(S.string.pipe(S.nonEmpty())),
+})
+
+const FunctionArgs = S.struct({
+  name: S.string.pipe(S.nonEmpty()),
+  args: S.array(FunctionTemplateArg),
+  returns: S.string.pipe(S.nonEmpty()),
+  volatility: ArgVolatility,
+  leakproof: S.boolean,
+  parallel: ArgParallel,
+  cost: S.nullable(S.number.pipe(S.int()).pipe(S.greaterThanOrEqualTo(0))),
+  body: S.string.pipe(S.nonEmpty()),
+})
+
+interface FunctionArgs extends S.Schema.To<typeof FunctionArgs> {}
+
+const FunctionTemplate = FunctionArgs.pipe(S.omit("body"))
+
+export interface FunctionTemplate
+  extends S.Schema.To<typeof FunctionTemplate> {}
 
 export function template(t: FunctionArgs): string {
   const args = t.args
-    .map(
-      (arg) =>
-        `${arg.mode ?? "IN"} ${arg.name} ${arg.type ?? "jsonb"}${
-          typeof arg.defaultExpr === "undefined" ? ` = ${arg.defaultExpr}` : ""
-        }`,
-    )
+    .map((arg) => {
+      const defaultExpr =
+        arg.defaultExpr === null ? "" : ` = ${arg.defaultExpr}`
+
+      return `${arg.mode} ${arg.name} ${arg.type}${defaultExpr}`
+    })
     .join(", ")
+
+  const cost = t.cost ?? 100
 
   return `
     DROP FUNCTION IF EXISTS ${t.name};
     CREATE OR REPLACE FUNCTION ${t.name}(${args})
-    RETURNS ${t.returns ?? "jsonb"}
+    RETURNS ${t.returns}
     LANGUAGE 'plpgsql'
     ${t.volatility}
     ${t.leakproof ? "" : "NOT "} LEAKPROOF
     PARALLEL ${t.parallel}
-    COST ${t.cost ?? 100}
+    COST ${cost}
 
     AS $BODY$
     ${t.body}

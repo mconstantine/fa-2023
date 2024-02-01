@@ -5,12 +5,17 @@ export default {
   name: "insert_category",
   args: [
     {
+      mode: "IN",
+      type: "jsonb",
       name: "body",
+      defaultExpr: null,
     },
   ],
+  returns: "jsonb",
   volatility: "VOLATILE",
   leakproof: false,
   parallel: "UNSAFE",
+  cost: null,
 } satisfies FunctionTemplate
 
 const InsertCategoryInput = S.struct({
