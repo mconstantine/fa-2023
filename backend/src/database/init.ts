@@ -18,14 +18,14 @@ export async function initDatabase(): Promise<void> {
   await db.query(initQuery)
 
   await db.query(`
-    create table if not exists migrations
+    create table if not exists migration
     (
         name character varying(255) not null,
-        constraint migrations_pkey primary key (name)
+        constraint migration_pkey primary key (name)
     );
   `)
 
-  const migrations = await db.getMany(Migration, "select * from migrations")
+  const migrations = await db.getMany(Migration, "select * from migration")
   const migrationNames = migrations.map((m) => m.name)
 
   const migrationFiles = fs
@@ -45,7 +45,7 @@ export async function initDatabase(): Promise<void> {
       await db.transact(async (client) => {
         await client.query(sql)
 
-        await client.query("insert into migrations (name) values ($1)", [
+        await client.query("insert into migration (name) values ($1)", [
           migrationName,
         ])
       })
