@@ -113,39 +113,69 @@ export async function transact<O>(
   }
 }
 
+type Arg =
+  | number
+  | boolean
+  | string
+  | Record<string, any>
+  | Array<Record<string, any>>
+  | null
+
+function encodeInput(input: Arg): string {
+  switch (typeof input) {
+    case "bigint":
+    case "number":
+      return input.toString(10)
+    case "boolean":
+      return input ? "true" : "false"
+    case "string":
+      return `'${input}'`
+    case "function":
+    case "symbol":
+    case "undefined":
+      return "null"
+    case "object":
+      if (input === null) {
+        return "null"
+      } else {
+        return `'${JSON.stringify(input)}'`
+      }
+  }
+}
+
 export async function callFunction<OO, O>(
   name: string,
   outputCodec: S.Schema<never, OO, O>,
-  ...input: any[]
+  ...input: Arg[]
 ): Promise<O> {
   // eslint-disable-next-line array-callback-return
-  const encodedInput: string[] = input.map((arg) => {
-    switch (typeof arg) {
-      case "bigint":
-      case "number":
-        return arg.toString(10)
-      case "boolean":
-        return arg ? "true" : "false"
-      case "string":
-        return `'${arg}'`
-      case "function":
-      case "symbol":
-      case "undefined":
-        return "null"
-      case "object":
-        if (arg === null) {
-          return "null"
-        } else {
-          return `'${JSON.stringify(arg)}'`
-        }
-    }
-  })
+  const encodedInput: string[] = input.map(encodeInput)
 
   const queryText = `select * from ${name}(${encodedInput.join(
     ", ",
   )}) as result`
 
-  const result = await query<{ result: OO }>(queryText)
+  const result = await (async () => {
+    try {
+      return await query<{ result: OO }>(queryText)
+    } catch (e) {
+      if (typeof e === "object" && e !== null) {
+        if ("message" in e) {
+          console.log(`Error: ${e.message as string}`)
+        }
+
+        if ("internalQuery" in e) {
+          console.log(e.internalQuery)
+        }
+
+        if ("where" in e) {
+          console.log(e.where)
+        }
+      }
+
+      throw new Error(`Error in query ${name}, see details above`)
+    }
+  })()
 
   if (typeof result.rows[0] !== "undefined") {
     return S.decodeUnknownSync(outputCodec)(result.rows[0].result)
