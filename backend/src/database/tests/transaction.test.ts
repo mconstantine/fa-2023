@@ -8,11 +8,11 @@ describe("database transaction functions", () => {
     await db.query("delete from transaction")
   })
 
-  describe("insert_transaction", () => {
+  describe("insert transaction", () => {
     it("should work and convert the value", async () => {
       const result = await insertTransaction({
         description: "Insert transaction test",
-        value: 1.5,
+        value: 150,
         date: new Date(2020, 0, 1),
       })
 
