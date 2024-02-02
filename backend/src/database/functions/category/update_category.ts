@@ -1,5 +1,7 @@
 import { type FunctionTemplate } from "../template"
 import * as S from "@effect/schema/Schema"
+import * as db from "../../db"
+import { Category } from "./domain"
 
 export default {
   name: "update_category",
@@ -25,10 +27,17 @@ export default {
 } satisfies FunctionTemplate
 
 const UpdateCategoryInput = S.struct({
-  name: S.string.pipe(S.nonEmpty()),
-  is_meta: S.boolean,
-  keywords: S.array(S.string.pipe(S.nonEmpty())),
+  name: S.optional(S.string.pipe(S.nonEmpty())),
+  is_meta: S.optional(S.boolean),
+  keywords: S.optional(S.array(S.string.pipe(S.nonEmpty()))),
 })
 
 export interface UpdateCategoryInput
   extends S.Schema.To<typeof UpdateCategoryInput> {}
+
+export async function updateCategory(
+  id: S.Schema.To<typeof S.UUID>,
+  body: UpdateCategoryInput,
+): Promise<Category> {
+  return await db.callFunction("update_category", Category, id, body)
+}

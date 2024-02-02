@@ -106,8 +106,8 @@ return jsonb_build_object(
 		'total_count', total_count,
 		'start_cursor', start_cursor,
 		'end_cursor', end_cursor,
-		'has_previous_page', not includes_min_cursor,
-		'has_next_page', not includes_max_cursor
+		'has_previous_page', total_count > 0 and not includes_min_cursor,
+		'has_next_page', total_count > 0 and not includes_max_cursor
 	),
 	'edges', result
 );

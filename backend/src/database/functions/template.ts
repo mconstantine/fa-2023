@@ -1,23 +1,8 @@
 import * as S from "@effect/schema/Schema"
 
-const ArgMode = S.union(
-  S.literal("IN"),
-  S.literal("OUT"),
-  S.literal("INOUT"),
-  S.literal("VARIADIC"),
-)
-
-const ArgVolatility = S.union(
-  S.literal("VOLATILE"),
-  S.literal("STABLE"),
-  S.literal("IMMUTABLE"),
-)
-
-const ArgParallel = S.union(
-  S.literal("UNSAFE"),
-  S.literal("RESTRICTED"),
-  S.literal("SAFE"),
-)
+const ArgMode = S.literal("IN", "OUT", "INOUT", "VARIADIC")
+const ArgVolatility = S.literal("VOLATILE", "STABLE", "IMMUTABLE")
+const ArgParallel = S.literal("UNSAFE", "RESTRICTED", "SAFE")
 
 const FunctionTemplateArg = S.struct({
   mode: ArgMode,

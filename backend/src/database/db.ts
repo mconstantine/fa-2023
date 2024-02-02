@@ -69,11 +69,27 @@ export async function query(
   return result
 }
 
+export async function getOne<I, O>(
+  codec: S.Schema<never, I, O>,
+  queryText: string,
+  params?: any[],
+): Promise<O> {
+  const result = await query<I[]>(queryText, params)
+
+  if (typeof result.rows[0] === "undefined") {
+    throw new Error(`Nothing found for query: ${queryText}`)
+  } else {
+    const validation = pipe(result.rows[0], S.decodeUnknown(codec))
+    return await Effect.runPromise(validation)
+  }
+}
+
 export async function getMany<I, O>(
   codec: S.Schema<never, I, O>,
   queryText: string,
+  params?: any[],
 ): Promise<readonly O[]> {
-  const result = await query<I[]>(queryText)
+  const result = await query<I[]>(queryText, params)
   const validation = pipe(result.rows, S.decodeUnknown(S.array(codec)))
 
   return await Effect.runPromise(validation)

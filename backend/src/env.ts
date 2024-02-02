@@ -2,7 +2,7 @@ import * as S from "@effect/schema/Schema"
 import { pipe } from "effect"
 
 const Env = S.struct({
-  NODE_ENV: S.union(S.literal("development"), S.literal("test")),
+  NODE_ENV: S.literal("development", "test"),
   DB_HOST: S.string.pipe(S.nonEmpty()),
   DB_USER: S.string.pipe(S.nonEmpty()),
   DB_PASSWORD: S.string.pipe(S.nonEmpty()),

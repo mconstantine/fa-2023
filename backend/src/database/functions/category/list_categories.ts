@@ -1,4 +1,7 @@
+import { PaginationResponse, type PaginationQuery } from "../../Pagination"
+import * as db from "../../db"
 import { type FunctionTemplate } from "../template"
+import { Category } from "./domain"
 
 export default {
   name: "list_categories",
@@ -22,3 +25,15 @@ export default {
   parallel: "SAFE",
   cost: null,
 } satisfies FunctionTemplate
+
+export async function listCategories(
+  searchQuery: string,
+  paginationQuery: PaginationQuery,
+): Promise<PaginationResponse<Category>> {
+  return await db.callFunction(
+    "list_categories",
+    PaginationResponse(Category),
+    paginationQuery,
+    searchQuery,
+  )
+}
