@@ -55,7 +55,9 @@ export async function initDatabase(): Promise<void> {
   const functionFiles = await glob(path.join(__dirname, "functions/**/*.ts"), {
     ignore: {
       ignored: (path) =>
-        typeof path.parent === "undefined" || path.parent.isNamed("functions"),
+        typeof path.parent === "undefined" ||
+        path.parent.isNamed("functions") ||
+        path.isNamed("domain.ts"),
     },
   })
 

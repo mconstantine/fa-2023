@@ -1,5 +1,7 @@
 import * as S from "@effect/schema/Schema"
 import { type FunctionTemplate } from "../template"
+import { Category } from "./domain"
+import * as db from "../../db"
 
 export default {
   name: "insert_category",
@@ -27,9 +29,8 @@ const InsertCategoryInput = S.struct({
 export interface InsertCategoryInput
   extends S.Schema.To<typeof InsertCategoryInput> {}
 
-/*
-TODO:
-- create category codec
-- create insertCategory function
-- test insertCategory function
-*/
+export async function insertCategory(
+  body: InsertCategoryInput,
+): Promise<Category> {
+  return await db.callFunction("insert_category", Category, body)
+}

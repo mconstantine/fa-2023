@@ -96,3 +96,44 @@ export async function transact<O>(
     client.release()
   }
 }
+
+export async function callFunction<OO, O>(
+  name: string,
+  outputCodec: S.Schema<never, OO, O>,
+  ...input: any[]
+): Promise<O> {
+  // eslint-disable-next-line array-callback-return
+  const encodedInput: string[] = input.map((arg) => {
+    switch (typeof arg) {
+      case "bigint":
+      case "number":
+        return arg.toString(10)
+      case "boolean":
+        return arg ? "true" : "false"
+      case "string":
+        return `'${arg}'`
+      case "function":
+      case "symbol":
+      case "undefined":
+        return "null"
+      case "object":
+        if (arg === null) {
+          return "null"
+        } else {
+          return `'${JSON.stringify(arg)}'`
+        }
+    }
+  })
+
+  const queryText = `select * from ${name}(${encodedInput.join(
+    ", ",
+  )}) as result`
+
+  const result = await query<{ result: OO }>(queryText)
+
+  if (typeof result.rows[0] !== "undefined") {
+    return S.decodeUnknownSync(outputCodec)(result.rows[0].result)
+  } else {
+    throw new Error(`Function ${name} did not return anything`)
+  }
+}
