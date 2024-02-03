@@ -9,6 +9,7 @@ import { updateCategory } from "../functions/category/update_category"
 import { deleteCategory } from "../functions/category/delete_category"
 import { listCategories } from "../functions/category/list_categories"
 import { PaginationResponse } from "../Pagination"
+import { insertTransaction } from "../functions/transaction/insert_transaction"
 
 describe("database category functions", () => {
   afterAll(async () => {
@@ -75,6 +76,44 @@ describe("database category functions", () => {
           category.id,
         ])
       }).rejects.toBeTruthy()
+    })
+
+    it("should cascade on transactions", async () => {
+      const TransactionsCategories = S.struct({
+        transaction_id: S.UUID,
+        category_id: S.UUID,
+      })
+
+      const category = await insertCategory({
+        name: "Relationship with transactions test",
+        is_meta: false,
+        keywords: [],
+      })
+
+      const transaction = await insertTransaction({
+        description: "Relationship with categories test",
+        value: 690,
+        date: new Date(2020, 0, 1),
+        categoriesIds: [category.id],
+      })
+
+      const relationshipBefore = await db.getMany(
+        TransactionsCategories,
+        "select * from transactions_categories where transaction_id = $1",
+        [transaction.id],
+      )
+
+      expect(relationshipBefore.length).toBe(1)
+
+      await deleteCategory(category.id)
+
+      const relationshipAfter = await db.getMany(
+        TransactionsCategories,
+        "select * from transactions_categories where transaction_id = $1",
+        [transaction.id],
+      )
+
+      expect(relationshipAfter.length).toBe(0)
     })
   })
 

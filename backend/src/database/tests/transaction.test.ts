@@ -317,7 +317,43 @@ describe("database transaction functions", () => {
       }).rejects.toBeTruthy()
     })
 
-    it.todo("should cascade on categories")
+    it("should cascade on categories", async () => {
+      const TransactionsCategories = S.struct({
+        transaction_id: S.UUID,
+        category_id: S.UUID,
+      })
+
+      const category = await insertCategory({
+        name: "Relationship with transactions test",
+        is_meta: false,
+        keywords: [],
+      })
+
+      const transaction = await insertTransaction({
+        description: "Relationship with categories test",
+        value: 690,
+        date: new Date(2020, 0, 1),
+        categoriesIds: [category.id],
+      })
+
+      const relationshipBefore = await db.getMany(
+        TransactionsCategories,
+        "select * from transactions_categories where transaction_id = $1",
+        [transaction.id],
+      )
+
+      expect(relationshipBefore.length).toBe(1)
+
+      await deleteTransaction(transaction.id)
+
+      const relationshipAfter = await db.getMany(
+        TransactionsCategories,
+        "select * from transactions_categories where transaction_id = $1",
+        [transaction.id],
+      )
+
+      expect(relationshipAfter.length).toBe(0)
+    })
   })
 
   describe("list transactions", () => {
