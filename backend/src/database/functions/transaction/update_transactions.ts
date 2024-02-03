@@ -1,7 +1,7 @@
 import * as S from "@effect/schema/Schema"
 import { type FunctionTemplate } from "../template"
 import { type UpdateTransactionInput } from "./update_transaction"
-import { Transaction } from "./domain"
+import { TransactionWithCategories } from "./domain"
 import * as db from "../../db"
 
 export default {
@@ -32,10 +32,10 @@ const UpdateTransactionsIds = S.array(S.UUID)
 export async function updateTransactions(
   ids: S.Schema.To<typeof UpdateTransactionsIds>,
   body: UpdateTransactionInput,
-): Promise<readonly Transaction[]> {
+): Promise<readonly TransactionWithCategories[]> {
   return await db.callFunction(
     "update_transactions",
-    S.array(Transaction),
+    S.array(TransactionWithCategories),
     `{${ids.join(", ")}}`,
     body,
   )

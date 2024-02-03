@@ -1,28 +1,50 @@
-declare record transaction;
+declare update transaction;
+declare updated_ids uuid[];
 declare result jsonb;
 
 begin
 
-select * from jsonb_populate_record(null::transaction, body) into record;
-create temp table tmp (encoded jsonb) on commit drop;
+select * from jsonb_populate_record(null::transaction, body) into update;
 
 with updated as (
   update transaction
   set
-    description = coalesce(record.description, description),
-    value = coalesce(record.value, value),
-    date = coalesce(record.date, date)
+    description = coalesce(update.description, description),
+    value = coalesce(update.value, value),
+    date = coalesce(update.date, date)
   where id = any (ids)
-  returning *
+  returning id
 )
-insert into tmp select jsonb_agg(json_build_object(
-  'id', id,
-  'description', description,
-  'value', value,
-  'date', date
-)) from updated;
+select array_agg(updated.id) from updated into updated_ids;
 
-select encoded from tmp limit 1 into result;
-return result;
+for i in 1 .. array_upper(updated_ids, 1)
+loop
+  if jsonb_array_length((body->>'categoriesIds')::jsonb) > 0 then
+    delete from transactions_categories where transaction_id = updated_ids[i];
+
+    insert into transactions_categories (transaction_id, category_id)
+    select updated_ids[i], category_id::uuid
+    from jsonb_array_elements_text((body->>'categoriesIds')::jsonb) as category_id;
+  end if;
+end loop;
+
+return (
+  select json_arrayagg(r.*) from (
+    select t.*, coalesce(
+      (
+        select array_agg(c.*)
+        from category c
+        where c.id in (
+          select tc.category_id
+          from transactions_categories tc
+          where tc.transaction_id = t.id
+        )
+      ),
+      '{}'::category[]
+    ) as categories
+    from transaction t
+    where id = any (updated_ids)
+  ) r
+);
 
 end

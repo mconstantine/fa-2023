@@ -150,7 +150,22 @@ describe("database transaction functions", () => {
       expect(rawResult.rows[0].value).toBe(840)
     })
 
-    it.todo("should update categories")
+    it("should update categories", async () => {
+      const transaction = await insertTransaction({
+        description: "Update transaction with categories test",
+        value: 420,
+        date: new Date(2020, 0, 1),
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        categoriesIds: [categories[0]!.id],
+      })
+
+      const result = await updateTransaction(transaction.id, {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        categoriesIds: [categories[1]!.id],
+      })
+
+      expect(result.categories).toEqual([categories[1]])
+    })
 
     it("should work with an empty update", async () => {
       const transaction = await insertTransaction({
@@ -217,7 +232,34 @@ describe("database transaction functions", () => {
       expect(rawResult.rows[1].value).toBe(420)
     })
 
-    it.todo("should update categories")
+    it("should update categories", async () => {
+      const transactions = await insertTransactions([
+        {
+          description: "Bulk transactions update with categories test 1",
+          value: 150,
+          date: new Date(2020, 0, 1),
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          categoriesIds: [categories[0]!.id],
+        },
+        {
+          description: "Bulk transactions update with categories test 2",
+          value: 300,
+          date: new Date(2020, 0, 2),
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          categoriesIds: [categories[1]!.id],
+        },
+      ])
+
+      const result = await updateTransactions(
+        transactions.map((t) => t.id),
+        {
+          categoriesIds: categories.map((c) => c.id),
+        },
+      )
+
+      expect(result[0]?.categories).toEqual(categories)
+      expect(result[1]?.categories).toEqual(categories)
+    })
 
     it("should work with an empty update", async () => {
       const transactions = await insertTransactions([
