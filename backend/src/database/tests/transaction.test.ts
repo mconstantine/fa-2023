@@ -31,6 +31,8 @@ describe("database transaction functions", () => {
 
       expect(rawResult.rows[0].value).toBe(150)
     })
+
+    it.todo("should add categories")
   })
 
   describe("bulk transactions insertion", () => {
@@ -64,6 +66,8 @@ describe("database transaction functions", () => {
       expect(rawResult.rows[0].value).toBe(150)
       expect(rawResult.rows[1].value).toBe(300)
     })
+
+    it.todo("should add categories")
   })
 
   describe("update transaction", () => {
@@ -92,6 +96,8 @@ describe("database transaction functions", () => {
 
       expect(rawResult.rows[0].value).toBe(840)
     })
+
+    it.todo("should update categories")
 
     it("should work with an empty update", async () => {
       const transaction = await insertTransaction({
@@ -155,6 +161,8 @@ describe("database transaction functions", () => {
       expect(rawResult.rows[1].value).toBe(420)
     })
 
+    it.todo("should update categories")
+
     it("should work with an empty update", async () => {
       const transactions = await insertTransactions([
         {
@@ -206,6 +214,46 @@ describe("database transaction functions", () => {
           [transaction.id],
         )
       }).rejects.toBeTruthy()
+    })
+
+    it.todo("should cascade on categories")
+  })
+
+  describe("list transactions", () => {
+    describe("with empty table", () => {
+      it.todo("should work")
+    })
+
+    describe("with data", () => {
+      describe("pagination", () => {
+        it.todo("should work")
+        it.todo("should work in forward direction, first page")
+        it.todo("should work in forward direction, middle page")
+        it.todo("should work in forward direction, last page")
+        it.todo("should work in backward direction, first page")
+        it.todo("should work in backward direction, middle page")
+        it.todo("should work in backward direction, last page")
+      })
+
+      describe("filters", () => {
+        describe("subject", () => {
+          it.todo("should work with no filters")
+          it.todo("should search in description")
+          it.todo("should find by value")
+          it.todo("should handle min greater than max")
+        })
+
+        describe("categories", () => {
+          it.todo("should find with all categories")
+          it.todo("should find uncategorized only")
+          it.todo("should find by specific categories")
+        })
+
+        describe("date range", () => {
+          it.todo("should find by date range")
+          it.todo("should handle inverse date ranges")
+        })
+      })
     })
   })
 })
