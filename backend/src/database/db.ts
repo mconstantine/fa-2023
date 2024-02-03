@@ -164,11 +164,11 @@ export async function callFunction<OO, O>(
           console.log(`Error: ${e.message as string}`)
         }
 
-        if ("internalQuery" in e) {
+        if ("internalQuery" in e && typeof e.internalQuery !== "undefined") {
           console.log(e.internalQuery)
         }
 
-        if ("where" in e) {
+        if ("where" in e && typeof e.where !== "undefined") {
           console.log(e.where)
         }
       }

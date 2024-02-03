@@ -1,23 +1,40 @@
-declare result jsonb;
+declare created_ids uuid[];
+declare created_id uuid;
 
 begin
 
-create temp table tmp (encoded jsonb) on commit drop;
-
-with inserted as (
+with created as (
   insert into transaction (description, value, date)
   select description, value, date
   from jsonb_populate_recordset(null::transaction, body)
-  returning *
+  returning id
 )
-insert into tmp select jsonb_agg(json_build_object(
-  'id', id,
-  'description', description,
-  'value', value,
-  'date', date
-)) from inserted;
+select array_agg(created.id) from created into created_ids;
 
-select encoded from tmp limit 1 into result;
-return result;
+for i in 1 .. array_upper(created_ids, 1)
+loop
+  insert into transactions_categories (transaction_id, category_id)
+  select created_ids[i], category_id::uuid
+  from jsonb_array_elements_text((body->(i - 1)->>'categoriesIds')::jsonb) as category_id;
+end loop;
+
+return (
+  select json_arrayagg(r.*) from (
+    select t.*, coalesce(
+      (
+        select array_agg(c.*)
+        from category c
+        where c.id in (
+          select tc.category_id
+          from transactions_categories tc
+          where tc.transaction_id = t.id
+        )
+      ),
+      '{}'::category[]
+    ) as categories
+    from transaction t
+    where id = any (created_ids)
+  ) r
+);
 
 end

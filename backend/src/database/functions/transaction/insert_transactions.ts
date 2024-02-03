@@ -1,6 +1,6 @@
 import * as S from "@effect/schema/Schema"
 import { type FunctionTemplate } from "../template"
-import { Transaction } from "./domain"
+import { TransactionWithCategories } from "./domain"
 import { type InsertTransactionInput } from "./insert_transaction"
 import * as db from "../../db"
 
@@ -23,10 +23,10 @@ export default {
 
 export async function insertTransactions(
   body: InsertTransactionInput[],
-): Promise<readonly Transaction[]> {
+): Promise<readonly TransactionWithCategories[]> {
   return await db.callFunction(
     "insert_transactions",
-    S.array(Transaction),
+    S.array(TransactionWithCategories),
     body,
   )
 }

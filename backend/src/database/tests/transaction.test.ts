@@ -7,10 +7,29 @@ import { updateTransaction } from "../functions/transaction/update_transaction"
 import { updateTransactions } from "../functions/transaction/update_transactions"
 import { deleteTransaction } from "../functions/transaction/delete_transaction"
 import { insertCategory } from "../functions/category/insert_category"
+import { type Category } from "../functions/category/domain"
 
 describe("database transaction functions", () => {
+  let categories: Category[]
+
+  beforeAll(async () => {
+    categories = await Promise.all([
+      await insertCategory({
+        name: "Transaction tests category 1",
+        is_meta: false,
+        keywords: [],
+      }),
+      await insertCategory({
+        name: "Transaction tests category 2",
+        is_meta: false,
+        keywords: [],
+      }),
+    ])
+  })
+
   afterAll(async () => {
     await db.query("delete from transaction")
+    await db.query("delete from category")
   })
 
   describe("insert transaction", () => {
@@ -35,19 +54,6 @@ describe("database transaction functions", () => {
     })
 
     it("should add categories", async () => {
-      const categories = await Promise.all([
-        await insertCategory({
-          name: "Transaction tests category 1",
-          is_meta: false,
-          keywords: [],
-        }),
-        await insertCategory({
-          name: "Transaction tests category 2",
-          is_meta: false,
-          keywords: [],
-        }),
-      ])
-
       const result = await insertTransaction({
         description: "Insert transaction with categories test",
         value: 1300,
@@ -93,7 +99,27 @@ describe("database transaction functions", () => {
       expect(rawResult.rows[1].value).toBe(300)
     })
 
-    it.todo("should add categories")
+    it("should add categories", async () => {
+      const result = await insertTransactions([
+        {
+          description: "Bulk transactions insertion with categories test 1",
+          value: 150,
+          date: new Date(2020, 0, 1),
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          categoriesIds: [categories[0]!.id],
+        },
+        {
+          description: "Bulk transactions insertion with categories test 2",
+          value: 300,
+          date: new Date(2020, 0, 2),
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          categoriesIds: [categories[1]!.id],
+        },
+      ])
+
+      expect(result[0]?.categories).toEqual([categories[0]])
+      expect(result[1]?.categories).toEqual([categories[1]])
+    })
   })
 
   describe("update transaction", () => {
