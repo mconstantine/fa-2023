@@ -5,6 +5,7 @@ import { Transaction } from "../functions/transaction/domain"
 import { insertTransactions } from "../functions/transaction/insert_transactions"
 import { updateTransaction } from "../functions/transaction/update_transaction"
 import { updateTransactions } from "../functions/transaction/update_transactions"
+import { deleteTransaction } from "../functions/transaction/delete_transaction"
 
 describe("database transaction functions", () => {
   afterAll(async () => {
@@ -183,6 +184,28 @@ describe("database transaction functions", () => {
       expect(result[1]?.value).toBe(transactions[1]?.value)
       expect(result[0]?.date).toEqual(transactions[0]?.date)
       expect(result[1]?.date).toEqual(transactions[1]?.date)
+    })
+  })
+
+  describe("delete transaction", () => {
+    it("should work", async () => {
+      const transaction = await insertTransaction({
+        description: "Delete transaction test",
+        value: 42,
+        date: new Date(2020, 0, 1),
+      })
+
+      const result = await deleteTransaction(transaction.id)
+
+      expect(result.id).toBe(transaction.id)
+
+      await expect(async () => {
+        await db.getOne(
+          Transaction,
+          "select * from transaction where id = $1",
+          [transaction.id],
+        )
+      }).rejects.toBeTruthy()
     })
   })
 })

@@ -39,7 +39,7 @@ describe("database category functions", () => {
     })
   })
 
-  describe("update_category", () => {
+  describe("update category", () => {
     it("should work", async () => {
       const category = await insertCategory({
         name: "Update category test",
