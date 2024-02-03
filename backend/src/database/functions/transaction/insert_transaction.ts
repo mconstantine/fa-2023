@@ -1,6 +1,6 @@
 import * as S from "@effect/schema/Schema"
 import { type FunctionTemplate } from "../template"
-import { Transaction } from "./domain"
+import { TransactionWithCategories } from "./domain"
 import * as db from "../../db"
 
 export default {
@@ -30,6 +30,7 @@ export const InsertTransactionInput = S.struct({
     ),
   ),
   date: S.DateFromString,
+  categoriesIds: S.array(S.UUID),
 })
 
 export interface InsertTransactionInput
@@ -37,6 +38,10 @@ export interface InsertTransactionInput
 
 export async function insertTransaction(
   body: InsertTransactionInput,
-): Promise<Transaction> {
-  return await db.callFunction("insert_transaction", Transaction, body)
+): Promise<TransactionWithCategories> {
+  return await db.callFunction(
+    "insert_transaction",
+    TransactionWithCategories,
+    body,
+  )
 }

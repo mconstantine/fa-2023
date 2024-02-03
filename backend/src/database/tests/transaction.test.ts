@@ -6,6 +6,7 @@ import { insertTransactions } from "../functions/transaction/insert_transactions
 import { updateTransaction } from "../functions/transaction/update_transaction"
 import { updateTransactions } from "../functions/transaction/update_transactions"
 import { deleteTransaction } from "../functions/transaction/delete_transaction"
+import { insertCategory } from "../functions/category/insert_category"
 
 describe("database transaction functions", () => {
   afterAll(async () => {
@@ -18,6 +19,7 @@ describe("database transaction functions", () => {
         description: "Insert transaction test",
         value: 150,
         date: new Date(2020, 0, 1),
+        categoriesIds: [],
       })
 
       expect(S.is(S.UUID)(result.id)).toBe(true)
@@ -32,7 +34,29 @@ describe("database transaction functions", () => {
       expect(rawResult.rows[0].value).toBe(150)
     })
 
-    it.todo("should add categories")
+    it("should add categories", async () => {
+      const categories = await Promise.all([
+        await insertCategory({
+          name: "Transaction tests category 1",
+          is_meta: false,
+          keywords: [],
+        }),
+        await insertCategory({
+          name: "Transaction tests category 2",
+          is_meta: false,
+          keywords: [],
+        }),
+      ])
+
+      const result = await insertTransaction({
+        description: "Insert transaction with categories test",
+        value: 1300,
+        date: new Date(2020, 0, 1),
+        categoriesIds: categories.map((category) => category.id),
+      })
+
+      expect(result.categories).toEqual(categories)
+    })
   })
 
   describe("bulk transactions insertion", () => {
@@ -42,11 +66,13 @@ describe("database transaction functions", () => {
           description: "Bulk transactions insertion test 1",
           value: 150,
           date: new Date(2020, 0, 1),
+          categoriesIds: [],
         },
         {
           description: "Bulk transactions insertion test 2",
           value: 300,
           date: new Date(2020, 0, 2),
+          categoriesIds: [],
         },
       ])
 
@@ -76,6 +102,7 @@ describe("database transaction functions", () => {
         description: "Update transaction test",
         value: 420,
         date: new Date(2020, 0, 1),
+        categoriesIds: [],
       })
 
       const result = await updateTransaction(transaction.id, {
@@ -104,6 +131,7 @@ describe("database transaction functions", () => {
         description: "Update transaction test",
         value: 420,
         date: new Date(2020, 0, 1),
+        categoriesIds: [],
       })
 
       const result = await updateTransaction(transaction.id, {})
@@ -122,11 +150,13 @@ describe("database transaction functions", () => {
           description: "Bulk transactions update test 1",
           value: 150,
           date: new Date(2020, 0, 1),
+          categoriesIds: [],
         },
         {
           description: "Bulk transactions update test 2",
           value: 300,
           date: new Date(2020, 0, 2),
+          categoriesIds: [],
         },
       ])
 
@@ -169,11 +199,13 @@ describe("database transaction functions", () => {
           description: "Bulk transactions update test 1",
           value: 150,
           date: new Date(2020, 0, 1),
+          categoriesIds: [],
         },
         {
           description: "Bulk transactions update test 2",
           value: 300,
           date: new Date(2020, 0, 2),
+          categoriesIds: [],
         },
       ])
 
@@ -201,6 +233,7 @@ describe("database transaction functions", () => {
         description: "Delete transaction test",
         value: 42,
         date: new Date(2020, 0, 1),
+        categoriesIds: [],
       })
 
       const result = await deleteTransaction(transaction.id)
