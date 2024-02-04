@@ -37,7 +37,7 @@ declare c cursor for
 	order by
 		case when p.direction = 'backward' then name end desc,
 		case when p.direction = 'forward' then name end asc
-	limit coalesce(p.count, 1);
+	limit p.count;
 
 begin
 
