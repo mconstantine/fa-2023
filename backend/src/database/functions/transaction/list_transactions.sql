@@ -14,42 +14,57 @@ declare result jsonb := '[]'::jsonb;
 
 declare c cursor for
 	select
-    t.*,
-    coalesce(
-      (
-        select array_agg(c.*)
-        from category c
-        where c.id in (
-          select tc.category_id
-          from transactions_categories tc
-          where tc.transaction_id = t.id
-        )
-      ),
-      '{}'::category[]
-    ) as categories
+		t.*,
+		coalesce(
+			(
+				select array_agg(c.*)
+				from category c
+				where
+					c.id in (
+						select tc.category_id
+						from transactions_categories tc
+						where tc.transaction_id = t.id
+					)
+			),
+			'{}'::category[]
+		) as categories
 	from transaction t
-	where case
-		when p.direction = 'forward' and p.target is not null
-		then t.date < (
-			select date
-			from transaction
-			where id = p.target
-		)
-		when p.direction = 'backward' and p.target is not null
-		then t.date > (
-			select date
-			from transaction
-			where id = p.target
-		)
-		else true
-		end
-	and case
-		when f.subject = 'description' and f.search_query != ''
-		then lower(description) like concat('%', lower(f.search_query), '%')
-    when f.subject = 'value'
-    then value >= f.min and value <= f.max
-		else true
-		end
+	left join transactions_categories tc on tc.transaction_id = t.id
+	where
+		case
+			when p.direction = 'forward' and p.target is not null
+			then t.date < (
+				select date
+				from transaction
+				where id = p.target
+			)
+			when p.direction = 'backward' and p.target is not null
+			then t.date > (
+				select date
+				from transaction
+				where id = p.target
+			)
+			else true
+			end
+		and case
+			when f.subject = 'description' and f.search_query != ''
+			then lower(description) like concat('%', lower(f.search_query), '%')
+			when f.subject = 'value'
+			then value >= f.min and value <= f.max
+			else true
+			end
+		and case
+			when f.categories = 'all'
+			then true
+			when f.categories = 'uncategorized'
+			then tc.category_id is null
+			when f.categories = 'specific'
+			then tc.category_id = any(f.categories_ids)
+			else false
+			end
+		and t.date >= f.date_since
+		and t.date <= f.date_until
+	group by t.id
 	order by
 		case when p.direction = 'forward' then t.date end desc,
 		case when p.direction = 'backward' then t.date end asc
@@ -70,25 +85,42 @@ select * from jsonb_populate_record(
 into f;
 
 select
-	count(id),
+	count(r.id),
 	case
 		when p.direction = 'backward'
-		then min(date)
-		else max(date)
+		then min(r.date)
+		else max(r.date)
 		end,
 	case
 		when p.direction = 'backward'
-		then max(date)
-		else min(date)
+		then max(r.date)
+		else min(r.date)
 		end
-from transaction
-where case
-	when f.subject = 'description' and f.search_query != ''
-	then lower(description) like concat('%', lower(f.search_query), '%')
-  when f.subject = 'value'
-  then value >= f.min and value <= f.max
-	else true
-	end
+from (
+	select t.id, t.date
+	from transaction t
+	left join transactions_categories tc on tc.transaction_id = t.id
+	where
+		case
+			when f.subject = 'description' and f.search_query != ''
+			then lower(t.description) like concat('%', lower(f.search_query), '%')
+			when f.subject = 'value'
+			then t.value >= f.min and t.value <= f.max
+			else true
+			end
+		and case
+			when f.categories = 'all'
+			then true
+			when f.categories = 'uncategorized'
+			then tc.category_id is null
+			when f.categories = 'specific'
+			then tc.category_id = any(f.categories_ids)
+			else false
+			end
+		and date >= f.date_since
+		and date <= f.date_until
+	group by t.id
+) r
 into total_count, min_date, max_date;
 
 select id

@@ -362,16 +362,42 @@ describe("database transaction functions", () => {
   })
 
   describe("list transactions", () => {
+    beforeAll(async () => {
+      await db.query("delete from transaction")
+    })
+
     describe("with empty table", () => {
-      it.todo("should work")
+      it("should work", async () => {
+        const result = await listTransactions(
+          {
+            direction: "forward",
+            count: 10,
+          },
+          {
+            subject: "none",
+            categories: "all",
+            date_since: new Date(2020, 0, 1),
+            date_until: new Date(2020, 11, 31),
+          },
+        )
+
+        expect(result).toEqual({
+          page_info: {
+            total_count: 0,
+            start_cursor: Option.none(),
+            end_cursor: Option.none(),
+            has_previous_page: false,
+            has_next_page: false,
+          },
+          edges: [],
+        })
+      })
     })
 
     describe("with data", () => {
       let transactions: readonly TransactionWithCategories[]
 
       beforeAll(async () => {
-        await db.query("delete from transaction")
-
         transactions = await insertTransactions([
           {
             description: "AX",
@@ -733,14 +759,127 @@ describe("database transaction functions", () => {
         })
 
         describe("categories", () => {
-          it.todo("should find with all categories")
-          it.todo("should find uncategorized only")
-          it.todo("should find by specific categories")
+          it("should find uncategorized only", async () => {
+            const result = await listTransactions(
+              {
+                direction: "forward",
+                count: 10,
+              },
+              {
+                subject: "none",
+                categories: "uncategorized",
+                date_since: new Date(2020, 0, 1),
+                date_until: new Date(2020, 11, 31),
+              },
+            )
+
+            expect(result).toEqual({
+              page_info: {
+                total_count: 1,
+                start_cursor: Option.some(transactions[3]?.id),
+                end_cursor: Option.some(transactions[3]?.id),
+                has_previous_page: false,
+                has_next_page: false,
+              },
+              edges: [transactions[3]].map((t) => ({
+                cursor: t?.id,
+                node: t,
+              })),
+            })
+          })
+
+          it("should find by specific categories", async () => {
+            const result = await listTransactions(
+              {
+                direction: "forward",
+                count: 10,
+              },
+              {
+                subject: "none",
+                categories: "specific",
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                categories_ids: [categories[0]!.id],
+                date_since: new Date(2020, 0, 1),
+                date_until: new Date(2020, 11, 31),
+              },
+            )
+
+            expect(result).toEqual({
+              page_info: {
+                total_count: 4,
+                start_cursor: Option.some(transactions[0]?.id),
+                end_cursor: Option.some(transactions[6]?.id),
+                has_previous_page: false,
+                has_next_page: false,
+              },
+              edges: [
+                transactions[0],
+                transactions[1],
+                transactions[5],
+                transactions[6],
+              ].map((t) => ({
+                cursor: t?.id,
+                node: t,
+              })),
+            })
+          })
         })
 
         describe("date range", () => {
-          it.todo("should find by date range")
-          it.todo("should handle inverse date ranges")
+          it("should find by date range", async () => {
+            const result = await listTransactions(
+              {
+                direction: "forward",
+                count: 10,
+              },
+              {
+                subject: "none",
+                categories: "all",
+                date_since: new Date(2020, 2, 1),
+                date_until: new Date(2020, 3, 1),
+              },
+            )
+
+            expect(result).toEqual({
+              page_info: {
+                total_count: 3,
+                start_cursor: Option.some(transactions[0]?.id),
+                end_cursor: Option.some(transactions[2]?.id),
+                has_previous_page: false,
+                has_next_page: false,
+              },
+              edges: transactions.slice(0, 3).map((t) => ({
+                cursor: t?.id,
+                node: t,
+              })),
+            })
+          })
+
+          it("should handle inverse date ranges", async () => {
+            const result = await listTransactions(
+              {
+                direction: "forward",
+                count: 10,
+              },
+              {
+                subject: "none",
+                categories: "all",
+                date_since: new Date(2020, 3, 1),
+                date_until: new Date(2020, 2, 1),
+              },
+            )
+
+            expect(result).toEqual({
+              page_info: {
+                total_count: 0,
+                start_cursor: Option.none(),
+                end_cursor: Option.none(),
+                has_previous_page: false,
+                has_next_page: false,
+              },
+              edges: [],
+            })
+          })
         })
       })
     })
