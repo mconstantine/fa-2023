@@ -159,21 +159,24 @@ export async function callFunction<OO, O>(
     try {
       return await query<{ result: OO }>(queryText)
     } catch (e) {
-      if (typeof e === "object" && e !== null) {
-        if ("message" in e) {
-          console.log(`Error: ${e.message as string}`)
+      const message = (() => {
+        if (typeof e === "object" && e !== null) {
+          return [
+            `Error in query "${name}":`,
+            "message" in e ? `Error: ${e.message as string}` : "",
+            "internalQuery" in e && typeof e.internalQuery !== "undefined"
+              ? (e.internalQuery as string)
+              : "",
+            "where" in e && typeof e.where !== "undefined"
+              ? (e.where as string)
+              : "",
+          ].join("\n")
+        } else {
+          return `Unexpected error from query ${name}, no information provided from the database.`
         }
+      })()
 
-        if ("internalQuery" in e && typeof e.internalQuery !== "undefined") {
-          console.log(e.internalQuery)
-        }
-
-        if ("where" in e && typeof e.where !== "undefined") {
-          console.log(e.where)
-        }
-      }
-
-      throw new Error(`Error in query ${name}, see details above`)
+      throw new Error(message)
     }
   })()
 
