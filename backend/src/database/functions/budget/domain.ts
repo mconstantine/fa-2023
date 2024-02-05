@@ -19,7 +19,7 @@ export interface Budget extends S.Schema.To<typeof Budget> {}
 export const BudgetWithCategory = S.extend(
   Budget,
   S.struct({
-    category: Category,
+    category: S.nullable(Category),
   }),
 )
 
