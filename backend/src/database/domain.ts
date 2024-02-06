@@ -2,9 +2,9 @@ import * as S from "@effect/schema/Schema"
 
 const PaginationQueryDirection = S.literal("forward", "backward")
 
-const PaginationQuery = S.struct({
+export const PaginationQuery = S.struct({
   direction: PaginationQueryDirection,
-  count: S.number.pipe(S.int()).pipe(S.greaterThan(0)),
+  count: S.NumberFromString.pipe(S.int()).pipe(S.greaterThan(0)),
   target: S.optional(S.UUID),
 })
 

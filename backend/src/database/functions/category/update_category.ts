@@ -26,7 +26,7 @@ export default {
   cost: null,
 } satisfies FunctionTemplate
 
-const UpdateCategoryInput = S.struct({
+export const UpdateCategoryInput = S.struct({
   name: S.optional(S.string.pipe(S.nonEmpty())),
   is_meta: S.optional(S.boolean),
   keywords: S.optional(S.array(S.string.pipe(S.nonEmpty()))),

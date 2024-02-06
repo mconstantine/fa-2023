@@ -150,7 +150,8 @@ describe("database category functions", () => {
 
       it("should work", async () => {
         const result = S.encodeSync(PaginationResponse(Category))(
-          await listCategories("", {
+          await listCategories({
+            search_query: "",
             direction: "forward",
             count: 10,
           }),
@@ -218,7 +219,8 @@ describe("database category functions", () => {
 
       it("should work", async () => {
         const result = S.encodeSync(PaginationResponse(Category))(
-          await listCategories("x", {
+          await listCategories({
+            search_query: "x",
             direction: "forward",
             count: 2,
           }),
@@ -253,7 +255,8 @@ describe("database category functions", () => {
 
       it("should work in forward direction, first page", async () => {
         const result = S.encodeSync(PaginationResponse(Category))(
-          await listCategories("", {
+          await listCategories({
+            search_query: "",
             direction: "forward",
             count: 3,
           }),
@@ -294,7 +297,8 @@ describe("database category functions", () => {
 
       it("should work in forward direction, middle page", async () => {
         const result = S.encodeSync(PaginationResponse(Category))(
-          await listCategories("", {
+          await listCategories({
+            search_query: "",
             direction: "forward",
             count: 3,
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -337,7 +341,8 @@ describe("database category functions", () => {
 
       it("should work in forward direction, last page", async () => {
         const result = S.encodeSync(PaginationResponse(Category))(
-          await listCategories("", {
+          await listCategories({
+            search_query: "",
             direction: "forward",
             count: 3,
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -380,7 +385,8 @@ describe("database category functions", () => {
 
       it("should work in backward direction, first page", async () => {
         const result = S.encodeSync(PaginationResponse(Category))(
-          await listCategories("", {
+          await listCategories({
+            search_query: "",
             direction: "backward",
             count: 3,
           }),
@@ -421,7 +427,8 @@ describe("database category functions", () => {
 
       it("should work in backward direction, middle page", async () => {
         const result = S.encodeSync(PaginationResponse(Category))(
-          await listCategories("", {
+          await listCategories({
+            search_query: "",
             direction: "backward",
             count: 3,
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -464,7 +471,8 @@ describe("database category functions", () => {
 
       it("should work in backward direction, last page", async () => {
         const result = S.encodeSync(PaginationResponse(Category))(
-          await listCategories("", {
+          await listCategories({
+            search_query: "",
             direction: "backward",
             count: 3,
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

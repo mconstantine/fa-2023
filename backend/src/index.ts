@@ -10,6 +10,8 @@ const app = express()
 
   app.use(express.json())
 
+  app.use("/categories", CategoryRouter.toExpressRouter())
+
   app.listen(env.SERVER_PORT, () => {
     console.log(`Server ready on port ${env.SERVER_PORT.toString(10)}`)
   })

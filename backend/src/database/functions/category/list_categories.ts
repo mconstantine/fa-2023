@@ -1,4 +1,5 @@
-import { PaginationResponse, type PaginationQuery } from "../../domain"
+import * as S from "@effect/schema/Schema"
+import { PaginationResponse, PaginationQuery } from "../../domain"
 import * as db from "../../db"
 import { type FunctionTemplate } from "../template"
 import { Category } from "./domain"
@@ -26,14 +27,25 @@ export default {
   cost: null,
 } satisfies FunctionTemplate
 
+export const ListCategoriesInput = S.extend(
+  PaginationQuery,
+  S.struct({
+    search_query: S.optional(S.string),
+  }),
+)
+
+export interface ListCategoriesInput
+  extends S.Schema.To<typeof ListCategoriesInput> {}
+
 export async function listCategories(
-  searchQuery: string,
-  paginationQuery: PaginationQuery,
+  input: ListCategoriesInput,
 ): Promise<PaginationResponse<Category>> {
+  const { search_query: searchQuery, ...paginationQuery } = input
+
   return await db.callFunction(
     "list_categories",
     PaginationResponse(Category),
     paginationQuery,
-    searchQuery,
+    searchQuery ?? "",
   )
 }
