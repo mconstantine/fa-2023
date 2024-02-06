@@ -1,5 +1,5 @@
 import { type Result, result } from "../Result"
-import { Transaction } from "../models/Transaction"
+import { type Transaction } from "../database/functions/transaction/domain"
 import { Adapter, ImportError, ImportErrorType } from "./Adapter"
 import { Source } from "./Source"
 import { dateFromItalianString } from "./dateFromItalianString"
@@ -9,7 +9,7 @@ export class PayPalAdapter extends Adapter {
 
   public static override fromString(
     input: string,
-  ): Result<ImportError, Transaction> {
+  ): Result<ImportError, Omit<Transaction, "id">> {
     const [
       dateString,
       ,
@@ -56,13 +56,11 @@ export class PayPalAdapter extends Adapter {
 
       const value = parseFloat(valueString.replace(".", "").replace(",", "."))
 
-      return result.fromSuccess(
-        Transaction.create({
-          description,
-          value,
-          date,
-        }),
-      )
+      return result.fromSuccess({
+        description,
+        value,
+        date,
+      })
     }
   }
 }

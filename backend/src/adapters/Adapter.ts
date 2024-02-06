@@ -1,5 +1,5 @@
 import { type Result } from "../Result"
-import { type Transaction } from "../models/Transaction"
+import { type Transaction } from "../database/functions/transaction/domain"
 import { type Source } from "./Source"
 
 export enum ImportErrorType {
@@ -21,5 +21,7 @@ export class ImportError extends Error {
 
 export abstract class Adapter {
   public readonly name!: Source
-  public static fromString: (input: string) => Result<ImportError, Transaction>
+  public static fromString: (
+    input: string,
+  ) => Result<ImportError, Omit<Transaction, "id">>
 }

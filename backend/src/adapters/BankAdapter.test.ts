@@ -1,15 +1,6 @@
-import { TestDataSource } from "../TestDataSource"
 import { BankAdapter } from "./BankAdapter"
 
 describe("BankAdapter", () => {
-  beforeAll(async () => {
-    await TestDataSource.initialize()
-  })
-
-  afterAll(async () => {
-    await TestDataSource.destroy()
-  })
-
   describe("parsing a row", () => {
     it("should work for inbound money", () => {
       const row = "15/01/2020;16/01/2020;Inbound money test;42,50;;EUR"

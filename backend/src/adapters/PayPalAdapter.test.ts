@@ -1,15 +1,6 @@
-import { TestDataSource } from "../TestDataSource"
 import { PayPalAdapter } from "./PayPalAdapter"
 
 describe("PayPalAdapter", () => {
-  beforeAll(async () => {
-    await TestDataSource.initialize()
-  })
-
-  afterAll(async () => {
-    await TestDataSource.destroy()
-  })
-
   describe("parsing a row", () => {
     it("should work with all data", () => {
       const row =
