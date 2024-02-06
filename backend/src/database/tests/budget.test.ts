@@ -1,12 +1,21 @@
 import * as S from "@effect/schema/Schema"
-import { insertBudget } from "../functions/budget/insert_budget"
+import {
+  InsertBudgetInput,
+  insertBudget,
+} from "../functions/budget/insert_budget"
 import { type Category } from "../functions/category/domain"
 import { insertCategory } from "../functions/category/insert_category"
-import { Budget, BudgetWithCategory } from "../functions/budget/domain"
+import { Budget } from "../functions/budget/domain"
 import { insertBudgets } from "../functions/budget/insert_budgets"
 import * as db from "../db"
-import { updateBudget } from "../functions/budget/update_budget"
-import { updateBudgets } from "../functions/budget/update_budgets"
+import {
+  UpdateBudgetInput,
+  updateBudget,
+} from "../functions/budget/update_budget"
+import {
+  UpdateBudgetsInput,
+  updateBudgets,
+} from "../functions/budget/update_budgets"
 import { deleteBudget } from "../functions/budget/delete_budget"
 import { listBudgets } from "../functions/budget/list_budgets"
 
@@ -38,14 +47,16 @@ describe("database budget functions", () => {
 
   describe("insert budget", () => {
     it("should work and convert the value", async () => {
-      const result = await insertBudget({
-        year: 2020,
-        value: 10000,
-        category_id: null,
-      })
+      const result = await insertBudget(
+        S.decodeSync(InsertBudgetInput)({
+          year: 2020,
+          value: 1.5,
+          category_id: null,
+        }),
+      )
 
       expect(S.is(S.UUID)(result.id)).toBe(true)
-      expect(S.is(BudgetWithCategory)(result)).toBe(true)
+      expect(result.value).toBe(1.5)
       expect(result.category).toBeNull()
     })
 
@@ -110,15 +121,18 @@ describe("database budget functions", () => {
         category_id: categories[0]!.id,
       })
 
-      const updated = await updateBudget(budget.id, {
-        year: 2021,
-        value: 50000,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        category_id: categories[1]!.id,
-      })
+      const updated = await updateBudget(
+        budget.id,
+        S.decodeSync(UpdateBudgetInput)({
+          year: 2021,
+          value: 1.5,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          category_id: categories[1]!.id,
+        }),
+      )
 
       expect(updated.id).toEqual(budget.id)
-      expect(updated.value).toBe(500)
+      expect(updated.value).toBe(1.5)
       expect(updated.category).toEqual(categories[1])
     })
 
@@ -155,21 +169,23 @@ describe("database budget functions", () => {
         },
       ])
 
-      const result = await updateBudgets([
-        {
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          id: budgets[0]!.id,
-          value: 6900,
-        },
-        {
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          id: budgets[1]!.id,
-          value: 4200,
-        },
-      ])
+      const result = await updateBudgets(
+        S.decodeSync(UpdateBudgetsInput)([
+          {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            id: budgets[0]!.id,
+            value: 6.9,
+          },
+          {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            id: budgets[1]!.id,
+            value: 4.2,
+          },
+        ]),
+      )
 
-      expect(result[0]?.value).toBe(69)
-      expect(result[1]?.value).toBe(42)
+      expect(result[0]?.value).toBe(6.9)
+      expect(result[1]?.value).toBe(4.2)
     })
 
     it("should work with an empty update", async () => {

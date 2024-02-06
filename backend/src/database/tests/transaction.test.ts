@@ -1,12 +1,18 @@
 import * as S from "@effect/schema/Schema"
 import * as db from "../db"
-import { insertTransaction } from "../functions/transaction/insert_transaction"
+import {
+  InsertTransactionInput,
+  insertTransaction,
+} from "../functions/transaction/insert_transaction"
 import {
   Transaction,
   type TransactionWithCategories,
 } from "../functions/transaction/domain"
 import { insertTransactions } from "../functions/transaction/insert_transactions"
-import { updateTransaction } from "../functions/transaction/update_transaction"
+import {
+  UpdateTransactionInput,
+  updateTransaction,
+} from "../functions/transaction/update_transaction"
 import { updateTransactions } from "../functions/transaction/update_transactions"
 import { deleteTransaction } from "../functions/transaction/delete_transaction"
 import { insertCategory } from "../functions/category/insert_category"
@@ -39,12 +45,14 @@ describe("database transaction functions", () => {
 
   describe("insert transaction", () => {
     it("should work and convert the value", async () => {
-      const result = await insertTransaction({
-        description: "Insert transaction test",
-        value: 150,
-        date: new Date(2020, 0, 1),
-        categoriesIds: [],
-      })
+      const result = await insertTransaction(
+        S.decodeSync(InsertTransactionInput)({
+          description: "Insert transaction test",
+          value: 1.5,
+          date: "2020-01-01",
+          categoriesIds: [],
+        }),
+      )
 
       expect(S.is(S.UUID)(result.id)).toBe(true)
       expect(S.is(Transaction)(result)).toBe(true)
@@ -136,11 +144,14 @@ describe("database transaction functions", () => {
         categoriesIds: [],
       })
 
-      const result = await updateTransaction(transaction.id, {
-        description: "Updated transaction test",
-        value: 840,
-        date: new Date(2020, 0, 12),
-      })
+      const result = await updateTransaction(
+        transaction.id,
+        S.decodeSync(UpdateTransactionInput)({
+          description: "Updated transaction test",
+          value: 8.4,
+          date: "2020-01-12",
+        }),
+      )
 
       expect(result.id).toEqual(transaction.id)
       expect(result.description).toBe("Updated transaction test")

@@ -2,7 +2,7 @@ import * as S from "@effect/schema/Schema"
 import {
   PaginationResponse,
   type PaginationQuery,
-  ValueFromCurrency,
+  CurrencyFromValue,
 } from "../../domain"
 import * as db from "../../db"
 import { type FunctionTemplate } from "../template"
@@ -38,8 +38,8 @@ const ListTransactionsFiltersSubject = S.union(
   }),
   S.struct({
     subject: S.literal("value"),
-    max: ValueFromCurrency,
-    min: ValueFromCurrency,
+    max: CurrencyFromValue,
+    min: CurrencyFromValue,
   }),
   S.struct({
     subject: S.literal("none"),

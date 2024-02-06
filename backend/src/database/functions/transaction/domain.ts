@@ -1,11 +1,11 @@
 import * as S from "@effect/schema/Schema"
 import { Category } from "../category/domain"
-import { ValueFromCurrency } from "../../domain"
+import { CurrencyFromValue } from "../../domain"
 
 export const Transaction = S.struct({
   id: S.UUID,
   description: S.string.pipe(S.nonEmpty()),
-  value: ValueFromCurrency,
+  value: CurrencyFromValue,
   date: S.Date,
 })
 
