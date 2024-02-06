@@ -8,6 +8,7 @@ const Env = S.struct({
   DB_PASSWORD: S.string.pipe(S.nonEmpty()),
   DB_PORT: S.NumberFromString.pipe(S.int()),
   DB_DATABASE: S.string.pipe(S.nonEmpty()),
+  SERVER_PORT: S.NumberFromString.pipe(S.int()),
 })
 
 export const env = pipe(process.env, S.decodeUnknownSync(Env))
