@@ -10,6 +10,8 @@ import { deleteCategory } from "../functions/category/delete_category"
 import { listCategories } from "../functions/category/list_categories"
 import { PaginationResponse } from "../domain"
 import { insertTransaction } from "../functions/transaction/insert_transaction"
+import { insertBudget } from "../functions/budget/insert_budget"
+import { Budget } from "../functions/budget/domain"
 
 describe("database category functions", () => {
   afterAll(async () => {
@@ -114,6 +116,29 @@ describe("database category functions", () => {
       )
 
       expect(relationshipAfter.length).toBe(0)
+    })
+
+    it("should cascade on budgets", async () => {
+      const category = await insertCategory({
+        name: "Relationship with budgets test",
+        is_meta: false,
+        keywords: [],
+      })
+
+      const budget = await insertBudget({
+        year: 2020,
+        value: 4200,
+        category_id: category.id,
+      })
+
+      await deleteCategory(category.id)
+
+      await expect(
+        async () =>
+          await db.getOne(Budget, "select * from budget where id = $1", [
+            budget.id,
+          ]),
+      ).rejects.toBeTruthy()
     })
   })
 

@@ -2,11 +2,13 @@ import * as S from "@effect/schema/Schema"
 import { insertBudget } from "../functions/budget/insert_budget"
 import { type Category } from "../functions/category/domain"
 import { insertCategory } from "../functions/category/insert_category"
-import { BudgetWithCategory } from "../functions/budget/domain"
+import { Budget, BudgetWithCategory } from "../functions/budget/domain"
 import { insertBudgets } from "../functions/budget/insert_budgets"
 import * as db from "../db"
 import { updateBudget } from "../functions/budget/update_budget"
 import { updateBudgets } from "../functions/budget/update_budgets"
+import { deleteBudget } from "../functions/budget/delete_budget"
+import { listBudgets } from "../functions/budget/list_budgets"
 
 describe("database budget functions", () => {
   let categories: Category[]
@@ -203,11 +205,56 @@ describe("database budget functions", () => {
   })
 
   describe("delete budget", () => {
-    it.todo("should work")
-    // TODO: create a test case for categories that tests that budgets are deleted when a category is
+    it("should work", async () => {
+      const budget = await insertBudget({
+        year: 2020,
+        value: 10000,
+        category_id: null,
+      })
+
+      const result = await deleteBudget(budget.id)
+
+      expect(result.id).toBe(budget.id)
+
+      await expect(async () => {
+        await db.getOne(Budget, "select * from transaction where id = $1", [
+          budget.id,
+        ])
+      }).rejects.toBeTruthy()
+    })
   })
 
   describe("list budgets", () => {
-    it.todo("should work and filter by year")
+    it("should work and filter by year", async () => {
+      const budgets = await insertBudgets([
+        {
+          year: 2020,
+          value: 4200,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          category_id: categories[0]!.id,
+        },
+        {
+          year: 2020,
+          value: 6900,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          category_id: categories[1]!.id,
+        },
+        {
+          year: 2021,
+          value: 4200,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          category_id: categories[0]!.id,
+        },
+        {
+          year: 2021,
+          value: 6900,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          category_id: categories[1]!.id,
+        },
+      ])
+
+      const result = await listBudgets(2021)
+      expect(result).toEqual(budgets.slice(2))
+    })
   })
 })
