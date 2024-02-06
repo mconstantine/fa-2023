@@ -6,6 +6,7 @@ import { BudgetWithCategory } from "../functions/budget/domain"
 import { insertBudgets } from "../functions/budget/insert_budgets"
 import * as db from "../db"
 import { updateBudget } from "../functions/budget/update_budget"
+import { updateBudgets } from "../functions/budget/update_budgets"
 
 describe("database budget functions", () => {
   let categories: Category[]
@@ -136,8 +137,69 @@ describe("database budget functions", () => {
   })
 
   describe("bulk budgets update", () => {
-    it.todo("should work and convert the values")
-    it.todo("should work with an empty update")
+    it("should work and convert the values", async () => {
+      const budgets = await insertBudgets([
+        {
+          year: 2020,
+          value: 4200,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          category_id: categories[0]!.id,
+        },
+        {
+          year: 2020,
+          value: 6900,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          category_id: categories[1]!.id,
+        },
+      ])
+
+      const result = await updateBudgets([
+        {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          id: budgets[0]!.id,
+          value: 6900,
+        },
+        {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          id: budgets[1]!.id,
+          value: 4200,
+        },
+      ])
+
+      expect(result[0]?.value).toBe(69)
+      expect(result[1]?.value).toBe(42)
+    })
+
+    it("should work with an empty update", async () => {
+      const budgets = await insertBudgets([
+        {
+          year: 2020,
+          value: 4200,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          category_id: categories[0]!.id,
+        },
+        {
+          year: 2020,
+          value: 6900,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          category_id: categories[1]!.id,
+        },
+      ])
+
+      const result = await updateBudgets([
+        {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          id: budgets[0]!.id,
+        },
+        {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          id: budgets[1]!.id,
+        },
+      ])
+
+      expect(result[0]?.value).toBe(budgets[0]?.value)
+      expect(result[1]?.value).toBe(budgets[1]?.value)
+    })
   })
 
   describe("delete budget", () => {

@@ -61,3 +61,13 @@ export const PaginationResponse = <R, From, To>(
     edges: S.array(edge(schema)),
   })
 }
+
+export const ValueFromCurrency = S.number.pipe(
+  S.transform(
+    S.number,
+    (n) => parseFloat((n / 100).toFixed(2)),
+    (n) => Math.floor(n * 100),
+  ),
+)
+
+export type ValueFromCurrency = S.Schema.To<typeof ValueFromCurrency>

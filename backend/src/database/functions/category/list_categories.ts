@@ -1,4 +1,4 @@
-import { PaginationResponse, type PaginationQuery } from "../../Pagination"
+import { PaginationResponse, type PaginationQuery } from "../../domain"
 import * as db from "../../db"
 import { type FunctionTemplate } from "../template"
 import { Category } from "./domain"

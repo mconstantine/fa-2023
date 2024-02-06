@@ -2,6 +2,7 @@ import * as S from "@effect/schema/Schema"
 import { type FunctionTemplate } from "../template"
 import * as db from "../../db"
 import { BudgetWithCategory } from "./domain"
+import { ValueFromCurrency } from "../../domain"
 
 export default {
   name: "update_budget",
@@ -28,15 +29,7 @@ export default {
 
 export const UpdateBudgetInput = S.struct({
   year: S.optional(S.number.pipe(S.int()).pipe(S.positive())),
-  value: S.optional(
-    S.number.pipe(
-      S.transform(
-        S.number,
-        (n) => parseFloat((n / 100).toFixed(2)),
-        (n) => Math.floor(n * 100),
-      ),
-    ),
-  ),
+  value: S.optional(ValueFromCurrency),
   category_id: S.optional(S.nullable(S.UUID)),
 })
 

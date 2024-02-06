@@ -5,7 +5,7 @@ import * as db from "../../db"
 import { ValueFromCurrency } from "../../domain"
 
 export default {
-  name: "insert_budget",
+  name: "update_budgets",
   args: [
     {
       mode: "IN",
@@ -21,17 +21,22 @@ export default {
   cost: null,
 } satisfies FunctionTemplate
 
-export const InsertBudgetInput = S.struct({
-  year: S.number.pipe(S.int()).pipe(S.positive()),
-  value: ValueFromCurrency,
-  category_id: S.nullable(S.UUID),
-})
+export const UpdateBudgetsInput = S.array(
+  S.struct({
+    id: S.UUID,
+    value: S.optional(ValueFromCurrency),
+  }),
+)
 
-export interface InsertBudgetInput
-  extends S.Schema.To<typeof InsertBudgetInput> {}
+export interface UpdateBudgetsInput
+  extends S.Schema.To<typeof UpdateBudgetsInput> {}
 
-export async function insertBudget(
-  input: InsertBudgetInput,
-): Promise<BudgetWithCategory> {
-  return await db.callFunction("insert_budget", BudgetWithCategory, input)
+export async function updateBudgets(
+  input: UpdateBudgetsInput,
+): Promise<readonly BudgetWithCategory[]> {
+  return await db.callFunction(
+    "update_budgets",
+    S.array(BudgetWithCategory),
+    input,
+  )
 }

@@ -8,7 +8,7 @@ import { Category } from "../functions/category/domain"
 import { updateCategory } from "../functions/category/update_category"
 import { deleteCategory } from "../functions/category/delete_category"
 import { listCategories } from "../functions/category/list_categories"
-import { PaginationResponse } from "../Pagination"
+import { PaginationResponse } from "../domain"
 import { insertTransaction } from "../functions/transaction/insert_transaction"
 
 describe("database category functions", () => {

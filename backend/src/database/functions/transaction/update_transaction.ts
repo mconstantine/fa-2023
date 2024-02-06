@@ -2,6 +2,7 @@ import * as S from "@effect/schema/Schema"
 import { type FunctionTemplate } from "../template"
 import { TransactionWithCategories } from "./domain"
 import * as db from "../../db"
+import { ValueFromCurrency } from "../../domain"
 
 export default {
   name: "update_transaction",
@@ -28,15 +29,7 @@ export default {
 
 export const UpdateTransactionInput = S.struct({
   description: S.optional(S.string.pipe(S.nonEmpty())),
-  value: S.optional(
-    S.number.pipe(
-      S.transform(
-        S.number,
-        (n) => Math.floor(n * 100),
-        (n) => parseFloat((n / 100).toFixed(2)),
-      ),
-    ),
-  ),
+  value: S.optional(ValueFromCurrency),
   date: S.optional(S.DateFromString),
   categoriesIds: S.optional(S.array(S.UUID)),
 })

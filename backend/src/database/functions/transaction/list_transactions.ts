@@ -1,5 +1,9 @@
 import * as S from "@effect/schema/Schema"
-import { PaginationResponse, type PaginationQuery } from "../../Pagination"
+import {
+  PaginationResponse,
+  type PaginationQuery,
+  ValueFromCurrency,
+} from "../../domain"
 import * as db from "../../db"
 import { type FunctionTemplate } from "../template"
 import { TransactionWithCategories } from "./domain"
@@ -34,20 +38,8 @@ const ListTransactionsFiltersSubject = S.union(
   }),
   S.struct({
     subject: S.literal("value"),
-    max: S.number.pipe(
-      S.transform(
-        S.number,
-        (n) => Math.floor(n * 100),
-        (n) => parseFloat((n / 100).toFixed(2)),
-      ),
-    ),
-    min: S.number.pipe(
-      S.transform(
-        S.number,
-        (n) => Math.floor(n * 100),
-        (n) => parseFloat((n / 100).toFixed(2)),
-      ),
-    ),
+    max: ValueFromCurrency,
+    min: ValueFromCurrency,
   }),
   S.struct({
     subject: S.literal("none"),

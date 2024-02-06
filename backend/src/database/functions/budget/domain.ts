@@ -1,16 +1,11 @@
 import * as S from "@effect/schema/Schema"
 import { Category } from "../category/domain"
+import { ValueFromCurrency } from "../../domain"
 
 export const Budget = S.struct({
   id: S.UUID,
   year: S.number.pipe(S.int()).pipe(S.positive()),
-  value: S.number.pipe(
-    S.transform(
-      S.number,
-      (n) => parseFloat((n / 100).toFixed(2)),
-      (n) => Math.floor(n * 100),
-    ),
-  ),
+  value: ValueFromCurrency,
   category_id: S.nullable(S.UUID),
 })
 
