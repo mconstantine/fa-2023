@@ -1,11 +1,9 @@
 import * as S from "@effect/schema/Schema"
-import { Category } from "../database/functions/category/domain"
 import {
   InsertCategoryInput,
   insertCategory,
 } from "../database/functions/category/insert_category"
 import { Router } from "./Router"
-import { PaginationResponse } from "../database/domain"
 import {
   ListCategoriesInput,
   listCategories,
@@ -20,7 +18,6 @@ import { HttpError } from "./HttpError"
 export const CategoryRouter = Router.get("/", {
   codecs: {
     query: ListCategoriesInput,
-    response: PaginationResponse(Category),
   },
   handler: async ({ query }) => {
     return await listCategories(query)
@@ -29,7 +26,6 @@ export const CategoryRouter = Router.get("/", {
   .post("/", {
     codecs: {
       body: InsertCategoryInput,
-      response: Category,
     },
     handler: async ({ body }) => await insertCategory(body),
   })
@@ -39,7 +35,6 @@ export const CategoryRouter = Router.get("/", {
         id: S.UUID,
       }),
       body: UpdateCategoryInput,
-      response: Category,
     },
     handler: async ({ params, body }) => {
       try {
@@ -54,7 +49,6 @@ export const CategoryRouter = Router.get("/", {
       params: S.struct({
         id: S.UUID,
       }),
-      response: Category,
     },
     handler: async ({ params }) => {
       try {

@@ -1,6 +1,6 @@
 import * as S from "@effect/schema/Schema"
 import { Option, pipe } from "effect"
-import express, { type Request, type Response } from "express"
+import express, { type Request } from "express"
 import { type RouteParameters } from "express-serve-static-core"
 import { HttpError } from "./HttpError"
 import { handleError } from "./handleError"
@@ -12,13 +12,10 @@ interface RouteCodecs<
   QueryTo,
   BodyFrom,
   BodyTo,
-  ResponseFrom,
-  ResponseTo,
 > {
   params?: S.Schema<never, ParamsFrom, ParamsTo>
   query?: S.Schema<never, QueryFrom, QueryTo>
   body?: S.Schema<never, BodyFrom, BodyTo>
-  response: S.Schema<never, ResponseFrom, ResponseTo>
 }
 
 interface RouteHandlerData<
@@ -28,17 +25,13 @@ interface RouteHandlerData<
   QueryTo,
   BodyFrom,
   BodyTo,
-  ResponseFrom,
-  ResponseTo,
   Codecs extends RouteCodecs<
     ParamsFrom,
     ParamsTo,
     QueryFrom,
     QueryTo,
     BodyFrom,
-    BodyTo,
-    ResponseFrom,
-    ResponseTo
+    BodyTo
   >,
 > {
   query: Codecs["query"] extends undefined ? never : QueryTo
@@ -53,18 +46,15 @@ interface Route<
   QueryTo,
   BodyFrom,
   BodyTo,
-  ResponseFrom,
-  ResponseTo,
   Codecs extends RouteCodecs<
     ParamsFrom,
     ParamsTo,
     QueryFrom,
     QueryTo,
     BodyFrom,
-    BodyTo,
-    ResponseFrom,
-    ResponseTo
+    BodyTo
   >,
+  Response,
 > {
   codecs: Codecs
   handler: (
@@ -75,11 +65,9 @@ interface Route<
       QueryTo,
       BodyFrom,
       BodyTo,
-      ResponseFrom,
-      ResponseTo,
       Codecs
     >,
-  ) => Promise<ResponseTo>
+  ) => Promise<Response>
 }
 
 export class Router {
@@ -98,8 +86,7 @@ export class Router {
     ParamsTo,
     QueryFrom extends Record<string, string | undefined>,
     QueryTo,
-    ResponseFrom,
-    ResponseTo,
+    Response,
   >(
     path: Path,
     route: Route<
@@ -109,18 +96,15 @@ export class Router {
       QueryTo,
       never,
       never,
-      ResponseFrom,
-      ResponseTo,
       RouteCodecs<
         RouteParameters<Path>,
         ParamsTo,
         QueryFrom,
         QueryTo,
         never,
-        never,
-        ResponseFrom,
-        ResponseTo
-      >
+        never
+      >,
+      Response
     >,
   ): Router {
     return new Router(express.Router()).get(path, route)
@@ -133,8 +117,7 @@ export class Router {
     QueryTo,
     BodyFrom,
     BodyTo,
-    ResponseFrom,
-    ResponseTo,
+    Response,
   >(
     path: Path,
     route: Route<
@@ -144,18 +127,15 @@ export class Router {
       QueryTo,
       BodyFrom,
       BodyTo,
-      ResponseFrom,
-      ResponseTo,
       RouteCodecs<
         RouteParameters<Path>,
         ParamsTo,
         QueryFrom,
         QueryTo,
         BodyFrom,
-        BodyTo,
-        ResponseFrom,
-        ResponseTo
-      >
+        BodyTo
+      >,
+      Response
     >,
   ): Router {
     return new Router(express.Router()).post(path, route)
@@ -168,8 +148,7 @@ export class Router {
     QueryTo,
     BodyFrom,
     BodyTo,
-    ResponseFrom,
-    ResponseTo,
+    Response,
   >(
     path: Path,
     route: Route<
@@ -179,18 +158,15 @@ export class Router {
       QueryTo,
       BodyFrom,
       BodyTo,
-      ResponseFrom,
-      ResponseTo,
       RouteCodecs<
         RouteParameters<Path>,
         ParamsTo,
         QueryFrom,
         QueryTo,
         BodyFrom,
-        BodyTo,
-        ResponseFrom,
-        ResponseTo
-      >
+        BodyTo
+      >,
+      Response
     >,
   ): Router {
     return new Router(express.Router()).patch(path, route)
@@ -203,8 +179,7 @@ export class Router {
     QueryTo,
     BodyFrom,
     BodyTo,
-    ResponseFrom,
-    ResponseTo,
+    Response,
   >(
     path: Path,
     route: Route<
@@ -214,18 +189,15 @@ export class Router {
       QueryTo,
       BodyFrom,
       BodyTo,
-      ResponseFrom,
-      ResponseTo,
       RouteCodecs<
         RouteParameters<Path>,
         ParamsTo,
         QueryFrom,
         QueryTo,
         BodyFrom,
-        BodyTo,
-        ResponseFrom,
-        ResponseTo
-      >
+        BodyTo
+      >,
+      Response
     >,
   ): Router {
     return new Router(express.Router()).put(path, route)
@@ -236,8 +208,7 @@ export class Router {
     ParamsTo,
     QueryFrom extends Record<string, string | undefined>,
     QueryTo,
-    ResponseFrom,
-    ResponseTo,
+    Response,
   >(
     path: Path,
     route: Route<
@@ -247,18 +218,15 @@ export class Router {
       QueryTo,
       never,
       never,
-      ResponseFrom,
-      ResponseTo,
       RouteCodecs<
         RouteParameters<Path>,
         ParamsTo,
         QueryFrom,
         QueryTo,
         never,
-        never,
-        ResponseFrom,
-        ResponseTo
-      >
+        never
+      >,
+      Response
     >,
   ): Router {
     return new Router(express.Router()).delete(path, route)
@@ -269,8 +237,7 @@ export class Router {
     ParamsTo,
     QueryFrom extends Record<string, string | undefined>,
     QueryTo,
-    ResponseFrom,
-    ResponseTo,
+    Response,
   >(
     path: Path,
     route: Route<
@@ -280,25 +247,22 @@ export class Router {
       QueryTo,
       never,
       never,
-      ResponseFrom,
-      ResponseTo,
       RouteCodecs<
         RouteParameters<Path>,
         ParamsTo,
         QueryFrom,
         QueryTo,
         never,
-        never,
-        ResponseFrom,
-        ResponseTo
-      >
+        never
+      >,
+      Response
     >,
   ): Router {
     return new Router(
       this.router.get<
         Path,
         RouteParameters<Path>,
-        ResponseFrom,
+        Response,
         never,
         QueryFrom,
         never
@@ -313,8 +277,7 @@ export class Router {
     QueryTo,
     BodyFrom,
     BodyTo,
-    ResponseFrom,
-    ResponseTo,
+    Response,
   >(
     path: Path,
     route: Route<
@@ -324,25 +287,22 @@ export class Router {
       QueryTo,
       BodyFrom,
       BodyTo,
-      ResponseFrom,
-      ResponseTo,
       RouteCodecs<
         RouteParameters<Path>,
         ParamsTo,
         QueryFrom,
         QueryTo,
         BodyFrom,
-        BodyTo,
-        ResponseFrom,
-        ResponseTo
-      >
+        BodyTo
+      >,
+      Response
     >,
   ): Router {
     return new Router(
       this.router.post<
         Path,
         RouteParameters<Path>,
-        ResponseFrom,
+        Response,
         never,
         QueryFrom,
         never
@@ -357,8 +317,7 @@ export class Router {
     QueryTo,
     BodyFrom,
     BodyTo,
-    ResponseFrom,
-    ResponseTo,
+    Response,
   >(
     path: Path,
     route: Route<
@@ -368,25 +327,22 @@ export class Router {
       QueryTo,
       BodyFrom,
       BodyTo,
-      ResponseFrom,
-      ResponseTo,
       RouteCodecs<
         RouteParameters<Path>,
         ParamsTo,
         QueryFrom,
         QueryTo,
         BodyFrom,
-        BodyTo,
-        ResponseFrom,
-        ResponseTo
-      >
+        BodyTo
+      >,
+      Response
     >,
   ): Router {
     return new Router(
       this.router.patch<
         Path,
         RouteParameters<Path>,
-        ResponseFrom,
+        Response,
         never,
         QueryFrom,
         never
@@ -401,8 +357,7 @@ export class Router {
     QueryTo,
     BodyFrom,
     BodyTo,
-    ResponseFrom,
-    ResponseTo,
+    Response,
   >(
     path: Path,
     route: Route<
@@ -412,25 +367,22 @@ export class Router {
       QueryTo,
       BodyFrom,
       BodyTo,
-      ResponseFrom,
-      ResponseTo,
       RouteCodecs<
         RouteParameters<Path>,
         ParamsTo,
         QueryFrom,
         QueryTo,
         BodyFrom,
-        BodyTo,
-        ResponseFrom,
-        ResponseTo
-      >
+        BodyTo
+      >,
+      Response
     >,
   ): Router {
     return new Router(
       this.router.put<
         Path,
         RouteParameters<Path>,
-        ResponseFrom,
+        Response,
         never,
         QueryFrom,
         never
@@ -443,8 +395,7 @@ export class Router {
     ParamsTo,
     QueryFrom extends Record<string, string | undefined>,
     QueryTo,
-    ResponseFrom,
-    ResponseTo,
+    Response,
   >(
     path: Path,
     route: Route<
@@ -454,25 +405,22 @@ export class Router {
       QueryTo,
       never,
       never,
-      ResponseFrom,
-      ResponseTo,
       RouteCodecs<
         RouteParameters<Path>,
         ParamsTo,
         QueryFrom,
         QueryTo,
         never,
-        never,
-        ResponseFrom,
-        ResponseTo
-      >
+        never
+      >,
+      Response
     >,
   ): Router {
     return new Router(
       this.router.delete<
         Path,
         RouteParameters<Path>,
-        ResponseFrom,
+        Response,
         never,
         QueryFrom,
         never
@@ -487,8 +435,7 @@ export class Router {
     QueryTo,
     BodyFrom,
     BodyTo,
-    ResponseFrom,
-    ResponseTo,
+    Response,
   >(
     route: Route<
       RouteParameters<Path>,
@@ -497,29 +444,20 @@ export class Router {
       QueryTo,
       BodyFrom,
       BodyTo,
-      ResponseFrom,
-      ResponseTo,
       RouteCodecs<
         RouteParameters<Path>,
         ParamsTo,
         QueryFrom,
         QueryTo,
         BodyFrom,
-        BodyTo,
-        ResponseFrom,
-        ResponseTo
-      >
+        BodyTo
+      >,
+      Response
     >,
   ) {
     return (
-      req: Request<
-        RouteParameters<Path>,
-        ResponseFrom,
-        BodyFrom,
-        QueryFrom,
-        never
-      >,
-      res: Response<ResponseFrom, never>,
+      req: Request<RouteParameters<Path>, Response, BodyFrom, QueryFrom, never>,
+      res: express.Response<Response, never>,
     ) => {
       ;(async () => {
         try {
@@ -565,8 +503,7 @@ export class Router {
             body: body as BodyTo,
           })
 
-          const encoded = S.encodeSync(route.codecs.response)(result)
-          res.json(encoded).end()
+          res.json(result).end()
         } catch (e) {
           handleError(e, res)
         }
