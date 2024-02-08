@@ -7,6 +7,7 @@ export function handleError(e: unknown, response: Response): void {
       error: e.message,
     })
   } else {
+    console.log(e)
     response.status(500).end()
   }
 }

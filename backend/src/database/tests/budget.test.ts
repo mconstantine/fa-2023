@@ -241,6 +241,12 @@ describe("database budget functions", () => {
   })
 
   describe("list budgets", () => {
+    it("should work with empty table", async () => {
+      await db.query("delete from budget")
+      const result = await listBudgets(2020)
+      expect(result).toEqual([])
+    })
+
     it("should work and filter by year", async () => {
       const budgets = await insertBudgets([
         {

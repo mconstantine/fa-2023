@@ -48,7 +48,8 @@ interface PaginationResponseFrom<T> {
   readonly edges: ReadonlyArray<EdgeFrom<T>>
 }
 
-export interface PaginationResponse<T> {
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PaginationResponse<T> = {
   readonly page_info: S.Schema.To<typeof PageInfo>
   readonly edges: ReadonlyArray<EdgeTo<T>>
 }

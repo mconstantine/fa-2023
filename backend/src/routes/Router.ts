@@ -39,6 +39,8 @@ interface RouteHandlerData<
   body: Codecs["body"] extends undefined ? never : BodyTo
 }
 
+type ResponseType = Record<string, unknown>
+
 interface Route<
   ParamsFrom extends Record<string, string | undefined>,
   ParamsTo,
@@ -54,7 +56,7 @@ interface Route<
     BodyFrom,
     BodyTo
   >,
-  Response,
+  Response extends Record<string, unknown> | readonly ResponseType[],
 > {
   codecs: Codecs
   handler: (
@@ -86,7 +88,7 @@ export class Router {
     ParamsTo,
     QueryFrom extends Record<string, string | readonly string[] | undefined>,
     QueryTo,
-    Response,
+    Response extends Record<string, unknown> | readonly ResponseType[],
   >(
     path: Path,
     route: Route<
@@ -117,7 +119,7 @@ export class Router {
     QueryTo,
     BodyFrom,
     BodyTo,
-    Response,
+    Response extends Record<string, unknown> | readonly ResponseType[],
   >(
     path: Path,
     route: Route<
@@ -148,7 +150,7 @@ export class Router {
     QueryTo,
     BodyFrom,
     BodyTo,
-    Response,
+    Response extends Record<string, unknown> | readonly ResponseType[],
   >(
     path: Path,
     route: Route<
@@ -179,7 +181,7 @@ export class Router {
     QueryTo,
     BodyFrom,
     BodyTo,
-    Response,
+    Response extends Record<string, unknown> | readonly ResponseType[],
   >(
     path: Path,
     route: Route<
@@ -208,7 +210,7 @@ export class Router {
     ParamsTo,
     QueryFrom extends Record<string, string | readonly string[] | undefined>,
     QueryTo,
-    Response,
+    Response extends Record<string, unknown> | readonly ResponseType[],
   >(
     path: Path,
     route: Route<
@@ -237,7 +239,7 @@ export class Router {
     ParamsTo,
     QueryFrom extends Record<string, string | readonly string[] | undefined>,
     QueryTo,
-    Response,
+    Response extends Record<string, unknown> | readonly ResponseType[],
   >(
     path: Path,
     route: Route<
@@ -277,7 +279,7 @@ export class Router {
     QueryTo,
     BodyFrom,
     BodyTo,
-    Response,
+    Response extends Record<string, unknown> | readonly ResponseType[],
   >(
     path: Path,
     route: Route<
@@ -317,7 +319,7 @@ export class Router {
     QueryTo,
     BodyFrom,
     BodyTo,
-    Response,
+    Response extends Record<string, unknown> | readonly ResponseType[],
   >(
     path: Path,
     route: Route<
@@ -357,7 +359,7 @@ export class Router {
     QueryTo,
     BodyFrom,
     BodyTo,
-    Response,
+    Response extends Record<string, unknown> | readonly ResponseType[],
   >(
     path: Path,
     route: Route<
@@ -395,7 +397,7 @@ export class Router {
     ParamsTo,
     QueryFrom extends Record<string, string | readonly string[] | undefined>,
     QueryTo,
-    Response,
+    Response extends Record<string, unknown> | readonly ResponseType[],
   >(
     path: Path,
     route: Route<
@@ -435,7 +437,7 @@ export class Router {
     QueryTo,
     BodyFrom,
     BodyTo,
-    Response,
+    Response extends Record<string, unknown> | readonly ResponseType[],
   >(
     route: Route<
       RouteParameters<Path>,

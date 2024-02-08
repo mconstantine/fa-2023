@@ -1,7 +1,7 @@
 begin
 
 return (
-  select json_arrayagg(r.*) from (
+  select coalesce(json_arrayagg(r.*), '[]'::json) from (
     select
       b.*,
       (

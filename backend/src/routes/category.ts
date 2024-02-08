@@ -15,7 +15,7 @@ import {
 import { deleteCategory } from "../database/functions/category/delete_category"
 import { HttpError } from "./HttpError"
 
-export const CategoryRouter = Router.get("/", {
+export const categoryRouter = Router.get("/", {
   codecs: {
     query: ListCategoriesInput,
   },

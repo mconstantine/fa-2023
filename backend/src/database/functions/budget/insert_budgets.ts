@@ -22,7 +22,7 @@ export default {
 } satisfies FunctionTemplate
 
 export async function insertBudgets(
-  input: InsertBudgetInput[],
+  input: readonly InsertBudgetInput[],
 ): Promise<readonly BudgetWithCategory[]> {
   return await db.callFunction(
     "insert_budgets",
