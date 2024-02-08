@@ -18,7 +18,6 @@ import { deleteTransaction } from "../functions/transaction/delete_transaction"
 import { insertCategory } from "../functions/category/insert_category"
 import { type Category } from "../functions/category/domain"
 import { listTransactions } from "../functions/transaction/list_transactions"
-import { Option } from "effect"
 
 describe("database transaction functions", () => {
   let categories: Category[]
@@ -217,14 +216,12 @@ describe("database transaction functions", () => {
         },
       ])
 
-      const result = await updateTransactions(
-        transactions.map((t) => t.id),
-        {
-          description: "Bulk updated transaction test",
-          value: 420,
-          date: new Date(2020, 1, 1),
-        },
-      )
+      const result = await updateTransactions({
+        ids: transactions.map((t) => t.id),
+        description: "Bulk updated transaction test",
+        value: 420,
+        date: new Date(2020, 1, 1),
+      })
 
       expect(result.length).toBe(2)
       expect(result[0]?.id).toEqual(transactions[0]?.id)
@@ -266,12 +263,10 @@ describe("database transaction functions", () => {
         },
       ])
 
-      const result = await updateTransactions(
-        transactions.map((t) => t.id),
-        {
-          categoriesIds: categories.map((c) => c.id),
-        },
-      )
+      const result = await updateTransactions({
+        ids: transactions.map((t) => t.id),
+        categoriesIds: categories.map((c) => c.id),
+      })
 
       expect(result[0]?.categories).toEqual(categories)
       expect(result[1]?.categories).toEqual(categories)
@@ -293,10 +288,9 @@ describe("database transaction functions", () => {
         },
       ])
 
-      const result = await updateTransactions(
-        transactions.map((t) => t.id),
-        {},
-      )
+      const result = await updateTransactions({
+        ids: transactions.map((t) => t.id),
+      })
 
       expect(result.length).toBe(2)
       expect(result[0]?.id).toEqual(transactions[0]?.id)
@@ -379,24 +373,20 @@ describe("database transaction functions", () => {
 
     describe("with empty table", () => {
       it("should work", async () => {
-        const result = await listTransactions(
-          {
-            direction: "forward",
-            count: 10,
-          },
-          {
-            subject: "none",
-            categories: "all",
-            date_since: new Date(2020, 0, 1),
-            date_until: new Date(2020, 11, 31),
-          },
-        )
+        const result = await listTransactions({
+          direction: "forward",
+          count: 10,
+          subject: "none",
+          categories: "all",
+          date_since: new Date(2020, 0, 1),
+          date_until: new Date(2020, 11, 31),
+        })
 
         expect(result).toEqual({
           page_info: {
             total_count: 0,
-            start_cursor: Option.none(),
-            end_cursor: Option.none(),
+            start_cursor: null,
+            end_cursor: null,
             has_previous_page: false,
             has_next_page: false,
           },
@@ -461,24 +451,20 @@ describe("database transaction functions", () => {
 
       describe("pagination", () => {
         it("should work", async () => {
-          const result = await listTransactions(
-            {
-              direction: "forward",
-              count: 10,
-            },
-            {
-              subject: "none",
-              categories: "all",
-              date_since: new Date(2020, 0, 1),
-              date_until: new Date(2020, 11, 31),
-            },
-          )
+          const result = await listTransactions({
+            direction: "forward",
+            count: 10,
+            subject: "none",
+            categories: "all",
+            date_since: new Date(2020, 0, 1),
+            date_until: new Date(2020, 11, 31),
+          })
 
           expect(result).toEqual({
             page_info: {
               total_count: 7,
-              start_cursor: Option.some(transactions[0]?.id),
-              end_cursor: Option.some(transactions[6]?.id),
+              start_cursor: transactions[0]?.id,
+              end_cursor: transactions[6]?.id,
               has_previous_page: false,
               has_next_page: false,
             },
@@ -490,24 +476,20 @@ describe("database transaction functions", () => {
         })
 
         it("should work in forward direction, first page", async () => {
-          const result = await listTransactions(
-            {
-              direction: "forward",
-              count: 3,
-            },
-            {
-              subject: "none",
-              categories: "all",
-              date_since: new Date(2020, 0, 1),
-              date_until: new Date(2020, 11, 31),
-            },
-          )
+          const result = await listTransactions({
+            direction: "forward",
+            count: 3,
+            subject: "none",
+            categories: "all",
+            date_since: new Date(2020, 0, 1),
+            date_until: new Date(2020, 11, 31),
+          })
 
           expect(result).toEqual({
             page_info: {
               total_count: 7,
-              start_cursor: Option.some(transactions[0]?.id),
-              end_cursor: Option.some(transactions[2]?.id),
+              start_cursor: transactions[0]?.id,
+              end_cursor: transactions[2]?.id,
               has_previous_page: false,
               has_next_page: true,
             },
@@ -519,25 +501,21 @@ describe("database transaction functions", () => {
         })
 
         it("should work in forward direction, middle page", async () => {
-          const result = await listTransactions(
-            {
-              direction: "forward",
-              count: 3,
-              target: transactions[1]?.id,
-            },
-            {
-              subject: "none",
-              categories: "all",
-              date_since: new Date(2020, 0, 1),
-              date_until: new Date(2020, 11, 31),
-            },
-          )
+          const result = await listTransactions({
+            direction: "forward",
+            count: 3,
+            target: transactions[1]?.id,
+            subject: "none",
+            categories: "all",
+            date_since: new Date(2020, 0, 1),
+            date_until: new Date(2020, 11, 31),
+          })
 
           expect(result).toEqual({
             page_info: {
               total_count: 7,
-              start_cursor: Option.some(transactions[2]?.id),
-              end_cursor: Option.some(transactions[4]?.id),
+              start_cursor: transactions[2]?.id,
+              end_cursor: transactions[4]?.id,
               has_previous_page: true,
               has_next_page: true,
             },
@@ -549,25 +527,21 @@ describe("database transaction functions", () => {
         })
 
         it("should work in forward direction, last page", async () => {
-          const result = await listTransactions(
-            {
-              direction: "forward",
-              count: 3,
-              target: transactions[3]?.id,
-            },
-            {
-              subject: "none",
-              categories: "all",
-              date_since: new Date(2020, 0, 1),
-              date_until: new Date(2020, 11, 31),
-            },
-          )
+          const result = await listTransactions({
+            direction: "forward",
+            count: 3,
+            target: transactions[3]?.id,
+            subject: "none",
+            categories: "all",
+            date_since: new Date(2020, 0, 1),
+            date_until: new Date(2020, 11, 31),
+          })
 
           expect(result).toEqual({
             page_info: {
               total_count: 7,
-              start_cursor: Option.some(transactions[4]?.id),
-              end_cursor: Option.some(transactions[6]?.id),
+              start_cursor: transactions[4]?.id,
+              end_cursor: transactions[6]?.id,
               has_previous_page: true,
               has_next_page: false,
             },
@@ -579,24 +553,20 @@ describe("database transaction functions", () => {
         })
 
         it("should work in backward direction, first page", async () => {
-          const result = await listTransactions(
-            {
-              direction: "backward",
-              count: 3,
-            },
-            {
-              subject: "none",
-              categories: "all",
-              date_since: new Date(2020, 0, 1),
-              date_until: new Date(2020, 11, 31),
-            },
-          )
+          const result = await listTransactions({
+            direction: "backward",
+            count: 3,
+            subject: "none",
+            categories: "all",
+            date_since: new Date(2020, 0, 1),
+            date_until: new Date(2020, 11, 31),
+          })
 
           expect(result).toEqual({
             page_info: {
               total_count: 7,
-              start_cursor: Option.some(transactions[6]?.id),
-              end_cursor: Option.some(transactions[4]?.id),
+              start_cursor: transactions[6]?.id,
+              end_cursor: transactions[4]?.id,
               has_previous_page: false,
               has_next_page: true,
             },
@@ -611,25 +581,21 @@ describe("database transaction functions", () => {
         })
 
         it("should work in backward direction, middle page", async () => {
-          const result = await listTransactions(
-            {
-              direction: "backward",
-              count: 3,
-              target: transactions[5]?.id,
-            },
-            {
-              subject: "none",
-              categories: "all",
-              date_since: new Date(2020, 0, 1),
-              date_until: new Date(2020, 11, 31),
-            },
-          )
+          const result = await listTransactions({
+            direction: "backward",
+            count: 3,
+            target: transactions[5]?.id,
+            subject: "none",
+            categories: "all",
+            date_since: new Date(2020, 0, 1),
+            date_until: new Date(2020, 11, 31),
+          })
 
           expect(result).toEqual({
             page_info: {
               total_count: 7,
-              start_cursor: Option.some(transactions[4]?.id),
-              end_cursor: Option.some(transactions[2]?.id),
+              start_cursor: transactions[4]?.id,
+              end_cursor: transactions[2]?.id,
               has_previous_page: true,
               has_next_page: true,
             },
@@ -644,25 +610,21 @@ describe("database transaction functions", () => {
         })
 
         it("should work in backward direction, last page", async () => {
-          const result = await listTransactions(
-            {
-              direction: "backward",
-              count: 3,
-              target: transactions[3]?.id,
-            },
-            {
-              subject: "none",
-              categories: "all",
-              date_since: new Date(2020, 0, 1),
-              date_until: new Date(2020, 11, 31),
-            },
-          )
+          const result = await listTransactions({
+            direction: "backward",
+            count: 3,
+            target: transactions[3]?.id,
+            subject: "none",
+            categories: "all",
+            date_since: new Date(2020, 0, 1),
+            date_until: new Date(2020, 11, 31),
+          })
 
           expect(result).toEqual({
             page_info: {
               total_count: 7,
-              start_cursor: Option.some(transactions[2]?.id),
-              end_cursor: Option.some(transactions[0]?.id),
+              start_cursor: transactions[2]?.id,
+              end_cursor: transactions[0]?.id,
               has_previous_page: true,
               has_next_page: false,
             },
@@ -680,25 +642,21 @@ describe("database transaction functions", () => {
       describe("filters", () => {
         describe("subject", () => {
           it("should search in description", async () => {
-            const result = await listTransactions(
-              {
-                direction: "forward",
-                count: 10,
-              },
-              {
-                subject: "description",
-                search_query: "x",
-                categories: "all",
-                date_since: new Date(2020, 0, 1),
-                date_until: new Date(2020, 11, 31),
-              },
-            )
+            const result = await listTransactions({
+              direction: "forward",
+              count: 10,
+              subject: "description",
+              search_query: "x",
+              categories: "all",
+              date_since: new Date(2020, 0, 1),
+              date_until: new Date(2020, 11, 31),
+            })
 
             expect(result).toEqual({
               page_info: {
                 total_count: 6,
-                start_cursor: Option.some(transactions[0]?.id),
-                end_cursor: Option.some(transactions[5]?.id),
+                start_cursor: transactions[0]?.id,
+                end_cursor: transactions[5]?.id,
                 has_previous_page: false,
                 has_next_page: false,
               },
@@ -710,26 +668,22 @@ describe("database transaction functions", () => {
           })
 
           it("should find by value", async () => {
-            const result = await listTransactions(
-              {
-                direction: "forward",
-                count: 10,
-              },
-              {
-                subject: "value",
-                min: -10050,
-                max: 0,
-                categories: "all",
-                date_since: new Date(2020, 0, 1),
-                date_until: new Date(2020, 11, 31),
-              },
-            )
+            const result = await listTransactions({
+              direction: "forward",
+              count: 10,
+              subject: "value",
+              min: -10050,
+              max: 0,
+              categories: "all",
+              date_since: new Date(2020, 0, 1),
+              date_until: new Date(2020, 11, 31),
+            })
 
             expect(result).toEqual({
               page_info: {
                 total_count: 4,
-                start_cursor: Option.some(transactions[0]?.id),
-                end_cursor: Option.some(transactions[3]?.id),
+                start_cursor: transactions[0]?.id,
+                end_cursor: transactions[3]?.id,
                 has_previous_page: false,
                 has_next_page: false,
               },
@@ -741,26 +695,22 @@ describe("database transaction functions", () => {
           })
 
           it("should handle min greater than max", async () => {
-            const result = await listTransactions(
-              {
-                direction: "forward",
-                count: 10,
-              },
-              {
-                subject: "value",
-                min: 0,
-                max: -10050,
-                categories: "all",
-                date_since: new Date(2020, 0, 1),
-                date_until: new Date(2020, 11, 31),
-              },
-            )
+            const result = await listTransactions({
+              direction: "forward",
+              count: 10,
+              subject: "value",
+              min: 0,
+              max: -10050,
+              categories: "all",
+              date_since: new Date(2020, 0, 1),
+              date_until: new Date(2020, 11, 31),
+            })
 
             expect(result).toEqual({
               page_info: {
                 total_count: 0,
-                start_cursor: Option.none(),
-                end_cursor: Option.none(),
+                start_cursor: null,
+                end_cursor: null,
                 has_previous_page: false,
                 has_next_page: false,
               },
@@ -771,24 +721,20 @@ describe("database transaction functions", () => {
 
         describe("categories", () => {
           it("should find uncategorized only", async () => {
-            const result = await listTransactions(
-              {
-                direction: "forward",
-                count: 10,
-              },
-              {
-                subject: "none",
-                categories: "uncategorized",
-                date_since: new Date(2020, 0, 1),
-                date_until: new Date(2020, 11, 31),
-              },
-            )
+            const result = await listTransactions({
+              direction: "forward",
+              count: 10,
+              subject: "none",
+              categories: "uncategorized",
+              date_since: new Date(2020, 0, 1),
+              date_until: new Date(2020, 11, 31),
+            })
 
             expect(result).toEqual({
               page_info: {
                 total_count: 1,
-                start_cursor: Option.some(transactions[3]?.id),
-                end_cursor: Option.some(transactions[3]?.id),
+                start_cursor: transactions[3]?.id,
+                end_cursor: transactions[3]?.id,
                 has_previous_page: false,
                 has_next_page: false,
               },
@@ -800,26 +746,22 @@ describe("database transaction functions", () => {
           })
 
           it("should find by specific categories", async () => {
-            const result = await listTransactions(
-              {
-                direction: "forward",
-                count: 10,
-              },
-              {
-                subject: "none",
-                categories: "specific",
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                categories_ids: [categories[0]!.id],
-                date_since: new Date(2020, 0, 1),
-                date_until: new Date(2020, 11, 31),
-              },
-            )
+            const result = await listTransactions({
+              direction: "forward",
+              count: 10,
+              subject: "none",
+              categories: "specific",
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              categories_ids: [categories[0]!.id],
+              date_since: new Date(2020, 0, 1),
+              date_until: new Date(2020, 11, 31),
+            })
 
             expect(result).toEqual({
               page_info: {
                 total_count: 4,
-                start_cursor: Option.some(transactions[0]?.id),
-                end_cursor: Option.some(transactions[6]?.id),
+                start_cursor: transactions[0]?.id,
+                end_cursor: transactions[6]?.id,
                 has_previous_page: false,
                 has_next_page: false,
               },
@@ -838,24 +780,20 @@ describe("database transaction functions", () => {
 
         describe("date range", () => {
           it("should find by date range", async () => {
-            const result = await listTransactions(
-              {
-                direction: "forward",
-                count: 10,
-              },
-              {
-                subject: "none",
-                categories: "all",
-                date_since: new Date(2020, 2, 1),
-                date_until: new Date(2020, 3, 1),
-              },
-            )
+            const result = await listTransactions({
+              direction: "forward",
+              count: 10,
+              subject: "none",
+              categories: "all",
+              date_since: new Date(2020, 2, 1),
+              date_until: new Date(2020, 3, 1),
+            })
 
             expect(result).toEqual({
               page_info: {
                 total_count: 3,
-                start_cursor: Option.some(transactions[0]?.id),
-                end_cursor: Option.some(transactions[2]?.id),
+                start_cursor: transactions[0]?.id,
+                end_cursor: transactions[2]?.id,
                 has_previous_page: false,
                 has_next_page: false,
               },
@@ -867,24 +805,20 @@ describe("database transaction functions", () => {
           })
 
           it("should handle inverse date ranges", async () => {
-            const result = await listTransactions(
-              {
-                direction: "forward",
-                count: 10,
-              },
-              {
-                subject: "none",
-                categories: "all",
-                date_since: new Date(2020, 3, 1),
-                date_until: new Date(2020, 2, 1),
-              },
-            )
+            const result = await listTransactions({
+              direction: "forward",
+              count: 10,
+              subject: "none",
+              categories: "all",
+              date_since: new Date(2020, 3, 1),
+              date_until: new Date(2020, 2, 1),
+            })
 
             expect(result).toEqual({
               page_info: {
                 total_count: 0,
-                start_cursor: Option.none(),
-                end_cursor: Option.none(),
+                start_cursor: null,
+                end_cursor: null,
                 has_previous_page: false,
                 has_next_page: false,
               },

@@ -1,6 +1,6 @@
 import * as S from "@effect/schema/Schema"
 import { type FunctionTemplate } from "../template"
-import { type UpdateTransactionInput } from "./update_transaction"
+import { UpdateTransactionInput } from "./update_transaction"
 import { TransactionWithCategories } from "./domain"
 import * as db from "../../db"
 
@@ -27,12 +27,21 @@ export default {
   cost: null,
 } satisfies FunctionTemplate
 
-const UpdateTransactionsIds = S.array(S.UUID)
+export const UpdateTransactionsInput = S.extend(
+  UpdateTransactionInput,
+  S.struct({
+    ids: S.array(S.UUID),
+  }),
+)
+
+export interface UpdateTransactionsInput
+  extends S.Schema.To<typeof UpdateTransactionsInput> {}
 
 export async function updateTransactions(
-  ids: S.Schema.To<typeof UpdateTransactionsIds>,
-  body: UpdateTransactionInput,
+  input: UpdateTransactionsInput,
 ): Promise<readonly TransactionWithCategories[]> {
+  const { ids, ...body } = input
+
   return await db.callFunction(
     "update_transactions",
     S.array(TransactionWithCategories),

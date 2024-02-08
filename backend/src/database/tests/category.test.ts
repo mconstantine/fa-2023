@@ -229,25 +229,19 @@ describe("database category functions", () => {
         expect(result).toEqual({
           page_info: {
             total_count: 6,
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            start_cursor: categories[0]!.id,
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            end_cursor: categories[1]!.id,
+            start_cursor: categories[0]?.id,
+            end_cursor: categories[1]?.id,
             has_previous_page: false,
             has_next_page: true,
           },
           edges: [
             {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              cursor: categories[0]!.id,
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              node: categories[0]!,
+              cursor: categories[0]?.id,
+              node: categories[0],
             },
             {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              cursor: categories[1]!.id,
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              node: categories[1]!,
+              cursor: categories[1]?.id,
+              node: categories[1],
             },
           ],
         })
@@ -265,31 +259,23 @@ describe("database category functions", () => {
         expect(result).toEqual({
           page_info: {
             total_count: 7,
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            start_cursor: categories[0]!.id,
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            end_cursor: categories[2]!.id,
+            start_cursor: categories[0]?.id,
+            end_cursor: categories[2]?.id,
             has_previous_page: false,
             has_next_page: true,
           },
           edges: [
             {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              cursor: categories[0]!.id,
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              node: categories[0]!,
+              cursor: categories[0]?.id,
+              node: categories[0],
             },
             {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              cursor: categories[1]!.id,
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              node: categories[1]!,
+              cursor: categories[1]?.id,
+              node: categories[1],
             },
             {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              cursor: categories[2]!.id,
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              node: categories[2]!,
+              cursor: categories[2]?.id,
+              node: categories[2],
             },
           ],
         })
@@ -309,31 +295,23 @@ describe("database category functions", () => {
         expect(result).toEqual({
           page_info: {
             total_count: 7,
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            start_cursor: categories[2]!.id,
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            end_cursor: categories[4]!.id,
+            start_cursor: categories[2]?.id,
+            end_cursor: categories[4]?.id,
             has_previous_page: true,
             has_next_page: true,
           },
           edges: [
             {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              cursor: categories[2]!.id,
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              node: categories[2]!,
+              cursor: categories[2]?.id,
+              node: categories[2],
             },
             {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              cursor: categories[3]!.id,
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              node: categories[3]!,
+              cursor: categories[3]?.id,
+              node: categories[3],
             },
             {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              cursor: categories[4]!.id,
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              node: categories[4]!,
+              cursor: categories[4]?.id,
+              node: categories[4],
             },
           ],
         })
@@ -353,31 +331,23 @@ describe("database category functions", () => {
         expect(result).toEqual({
           page_info: {
             total_count: 7,
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            start_cursor: categories[4]!.id,
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            end_cursor: categories[6]!.id,
+            start_cursor: categories[4]?.id,
+            end_cursor: categories[6]?.id,
             has_previous_page: true,
             has_next_page: false,
           },
           edges: [
             {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              cursor: categories[4]!.id,
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              node: categories[4]!,
+              cursor: categories[4]?.id,
+              node: categories[4],
             },
             {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              cursor: categories[5]!.id,
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              node: categories[5]!,
+              cursor: categories[5]?.id,
+              node: categories[5],
             },
             {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              cursor: categories[6]!.id,
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              node: categories[6]!,
+              cursor: categories[6]?.id,
+              node: categories[6],
             },
           ],
         })
@@ -395,31 +365,23 @@ describe("database category functions", () => {
         expect(result).toEqual({
           page_info: {
             total_count: 7,
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            start_cursor: categories[6]!.id,
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            end_cursor: categories[4]!.id,
+            start_cursor: categories[6]?.id,
+            end_cursor: categories[4]?.id,
             has_previous_page: false,
             has_next_page: true,
           },
           edges: [
             {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              cursor: categories[6]!.id,
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              node: categories[6]!,
+              cursor: categories[6]?.id,
+              node: categories[6],
             },
             {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              cursor: categories[5]!.id,
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              node: categories[5]!,
+              cursor: categories[5]?.id,
+              node: categories[5],
             },
             {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              cursor: categories[4]!.id,
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              node: categories[4]!,
+              cursor: categories[4]?.id,
+              node: categories[4],
             },
           ],
         })
@@ -439,31 +401,23 @@ describe("database category functions", () => {
         expect(result).toEqual({
           page_info: {
             total_count: 7,
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            start_cursor: categories[4]!.id,
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            end_cursor: categories[2]!.id,
+            start_cursor: categories[4]?.id,
+            end_cursor: categories[2]?.id,
             has_previous_page: true,
             has_next_page: true,
           },
           edges: [
             {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              cursor: categories[4]!.id,
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              node: categories[4]!,
+              cursor: categories[4]?.id,
+              node: categories[4],
             },
             {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              cursor: categories[3]!.id,
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              node: categories[3]!,
+              cursor: categories[3]?.id,
+              node: categories[3],
             },
             {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              cursor: categories[2]!.id,
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              node: categories[2]!,
+              cursor: categories[2]?.id,
+              node: categories[2],
             },
           ],
         })
@@ -483,31 +437,23 @@ describe("database category functions", () => {
         expect(result).toEqual({
           page_info: {
             total_count: 7,
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            start_cursor: categories[2]!.id,
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            end_cursor: categories[0]!.id,
+            start_cursor: categories[2]?.id,
+            end_cursor: categories[0]?.id,
             has_previous_page: true,
             has_next_page: false,
           },
           edges: [
             {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              cursor: categories[2]!.id,
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              node: categories[2]!,
+              cursor: categories[2]?.id,
+              node: categories[2],
             },
             {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              cursor: categories[1]!.id,
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              node: categories[1]!,
+              cursor: categories[1]?.id,
+              node: categories[1],
             },
             {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              cursor: categories[0]!.id,
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              node: categories[0]!,
+              cursor: categories[0]?.id,
+              node: categories[0],
             },
           ],
         })

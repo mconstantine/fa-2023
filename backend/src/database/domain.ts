@@ -35,8 +35,8 @@ const edge = <R, From, To>(
 
 const PageInfo = S.struct({
   total_count: S.number.pipe(S.int()).pipe(S.greaterThanOrEqualTo(0)),
-  start_cursor: S.optionFromNullable(Cursor),
-  end_cursor: S.optionFromNullable(Cursor),
+  start_cursor: S.nullable(Cursor),
+  end_cursor: S.nullable(Cursor),
   has_previous_page: S.boolean,
   has_next_page: S.boolean,
 })

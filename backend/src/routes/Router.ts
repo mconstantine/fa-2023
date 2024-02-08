@@ -8,7 +8,7 @@ import { handleError } from "./handleError"
 interface RouteCodecs<
   ParamsFrom extends Record<string, string | undefined>,
   ParamsTo,
-  QueryFrom extends Record<string, string | undefined>,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
   QueryTo,
   BodyFrom,
   BodyTo,
@@ -21,7 +21,7 @@ interface RouteCodecs<
 interface RouteHandlerData<
   ParamsFrom extends Record<string, string | undefined>,
   ParamsTo,
-  QueryFrom extends Record<string, string | undefined>,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
   QueryTo,
   BodyFrom,
   BodyTo,
@@ -42,7 +42,7 @@ interface RouteHandlerData<
 interface Route<
   ParamsFrom extends Record<string, string | undefined>,
   ParamsTo,
-  QueryFrom extends Record<string, string | undefined>,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
   QueryTo,
   BodyFrom,
   BodyTo,
@@ -84,7 +84,7 @@ export class Router {
   static get<
     Path extends string,
     ParamsTo,
-    QueryFrom extends Record<string, string | undefined>,
+    QueryFrom extends Record<string, string | readonly string[] | undefined>,
     QueryTo,
     Response,
   >(
@@ -113,7 +113,7 @@ export class Router {
   static post<
     Path extends string,
     ParamsTo,
-    QueryFrom extends Record<string, string | undefined>,
+    QueryFrom extends Record<string, string | readonly string[] | undefined>,
     QueryTo,
     BodyFrom,
     BodyTo,
@@ -144,7 +144,7 @@ export class Router {
   static patch<
     Path extends string,
     ParamsTo,
-    QueryFrom extends Record<string, string | undefined>,
+    QueryFrom extends Record<string, string | readonly string[] | undefined>,
     QueryTo,
     BodyFrom,
     BodyTo,
@@ -175,7 +175,7 @@ export class Router {
   static put<
     Path extends string,
     ParamsTo,
-    QueryFrom extends Record<string, string | undefined>,
+    QueryFrom extends Record<string, string | readonly string[] | undefined>,
     QueryTo,
     BodyFrom,
     BodyTo,
@@ -206,7 +206,7 @@ export class Router {
   static delete<
     Path extends string,
     ParamsTo,
-    QueryFrom extends Record<string, string | undefined>,
+    QueryFrom extends Record<string, string | readonly string[] | undefined>,
     QueryTo,
     Response,
   >(
@@ -235,7 +235,7 @@ export class Router {
   public get<
     Path extends string,
     ParamsTo,
-    QueryFrom extends Record<string, string | undefined>,
+    QueryFrom extends Record<string, string | readonly string[] | undefined>,
     QueryTo,
     Response,
   >(
@@ -273,7 +273,7 @@ export class Router {
   public post<
     Path extends string,
     ParamsTo,
-    QueryFrom extends Record<string, string | undefined>,
+    QueryFrom extends Record<string, string | readonly string[] | undefined>,
     QueryTo,
     BodyFrom,
     BodyTo,
@@ -313,7 +313,7 @@ export class Router {
   public patch<
     Path extends string,
     ParamsTo,
-    QueryFrom extends Record<string, string | undefined>,
+    QueryFrom extends Record<string, string | readonly string[] | undefined>,
     QueryTo,
     BodyFrom,
     BodyTo,
@@ -353,7 +353,7 @@ export class Router {
   public put<
     Path extends string,
     ParamsTo,
-    QueryFrom extends Record<string, string | undefined>,
+    QueryFrom extends Record<string, string | readonly string[] | undefined>,
     QueryTo,
     BodyFrom,
     BodyTo,
@@ -393,7 +393,7 @@ export class Router {
   public delete<
     Path extends string,
     ParamsTo,
-    QueryFrom extends Record<string, string | undefined>,
+    QueryFrom extends Record<string, string | readonly string[] | undefined>,
     QueryTo,
     Response,
   >(
@@ -431,7 +431,7 @@ export class Router {
   private handle<
     Path extends string,
     ParamsTo,
-    QueryFrom extends Record<string, string | undefined>,
+    QueryFrom extends Record<string, string | readonly string[] | undefined>,
     QueryTo,
     BodyFrom,
     BodyTo,

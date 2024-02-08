@@ -1,7 +1,7 @@
 import * as S from "@effect/schema/Schema"
 import {
   PaginationResponse,
-  type PaginationQuery,
+  PaginationQuery,
   CurrencyFromValue,
 } from "../../domain"
 import * as db from "../../db"
@@ -38,8 +38,8 @@ const ListTransactionsFiltersSubject = S.union(
   }),
   S.struct({
     subject: S.literal("value"),
-    max: CurrencyFromValue,
-    min: CurrencyFromValue,
+    max: S.compose(S.NumberFromString, CurrencyFromValue),
+    min: S.compose(S.NumberFromString, CurrencyFromValue),
   }),
   S.struct({
     subject: S.literal("none"),
@@ -65,10 +65,19 @@ const ListTransactionsFilters = S.extend(
 
 type ListTransactionsFilters = S.Schema.To<typeof ListTransactionsFilters>
 
+export const ListTransactionsInput = S.extend(
+  PaginationQuery,
+  ListTransactionsFilters,
+)
+
+export type ListTransactionsInput = S.Schema.To<typeof ListTransactionsInput>
+
 export async function listTransactions(
-  paginationQuery: PaginationQuery,
-  filters: ListTransactionsFilters,
+  input: ListTransactionsInput,
 ): Promise<PaginationResponse<TransactionWithCategories>> {
+  const { direction, count, target, ...filters } = input
+  const paginationQuery = { direction, count, target }
+
   return await db.callFunction(
     "list_transactions",
     PaginationResponse(TransactionWithCategories),

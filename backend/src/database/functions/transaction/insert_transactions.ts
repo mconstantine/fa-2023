@@ -1,7 +1,7 @@
 import * as S from "@effect/schema/Schema"
 import { type FunctionTemplate } from "../template"
 import { TransactionWithCategories } from "./domain"
-import { type InsertTransactionInput } from "./insert_transaction"
+import { InsertTransactionInput } from "./insert_transaction"
 import * as db from "../../db"
 
 export default {
@@ -21,8 +21,13 @@ export default {
   cost: null,
 } satisfies FunctionTemplate
 
+export const InsertTransactionsInput = S.array(InsertTransactionInput)
+
+export interface InsertTransactionsInput
+  extends S.Schema.To<typeof InsertTransactionsInput> {}
+
 export async function insertTransactions(
-  body: InsertTransactionInput[],
+  body: InsertTransactionsInput,
 ): Promise<readonly TransactionWithCategories[]> {
   return await db.callFunction(
     "insert_transactions",
