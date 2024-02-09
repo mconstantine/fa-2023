@@ -1,78 +1,90 @@
-import { useCommand, useQuery } from "../../hooks/network"
+import { useQuery, useRequestData } from "../../hooks/network"
 import CategoriesList from "./CategoriesList"
-import { Category } from "./domain"
+import { listCategoriesRequest } from "./api"
 
 export default function CategoriesPage() {
-  const [readingResponse, updateCategories] =
-    useQuery<Category[]>("/categories/")
+  const [data] = useRequestData<typeof listCategoriesRequest>({
+    query: {
+      direction: "forward",
+      count: 20,
+    },
+  })
 
-  const [updateResponse, updateCategory] = useCommand<Category, Category>(
-    "PUT",
-    "/categories/",
-  )
+  const [categories] = useQuery(listCategoriesRequest, data)
 
-  const [creationResponse, createCategory] = useCommand<Category, Category>(
-    "POST",
-    "/categories/",
-  )
+  // const [updateResponse, updateCategory] = useCommand<Category, Category>(
+  //   "PUT",
+  //   "/categories/",
+  // )
 
-  const [deletionResponse, deleteCategory] = useCommand<
-    Category,
-    Omit<Category, "id">
-  >("DELETE", "/categories/")
+  // const [creationResponse, createCategory] = useCommand<Category, Category>(
+  //   "POST",
+  //   "/categories/",
+  // )
 
-  async function onCategoryCreate(category: Category): Promise<boolean> {
-    const response = await createCategory(category)
-    const isSuccess = response !== null
+  // const [deletionResponse, deleteCategory] = useCommand<
+  //   Category,
+  //   Omit<Category, "id">
+  // >("DELETE", "/categories/")
 
-    if (isSuccess) {
-      updateCategories((categories) => [category, ...categories])
-    }
+  // async function onCategoryCreate(category: Category): Promise<boolean> {
+  //   console.log("TODO: create category", { category })
+  //   return true
+  //   // const response = await createCategory(category)
+  //   // const isSuccess = response !== null
 
-    return isSuccess
-  }
+  //   // if (isSuccess) {
+  //   //   updateCategories((categories) => [category, ...categories])
+  //   // }
 
-  async function onCategoryUpdate(category: Category): Promise<boolean> {
-    const response = await updateCategory(category)
-    const isSuccess = response !== null
+  //   // return isSuccess
+  // }
 
-    if (isSuccess) {
-      updateCategories((categories) =>
-        categories.map((category) => {
-          if (category.id === response.id) {
-            return response
-          } else {
-            return category
-          }
-        }),
-      )
-    }
+  // async function onCategoryUpdate(category: Category): Promise<boolean> {
+  //   console.log("TODO: update category", category)
+  //   return true
+  //   // const response = await updateCategory(category)
+  //   // const isSuccess = response !== null
 
-    return isSuccess
-  }
+  //   // if (isSuccess) {
+  //   //   updateCategories((categories) =>
+  //   //     categories.map((category) => {
+  //   //       if (category.id === response.id) {
+  //   //         return response
+  //   //       } else {
+  //   //         return category
+  //   //       }
+  //   //     }),
+  //   //   )
+  //   // }
 
-  async function onCategoryDelete(deleted: Category): Promise<boolean> {
-    const response = await deleteCategory(deleted)
-    const isSuccess = response !== null
+  //   // return isSuccess
+  // }
 
-    if (isSuccess) {
-      updateCategories((categories) =>
-        categories.filter((category) => category.id !== deleted.id),
-      )
-    }
+  // async function onCategoryDelete(deleted: Category): Promise<boolean> {
+  //   console.log("TODO: delete category", { deleted })
+  //   return true
+  //   // const response = await deleteCategory(deleted)
+  //   // const isSuccess = response !== null
 
-    return isSuccess
-  }
+  //   // if (isSuccess) {
+  //   //   updateCategories((categories) =>
+  //   //     categories.filter((category) => category.id !== deleted.id),
+  //   //   )
+  //   // }
+
+  //   // return isSuccess
+  // }
 
   return (
     <CategoriesList
-      readingResponse={readingResponse}
-      creationResponse={creationResponse}
-      updateResponse={updateResponse}
-      deletionResponse={deletionResponse}
-      onCategoryCreate={onCategoryCreate}
-      onCategoryUpdate={onCategoryUpdate}
-      onCategoryDelete={onCategoryDelete}
+      categories={categories}
+      // creationResponse={creationResponse}
+      // updateResponse={updateResponse}
+      // deletionResponse={deletionResponse}
+      // onCategoryCreate={onCategoryCreate}
+      // onCategoryUpdate={onCategoryUpdate}
+      // onCategoryDelete={onCategoryDelete}
     />
   )
 }

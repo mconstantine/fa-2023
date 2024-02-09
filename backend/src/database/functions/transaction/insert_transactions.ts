@@ -1,7 +1,6 @@
 import * as S from "@effect/schema/Schema"
 import { type FunctionTemplate } from "../template"
-import { TransactionWithCategories } from "./domain"
-import { InsertTransactionInput } from "./insert_transaction"
+import { InsertTransactionInput, TransactionWithCategories } from "./domain"
 import * as db from "../../db"
 
 export default {

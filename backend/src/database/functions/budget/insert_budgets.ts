@@ -1,7 +1,6 @@
 import * as S from "@effect/schema/Schema"
 import { type FunctionTemplate } from "../template"
-import { type InsertBudgetInput } from "./insert_budget"
-import { BudgetWithCategory } from "./domain"
+import { BudgetWithCategory, type InsertBudgetInput } from "./domain"
 import * as db from "../../db"
 
 export default {

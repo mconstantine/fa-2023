@@ -1,27 +1,21 @@
 import * as S from "@effect/schema/Schema"
-import {
-  InsertTransactionInput,
-  insertTransaction,
-} from "../database/functions/transaction/insert_transaction"
+import { insertTransaction } from "../database/functions/transaction/insert_transaction"
 import {
   InsertTransactionsInput,
   insertTransactions,
 } from "../database/functions/transaction/insert_transactions"
-import {
-  ListTransactionsInput,
-  listTransactions,
-} from "../database/functions/transaction/list_transactions"
-import {
-  UpdateTransactionInput,
-  updateTransaction,
-} from "../database/functions/transaction/update_transaction"
+import { listTransactions } from "../database/functions/transaction/list_transactions"
+import { updateTransaction } from "../database/functions/transaction/update_transaction"
 import { Router } from "./Router"
-import {
-  UpdateTransactionsInput,
-  updateTransactions,
-} from "../database/functions/transaction/update_transactions"
+import { updateTransactions } from "../database/functions/transaction/update_transactions"
 import { deleteTransaction } from "../database/functions/transaction/delete_transaction"
 import { HttpError } from "./HttpError"
+import {
+  InsertTransactionInput,
+  ListTransactionsInput,
+  UpdateTransactionInput,
+  UpdateTransactionsInput,
+} from "../database/functions/transaction/domain"
 
 export const transactionRouter = Router.get("/", {
   codecs: {

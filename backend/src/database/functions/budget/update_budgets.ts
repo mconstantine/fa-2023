@@ -1,8 +1,7 @@
 import * as S from "@effect/schema/Schema"
 import { type FunctionTemplate } from "../template"
-import { BudgetWithCategory } from "./domain"
+import { BudgetWithCategory, type UpdateBudgetsInput } from "./domain"
 import * as db from "../../db"
-import { ValueFromCurrency } from "../../domain"
 
 export default {
   name: "update_budgets",
@@ -20,16 +19,6 @@ export default {
   parallel: "UNSAFE",
   cost: null,
 } satisfies FunctionTemplate
-
-export const UpdateBudgetsInput = S.array(
-  S.struct({
-    id: S.UUID,
-    value: S.optional(ValueFromCurrency),
-  }),
-)
-
-export interface UpdateBudgetsInput
-  extends S.Schema.To<typeof UpdateBudgetsInput> {}
 
 export async function updateBudgets(
   input: UpdateBudgetsInput,

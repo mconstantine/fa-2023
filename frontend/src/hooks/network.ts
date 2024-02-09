@@ -1,16 +1,13 @@
 import * as S from "@effect/schema/Schema"
 import {
-  HttpDeleteRequest,
   HttpGetRequest,
-  HttpPatchRequest,
-  HttpPostRequest,
-  HttpPutRequest,
   HttpRequest,
+  HttpRequestCodecs,
   RouteParameters,
 } from "../network/HttpRequest"
 import { env } from "../env"
 import { Cause, Effect, Either, Exit, Option, flow, pipe } from "effect"
-import { useEffect, useState } from "react"
+import { Dispatch, SetStateAction, useEffect, useState } from "react"
 import { NetworkResponse, networkResponse } from "../network/NetworkResponse"
 import { identity } from "effect/Function"
 
@@ -103,53 +100,58 @@ function sendHttpRequest<
     ResponseTo,
     ResponseFrom
   >,
-  data: {
-    readonly [key in keyof Omit<
-      typeof request.codecs,
-      "response"
-    >]-?: S.Schema.To<(typeof request.codecs)[key]>
-  },
+  data: HttpRequestData<
+    ParamsTo,
+    RouteParameters<Path>,
+    QueryTo,
+    QueryFrom,
+    BodyTo,
+    BodyFrom,
+    ResponseTo,
+    ResponseFrom,
+    typeof request.codecs
+  >,
 ): Effect.Effect<ResponseTo, HttpError> {
   const urlTemplate = (env.VITE_API_URL + request.path) as Path
 
-  const paramsEncoding = pipe(
-    request.codecs.params,
-    Option.fromNullable,
-    Option.match({
-      onNone: () => Effect.succeed(urlTemplate),
-      onSome: (codec) =>
-        populateUrlParams<Path, ParamsTo>(urlTemplate, codec, data.params),
-    }),
-  )
+  const paramsEncoding = (() => {
+    if ("params" in data && typeof request.codecs.params !== "undefined") {
+      return populateUrlParams(urlTemplate, request.codecs.params, data.params)
+    } else {
+      return Effect.succeed(urlTemplate)
+    }
+  })()
 
   const bodyEncoding: Effect.Effect<Option.Option<string>, HttpError> = pipe(
     request.codecs.body,
     Option.fromNullable,
     Option.match({
       onNone: () => Effect.succeed(Option.none()),
-      onSome: (codec) =>
-        S.encode(codec)(data.body).pipe(
-          Effect.mapBoth({
-            onFailure: (error): HttpError => ({
-              code: 500,
-              message: "Invalid request body",
-              extras: { error },
+      onSome: (codec) => {
+        if ("body" in data) {
+          return S.encode(codec)(data.body).pipe(
+            Effect.mapBoth({
+              onFailure: (error): HttpError => ({
+                code: 500,
+                message: "Invalid request body",
+                extras: { error },
+              }),
+              onSuccess: flow(JSON.stringify, Option.some),
             }),
-            onSuccess: flow(JSON.stringify, Option.some),
-          }),
-        ),
+          )
+        } else {
+          return Effect.succeed(Option.none())
+        }
+      },
     }),
   )
 
   function encodeQuery(urlWithParams: string) {
-    return pipe(
-      request.codecs.query,
-      Option.fromNullable,
-      Option.match({
-        onNone: () => Effect.succeed(urlWithParams),
-        onSome: (codec) => populateUrlQuery(urlWithParams, codec, data.query),
-      }),
-    )
+    if ("query" in data && typeof request.codecs.query !== "undefined") {
+      return populateUrlQuery(urlWithParams, request.codecs.query, data.query)
+    } else {
+      return Effect.succeed(urlWithParams)
+    }
   }
 
   function sendRequest(
@@ -244,8 +246,11 @@ function sendHttpRequest<
         bodyEncoding,
         Effect.flatMap((body) => sendRequest(urlWithParamsAndQuery, body)),
         Effect.flatMap((response) =>
-          pipe(parseResponse(response), (content) =>
-            decodeResponseContent(response, content),
+          pipe(
+            parseResponse(response),
+            Effect.flatMap((content) =>
+              decodeResponseContent(response, content),
+            ),
           ),
         ),
       ),
@@ -303,11 +308,19 @@ type UseLazyQueryOutput<
   >,
 > = [
   response: NetworkResponse<ResponseTo>,
-  refresh: (data: {
-    readonly [key in keyof Omit<Request["codecs"], "response">]-?: S.Schema.To<
-      Request["codecs"][key]
-    >
-  }) => void,
+  refresh: (
+    data: HttpRequestData<
+      ParamsTo,
+      RouteParameters<Path>,
+      QueryTo,
+      QueryFrom,
+      never,
+      never,
+      ResponseTo,
+      ResponseFrom,
+      Request["codecs"]
+    >,
+  ) => void,
   optimisticUpdate: (data: ResponseTo) => void,
 ]
 
@@ -340,12 +353,19 @@ export function useLazyQuery<
     networkResponse.make(),
   )
 
-  function sendQuery(data: {
-    readonly [key in keyof Omit<
-      typeof request.codecs,
-      "response"
-    >]-?: S.Schema.To<(typeof request.codecs)[key]>
-  }): void {
+  function sendQuery(
+    data: HttpRequestData<
+      ParamsTo,
+      RouteParameters<Path>,
+      QueryTo,
+      QueryFrom,
+      never,
+      never,
+      ResponseTo,
+      ResponseFrom,
+      typeof request.codecs
+    >,
+  ): void {
     setResponse((response) => response.load())
 
     Effect.runPromiseExit(sendHttpRequest(request, data)).then(
@@ -393,6 +413,136 @@ type UseQueryOutput<Response> = [
   optimisticUpdate: (data: Response) => void,
 ]
 
+type HttpRequestData<
+  ParamsTo,
+  Path extends Record<string, string | undefined>,
+  QueryTo,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  BodyTo,
+  BodyFrom,
+  ResponseTo,
+  ResponseFrom,
+  Codecs extends HttpRequestCodecs<
+    ParamsTo,
+    Path,
+    QueryTo,
+    QueryFrom,
+    BodyTo,
+    BodyFrom,
+    ResponseTo,
+    ResponseFrom
+  >,
+> = (S.Schema.To<Codecs["params"]> extends never
+  ? // eslint-disable-next-line @typescript-eslint/ban-types
+    {}
+  : {
+      params: ParamsTo
+    }) &
+  (S.Schema.To<Codecs["query"]> extends never
+    ? // eslint-disable-next-line @typescript-eslint/ban-types
+      {}
+    : {
+        query: QueryTo
+      }) &
+  (S.Schema.To<Codecs["body"]> extends never
+    ? // eslint-disable-next-line @typescript-eslint/ban-types
+      {}
+    : {
+        body: BodyTo
+      })
+
+export function useRequestData<
+  Request extends HttpRequest<
+    ParamsTo,
+    Path,
+    QueryTo,
+    QueryFrom,
+    BodyTo,
+    BodyFrom,
+    ResponseTo,
+    ResponseFrom
+  >,
+  ParamsTo = S.Schema.To<Request["codecs"]["params"]>,
+  Path extends string = string,
+  QueryTo = S.Schema.To<Request["codecs"]["query"]>,
+  QueryFrom extends Record<
+    string,
+    string | readonly string[] | undefined
+  > = S.Schema.From<Request["codecs"]["query"]>,
+  BodyTo = S.Schema.To<Request["codecs"]["body"]>,
+  BodyFrom = S.Schema.From<Request["codecs"]["body"]>,
+  ResponseTo = S.Schema.To<Request["codecs"]["response"]>,
+  ResponseFrom = S.Schema.From<Request["codecs"]["response"]>,
+>(
+  data: HttpRequestData<
+    ParamsTo,
+    RouteParameters<Path>,
+    QueryTo,
+    QueryFrom,
+    BodyTo,
+    BodyFrom,
+    ResponseTo,
+    ResponseFrom,
+    HttpRequestCodecs<
+      ParamsTo,
+      RouteParameters<Path>,
+      QueryTo,
+      QueryFrom,
+      BodyTo,
+      BodyFrom,
+      ResponseTo,
+      ResponseFrom
+    >
+  >,
+): [
+  HttpRequestData<
+    ParamsTo,
+    RouteParameters<Path>,
+    QueryTo,
+    QueryFrom,
+    BodyTo,
+    BodyFrom,
+    ResponseTo,
+    ResponseFrom,
+    HttpRequestCodecs<
+      ParamsTo,
+      RouteParameters<Path>,
+      QueryTo,
+      QueryFrom,
+      BodyTo,
+      BodyFrom,
+      ResponseTo,
+      ResponseFrom
+    >
+  >,
+  Dispatch<
+    SetStateAction<
+      HttpRequestData<
+        ParamsTo,
+        RouteParameters<Path>,
+        QueryTo,
+        QueryFrom,
+        BodyTo,
+        BodyFrom,
+        ResponseTo,
+        ResponseFrom,
+        HttpRequestCodecs<
+          ParamsTo,
+          RouteParameters<Path>,
+          QueryTo,
+          QueryFrom,
+          BodyTo,
+          BodyFrom,
+          ResponseTo,
+          ResponseFrom
+        >
+      >
+    >
+  >,
+] {
+  return useState(data)
+}
+
 export function useQuery<
   ParamsTo,
   Path extends string,
@@ -409,12 +559,17 @@ export function useQuery<
     ResponseTo,
     ResponseFrom
   >,
-  data: {
-    readonly [key in keyof Omit<
-      typeof request.codecs,
-      "response"
-    >]-?: S.Schema.To<(typeof request.codecs)[key]>
-  },
+  data: HttpRequestData<
+    ParamsTo,
+    RouteParameters<Path>,
+    QueryTo,
+    QueryFrom,
+    never,
+    never,
+    ResponseTo,
+    ResponseFrom,
+    typeof request.codecs
+  >,
 ): UseQueryOutput<ResponseTo> {
   const [response, setResponse] = useState<NetworkResponse<ResponseTo>>(
     networkResponse.make(),
@@ -463,55 +618,6 @@ export function useQuery<
   return [response, update]
 }
 
-type CommandRequest<
-  ParamsTo,
-  Path extends string,
-  QueryTo,
-  QueryFrom extends Record<string, string | readonly string[] | undefined>,
-  BodyTo,
-  BodyFrom,
-  ResponseTo,
-  ResponseFrom,
-> =
-  | HttpPostRequest<
-      ParamsTo,
-      Path,
-      QueryTo,
-      QueryFrom,
-      BodyTo,
-      BodyFrom,
-      ResponseTo,
-      ResponseFrom
-    >
-  | HttpPutRequest<
-      ParamsTo,
-      Path,
-      QueryTo,
-      QueryFrom,
-      BodyTo,
-      BodyFrom,
-      ResponseTo,
-      ResponseFrom
-    >
-  | HttpPatchRequest<
-      ParamsTo,
-      Path,
-      QueryTo,
-      QueryFrom,
-      BodyTo,
-      BodyFrom,
-      ResponseTo,
-      ResponseFrom
-    >
-  | HttpDeleteRequest<
-      ParamsTo,
-      Path,
-      QueryTo,
-      QueryFrom,
-      ResponseTo,
-      ResponseFrom
-    >
-
 type UseCommandOutput<
   ParamsTo,
   Path extends string,
@@ -521,23 +627,30 @@ type UseCommandOutput<
   BodyFrom,
   ResponseTo,
   ResponseFrom,
-  Request extends CommandRequest<
-    ParamsTo,
-    Path,
-    QueryTo,
-    QueryFrom,
-    BodyTo,
-    BodyFrom,
-    ResponseTo,
-    ResponseFrom
-  >,
 > = [
   response: NetworkResponse<ResponseTo>,
-  execute: (data: {
-    readonly [key in keyof Omit<Request["codecs"], "response">]-?: S.Schema.To<
-      Request["codecs"][key]
-    >
-  }) => Promise<Either.Either<HttpError, ResponseTo>>,
+  execute: (
+    data: HttpRequestData<
+      ParamsTo,
+      RouteParameters<Path>,
+      QueryTo,
+      QueryFrom,
+      BodyTo,
+      BodyFrom,
+      ResponseTo,
+      ResponseFrom,
+      HttpRequestCodecs<
+        ParamsTo,
+        RouteParameters<Path>,
+        QueryTo,
+        QueryFrom,
+        BodyTo,
+        BodyFrom,
+        ResponseTo,
+        ResponseFrom
+      >
+    >,
+  ) => Promise<Either.Either<HttpError, ResponseTo>>,
 ]
 
 export function useCommand<
@@ -550,7 +663,7 @@ export function useCommand<
   ResponseTo,
   ResponseFrom,
 >(
-  request: CommandRequest<
+  request: HttpRequest<
     ParamsTo,
     Path,
     QueryTo,
@@ -568,45 +681,28 @@ export function useCommand<
   BodyTo,
   BodyFrom,
   ResponseTo,
-  ResponseFrom,
-  CommandRequest<
-    ParamsTo,
-    Path,
-    QueryTo,
-    QueryFrom,
-    BodyTo,
-    BodyFrom,
-    ResponseTo,
-    ResponseFrom
-  >
+  ResponseFrom
 > {
   const [response, setResponse] = useState<NetworkResponse<ResponseTo>>(
     networkResponse.make(),
   )
 
-  function sendCommand(data: {
-    readonly [key in keyof Omit<
-      typeof request.codecs,
-      "response"
-    >]-?: S.Schema.To<(typeof request.codecs)[key]>
-  }): Promise<Either.Either<HttpError, ResponseTo>> {
+  function sendCommand(
+    data: HttpRequestData<
+      ParamsTo,
+      RouteParameters<Path>,
+      QueryTo,
+      QueryFrom,
+      BodyTo,
+      BodyFrom,
+      ResponseTo,
+      ResponseFrom,
+      typeof request.codecs
+    >,
+  ): Promise<Either.Either<HttpError, ResponseTo>> {
     setResponse((response) => response.load())
 
-    return Effect.runPromiseExit(
-      sendHttpRequest(
-        request as HttpRequest<
-          ParamsTo,
-          Path,
-          QueryTo,
-          QueryFrom,
-          BodyTo,
-          BodyFrom,
-          ResponseTo,
-          ResponseFrom
-        >,
-        data,
-      ),
-    ).then(
+    return Effect.runPromiseExit(sendHttpRequest(request, data)).then(
       flow(
         Exit.match({
           onFailure(cause) {

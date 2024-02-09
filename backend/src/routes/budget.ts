@@ -1,21 +1,17 @@
 import * as S from "@effect/schema/Schema"
 import { listBudgets } from "../database/functions/budget/list_budgets"
 import { Router } from "./Router"
-import {
-  InsertBudgetInput,
-  insertBudget,
-} from "../database/functions/budget/insert_budget"
+import { insertBudget } from "../database/functions/budget/insert_budget"
 import { insertBudgets } from "../database/functions/budget/insert_budgets"
 import { HttpError } from "./HttpError"
-import {
-  UpdateBudgetInput,
-  updateBudget,
-} from "../database/functions/budget/update_budget"
-import {
-  UpdateBudgetsInput,
-  updateBudgets,
-} from "../database/functions/budget/update_budgets"
+import { updateBudget } from "../database/functions/budget/update_budget"
+import { updateBudgets } from "../database/functions/budget/update_budgets"
 import { deleteBudget } from "../database/functions/budget/delete_budget"
+import {
+  InsertBudgetInput,
+  UpdateBudgetInput,
+  UpdateBudgetsInput,
+} from "../database/functions/budget/domain"
 
 export const budgetRouter = Router.get("/", {
   codecs: {

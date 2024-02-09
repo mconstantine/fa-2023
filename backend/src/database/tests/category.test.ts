@@ -1,10 +1,10 @@
 import * as S from "@effect/schema/Schema"
-import {
-  type InsertCategoryInput,
-  insertCategory,
-} from "../functions/category/insert_category"
+import { insertCategory } from "../functions/category/insert_category"
 import * as db from "../db"
-import { Category } from "../functions/category/domain"
+import {
+  Category,
+  type InsertCategoryInput,
+} from "../functions/category/domain"
 import { updateCategory } from "../functions/category/update_category"
 import { deleteCategory } from "../functions/category/delete_category"
 import { listCategories } from "../functions/category/list_categories"

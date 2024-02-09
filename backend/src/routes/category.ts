@@ -1,19 +1,15 @@
 import * as S from "@effect/schema/Schema"
-import {
-  InsertCategoryInput,
-  insertCategory,
-} from "../database/functions/category/insert_category"
+import { insertCategory } from "../database/functions/category/insert_category"
 import { Router } from "./Router"
-import {
-  ListCategoriesInput,
-  listCategories,
-} from "../database/functions/category/list_categories"
-import {
-  UpdateCategoryInput,
-  updateCategory,
-} from "../database/functions/category/update_category"
+import { listCategories } from "../database/functions/category/list_categories"
+import { updateCategory } from "../database/functions/category/update_category"
 import { deleteCategory } from "../database/functions/category/delete_category"
 import { HttpError } from "./HttpError"
+import {
+  InsertCategoryInput,
+  ListCategoriesInput,
+  UpdateCategoryInput,
+} from "../database/functions/category/domain"
 
 export const categoryRouter = Router.get("/", {
   codecs: {

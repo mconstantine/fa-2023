@@ -14,4 +14,4 @@ const Env = S.struct({
 
 interface Env extends S.Schema.To<typeof Env> {}
 
-export const env: Env = S.encodeUnknownSync(Env)(process.env)
+export const env: Env = S.encodeUnknownSync(Env)(import.meta.env)

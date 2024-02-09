@@ -1,7 +1,9 @@
 import * as S from "@effect/schema/Schema"
 import { type FunctionTemplate } from "../template"
-import { UpdateTransactionInput } from "./update_transaction"
-import { TransactionWithCategories } from "./domain"
+import {
+  TransactionWithCategories,
+  type UpdateTransactionsInput,
+} from "./domain"
 import * as db from "../../db"
 
 export default {
@@ -26,16 +28,6 @@ export default {
   parallel: "UNSAFE",
   cost: null,
 } satisfies FunctionTemplate
-
-export const UpdateTransactionsInput = S.extend(
-  UpdateTransactionInput,
-  S.struct({
-    ids: S.array(S.UUID),
-  }),
-)
-
-export interface UpdateTransactionsInput
-  extends S.Schema.To<typeof UpdateTransactionsInput> {}
 
 export async function updateTransactions(
   input: UpdateTransactionsInput,

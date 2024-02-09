@@ -17,7 +17,7 @@ export type RouteParameters<Route extends string> =
     : // eslint-disable-next-line @typescript-eslint/ban-types
       {}
 
-interface HttpRequestCodecs<
+export interface HttpRequestCodecs<
   ParamsTo,
   ParamsFrom extends Record<string, string | undefined>,
   QueryTo,
@@ -164,12 +164,15 @@ export interface HttpDeleteRequest<
 }
 
 export function makeGet<
-  ParamsTo,
-  Path extends string,
-  QueryTo,
-  QueryFrom extends Record<string, string | readonly string[] | undefined>,
-  ResponseTo,
-  ResponseFrom,
+  ParamsTo = never,
+  Path extends string = never,
+  QueryTo = never,
+  QueryFrom extends Record<
+    string,
+    string | readonly string[] | undefined
+  > = never,
+  ResponseTo = never,
+  ResponseFrom = never,
 >(
   path: Path,
   codecs: HttpRequestCodecs<
@@ -194,14 +197,17 @@ export function makeGet<
 }
 
 export function makePost<
-  ParamsTo,
-  Path extends string,
-  QueryTo,
-  QueryFrom extends Record<string, string | readonly string[] | undefined>,
-  BodyTo,
-  BodyFrom,
-  ResponseTo,
-  ResponseFrom,
+  ParamsTo = never,
+  Path extends string = never,
+  QueryTo = never,
+  QueryFrom extends Record<
+    string,
+    string | readonly string[] | undefined
+  > = never,
+  BodyTo = never,
+  BodyFrom = never,
+  ResponseTo = never,
+  ResponseFrom = never,
 >(
   path: Path,
   codecs: HttpRequestCodecs<
@@ -228,14 +234,17 @@ export function makePost<
 }
 
 export function makePut<
-  ParamsTo,
-  Path extends string,
-  QueryTo,
-  QueryFrom extends Record<string, string | readonly string[] | undefined>,
-  BodyTo,
-  BodyFrom,
-  ResponseTo,
-  ResponseFrom,
+  ParamsTo = never,
+  Path extends string = never,
+  QueryTo = never,
+  QueryFrom extends Record<
+    string,
+    string | readonly string[] | undefined
+  > = never,
+  BodyTo = never,
+  BodyFrom = never,
+  ResponseTo = never,
+  ResponseFrom = never,
 >(
   path: Path,
   codecs: HttpRequestCodecs<
@@ -262,14 +271,17 @@ export function makePut<
 }
 
 export function makePatch<
-  ParamsTo,
-  Path extends string,
-  QueryTo,
-  QueryFrom extends Record<string, string | readonly string[] | undefined>,
-  BodyTo,
-  BodyFrom,
-  ResponseTo,
-  ResponseFrom,
+  ParamsTo = never,
+  Path extends string = never,
+  QueryTo = never,
+  QueryFrom extends Record<
+    string,
+    string | readonly string[] | undefined
+  > = never,
+  BodyTo = never,
+  BodyFrom = never,
+  ResponseTo = never,
+  ResponseFrom = never,
 >(
   path: Path,
   codecs: HttpRequestCodecs<
@@ -296,12 +308,15 @@ export function makePatch<
 }
 
 export function makeDelete<
-  ParamsTo,
-  Path extends string,
-  QueryTo,
-  QueryFrom extends Record<string, string | readonly string[] | undefined>,
-  ResponseTo,
-  ResponseFrom,
+  ParamsTo = never,
+  Path extends string = never,
+  QueryTo = never,
+  QueryFrom extends Record<
+    string,
+    string | readonly string[] | undefined
+  > = never,
+  ResponseTo = never,
+  ResponseFrom = never,
 >(
   path: Path,
   codecs: HttpRequestCodecs<

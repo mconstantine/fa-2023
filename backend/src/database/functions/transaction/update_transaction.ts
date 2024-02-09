@@ -1,8 +1,10 @@
-import * as S from "@effect/schema/Schema"
+import type * as S from "@effect/schema/Schema"
 import { type FunctionTemplate } from "../template"
-import { TransactionWithCategories } from "./domain"
+import {
+  TransactionWithCategories,
+  type UpdateTransactionInput,
+} from "./domain"
 import * as db from "../../db"
-import { ValueFromCurrency } from "../../domain"
 
 export default {
   name: "update_transaction",
@@ -26,16 +28,6 @@ export default {
   parallel: "UNSAFE",
   cost: null,
 } satisfies FunctionTemplate
-
-export const UpdateTransactionInput = S.struct({
-  description: S.optional(S.string.pipe(S.nonEmpty())),
-  value: S.optional(ValueFromCurrency),
-  date: S.optional(S.DateFromString),
-  categoriesIds: S.optional(S.array(S.UUID)),
-})
-
-export interface UpdateTransactionInput
-  extends S.Schema.To<typeof UpdateTransactionInput> {}
 
 export async function updateTransaction(
   id: S.Schema.To<typeof S.UUID>,

@@ -1,6 +1,5 @@
-import * as S from "@effect/schema/Schema"
 import { type FunctionTemplate } from "../template"
-import { Category } from "./domain"
+import { Category, type InsertCategoryInput } from "./domain"
 import * as db from "../../db"
 
 export default {
@@ -19,15 +18,6 @@ export default {
   parallel: "UNSAFE",
   cost: null,
 } satisfies FunctionTemplate
-
-export const InsertCategoryInput = S.struct({
-  name: S.string.pipe(S.nonEmpty()),
-  is_meta: S.boolean,
-  keywords: S.array(S.string.pipe(S.nonEmpty())),
-})
-
-export interface InsertCategoryInput
-  extends S.Schema.To<typeof InsertCategoryInput> {}
 
 export async function insertCategory(
   body: InsertCategoryInput,

@@ -1,7 +1,7 @@
 import { type FunctionTemplate } from "../template"
-import * as S from "@effect/schema/Schema"
+import type * as S from "@effect/schema/Schema"
 import * as db from "../../db"
-import { Category } from "./domain"
+import { Category, type UpdateCategoryInput } from "./domain"
 
 export default {
   name: "update_category",
@@ -25,15 +25,6 @@ export default {
   parallel: "UNSAFE",
   cost: null,
 } satisfies FunctionTemplate
-
-export const UpdateCategoryInput = S.struct({
-  name: S.optional(S.string.pipe(S.nonEmpty())),
-  is_meta: S.optional(S.boolean),
-  keywords: S.optional(S.array(S.string.pipe(S.nonEmpty()))),
-})
-
-export interface UpdateCategoryInput
-  extends S.Schema.To<typeof UpdateCategoryInput> {}
 
 export async function updateCategory(
   id: S.Schema.To<typeof S.UUID>,
