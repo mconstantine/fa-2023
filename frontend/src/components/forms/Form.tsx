@@ -34,10 +34,10 @@ const errorButtonSx: SxProps = {
 
 function getButtonSx(response: NetworkResponse<unknown>): SxProps {
   return response.match({
-    whenIdle: () => ({}),
-    whenLoading: () => ({}),
-    whenFailed: () => errorButtonSx,
-    whenSuccessful: () => successButtonSx,
+    onIdle: () => ({}),
+    onLoading: () => ({}),
+    onFailure: () => errorButtonSx,
+    onSuccess: () => successButtonSx,
   })
 }
 

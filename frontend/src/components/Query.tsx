@@ -9,8 +9,8 @@ interface Props<T> {
 
 export default function Query<T>(props: Props<T>) {
   return props.response.match<ReactNode>({
-    whenIdle: () => null,
-    whenLoading: () => (
+    onIdle: () => null,
+    onLoading: () => (
       <Box sx={{ textAlign: "center" }}>
         <CircularProgress
           sx={{
@@ -20,13 +20,13 @@ export default function Query<T>(props: Props<T>) {
         />
       </Box>
     ),
-    whenFailed: (response) => (
+    onFailure: (response) => (
       <Paper sx={{ m: 3, p: 3 }}>
         <Typography variant="h6" color="error">
           Network Error (status code {response.status}): {response.message}
         </Typography>
       </Paper>
     ),
-    whenSuccessful: (response) => props.render(response.data),
+    onSuccess: (response) => props.render(response.data),
   })
 }

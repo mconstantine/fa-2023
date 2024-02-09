@@ -1,3 +1,15 @@
+/*
+idle
+loading
+successful
+failed
+merge
+match
+getOrElse
+flatMap
+map
+*/
+
 export type NetworkResponse<O> = NetworkResponseC<O> &
   (
     | IdleResponse<O>
@@ -72,20 +84,20 @@ abstract class NetworkResponseC<O> {
   public match<T>(
     this: NetworkResponse<O>,
     cases: {
-      whenIdle(response: IdleResponse<O>): T
-      whenLoading(response: LoadingResponse<O>): T
-      whenFailed(response: FailedResponse<O>): T
-      whenSuccessful(response: SuccessfulResponse<O>): T
+      onIdle(response: IdleResponse<O>): T
+      onLoading(response: LoadingResponse<O>): T
+      onFailure(response: FailedResponse<O>): T
+      onSuccess(response: SuccessfulResponse<O>): T
     },
   ): T {
     if (this.isLoading()) {
-      return cases.whenLoading(this)
+      return cases.onLoading(this)
     } else if (this.isFailure()) {
-      return cases.whenFailed(this)
+      return cases.onFailure(this)
     } else if (this.isSuccessful()) {
-      return cases.whenSuccessful(this)
+      return cases.onSuccess(this)
     } else {
-      return cases.whenIdle(this)
+      return cases.onIdle(this)
     }
   }
 
@@ -99,11 +111,11 @@ abstract class NetworkResponseC<O> {
 
   public flatMap<T>(fn: (data: O) => NetworkResponse<T>): NetworkResponse<T> {
     return this.match({
-      whenIdle: () => networkResponse.make(),
-      whenLoading: () => new LoadingResponse(),
-      whenFailed: (response) =>
+      onIdle: () => networkResponse.make(),
+      onLoading: () => new LoadingResponse(),
+      onFailure: (response) =>
         new FailedResponse<T>(response.status, response.message),
-      whenSuccessful: (response) => fn(response.data),
+      onSuccess: (response) => fn(response.data),
     })
   }
 
