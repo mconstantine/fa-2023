@@ -69,8 +69,8 @@ export async function query(
   return result
 }
 
-export async function getOne<I, O>(
-  codec: S.Schema<never, I, O>,
+export async function getOne<O, I>(
+  codec: S.Schema<O, I>,
   queryText: string,
   params?: any[],
 ): Promise<O> {
@@ -84,8 +84,8 @@ export async function getOne<I, O>(
   }
 }
 
-export async function getMany<I, O>(
-  codec: S.Schema<never, I, O>,
+export async function getMany<O, I>(
+  codec: S.Schema<O, I>,
   queryText: string,
   params?: any[],
 ): Promise<readonly O[]> {
@@ -143,9 +143,9 @@ function encodeInput(input: Arg): string {
   }
 }
 
-export async function callFunction<OO, O>(
+export async function callFunction<O, OO>(
   name: string,
-  outputCodec: S.Schema<never, OO, O>,
+  outputCodec: S.Schema<O, OO>,
   ...input: Arg[]
 ): Promise<O> {
   // eslint-disable-next-line array-callback-return

@@ -24,9 +24,9 @@ interface EdgeTo<T> {
   readonly node: T
 }
 
-const edge = <R, From, To>(
-  schema: S.Schema<R, From, To>,
-): S.Schema<R, EdgeFrom<From>, EdgeTo<To>> => {
+const edge = <To, From>(
+  schema: S.Schema<To, From>,
+): S.Schema<EdgeTo<To>, EdgeFrom<From>> => {
   return S.struct({
     cursor: Cursor,
     node: schema,
@@ -54,9 +54,9 @@ export type PaginationResponse<T> = {
   readonly edges: ReadonlyArray<EdgeTo<T>>
 }
 
-export const PaginationResponse = <R, From, To>(
-  schema: S.Schema<R, From, To>,
-): S.Schema<R, PaginationResponseFrom<From>, PaginationResponse<To>> => {
+export const PaginationResponse = <To, From>(
+  schema: S.Schema<To, From>,
+): S.Schema<PaginationResponse<To>, PaginationResponseFrom<From>> => {
   return S.struct({
     page_info: PageInfo,
     edges: S.array(edge(schema)),

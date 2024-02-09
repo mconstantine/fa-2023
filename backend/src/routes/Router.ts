@@ -6,32 +6,32 @@ import { HttpError } from "./HttpError"
 import { handleError } from "./handleError"
 
 interface RouteCodecs<
-  ParamsFrom extends Record<string, string | undefined>,
   ParamsTo,
-  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  ParamsFrom extends Record<string, string | undefined>,
   QueryTo,
-  BodyFrom,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
   BodyTo,
+  BodyFrom,
 > {
-  params?: S.Schema<never, ParamsFrom, ParamsTo>
-  query?: S.Schema<never, QueryFrom, QueryTo>
-  body?: S.Schema<never, BodyFrom, BodyTo>
+  params?: S.Schema<ParamsTo, ParamsFrom>
+  query?: S.Schema<QueryTo, QueryFrom>
+  body?: S.Schema<BodyTo, BodyFrom>
 }
 
 interface RouteHandlerData<
-  ParamsFrom extends Record<string, string | undefined>,
   ParamsTo,
-  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  ParamsFrom extends Record<string, string | undefined>,
   QueryTo,
-  BodyFrom,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
   BodyTo,
+  BodyFrom,
   Codecs extends RouteCodecs<
-    ParamsFrom,
     ParamsTo,
-    QueryFrom,
+    ParamsFrom,
     QueryTo,
-    BodyFrom,
-    BodyTo
+    QueryFrom,
+    BodyTo,
+    BodyFrom
   >,
 > {
   query: Codecs["query"] extends undefined ? never : QueryTo
@@ -42,31 +42,31 @@ interface RouteHandlerData<
 type ResponseType = Record<string, unknown>
 
 interface Route<
-  ParamsFrom extends Record<string, string | undefined>,
   ParamsTo,
-  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  ParamsFrom extends Record<string, string | undefined>,
   QueryTo,
-  BodyFrom,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
   BodyTo,
+  BodyFrom,
   Codecs extends RouteCodecs<
-    ParamsFrom,
     ParamsTo,
-    QueryFrom,
+    ParamsFrom,
     QueryTo,
-    BodyFrom,
-    BodyTo
+    QueryFrom,
+    BodyTo,
+    BodyFrom
   >,
   Response extends Record<string, unknown> | readonly ResponseType[],
 > {
   codecs: Codecs
   handler: (
     data: RouteHandlerData<
-      ParamsFrom,
       ParamsTo,
-      QueryFrom,
+      ParamsFrom,
       QueryTo,
-      BodyFrom,
+      QueryFrom,
       BodyTo,
+      BodyFrom,
       Codecs
     >,
   ) => Promise<Response>
@@ -84,25 +84,25 @@ export class Router {
   }
 
   static get<
-    Path extends string,
     ParamsTo,
-    QueryFrom extends Record<string, string | readonly string[] | undefined>,
+    Path extends string,
     QueryTo,
+    QueryFrom extends Record<string, string | readonly string[] | undefined>,
     Response extends Record<string, unknown> | readonly ResponseType[],
   >(
     path: Path,
     route: Route<
-      RouteParameters<Path>,
       ParamsTo,
-      QueryFrom,
+      RouteParameters<Path>,
       QueryTo,
+      QueryFrom,
       never,
       never,
       RouteCodecs<
-        RouteParameters<Path>,
         ParamsTo,
-        QueryFrom,
+        RouteParameters<Path>,
         QueryTo,
+        QueryFrom,
         never,
         never
       >,
@@ -113,29 +113,29 @@ export class Router {
   }
 
   static post<
-    Path extends string,
     ParamsTo,
-    QueryFrom extends Record<string, string | readonly string[] | undefined>,
+    Path extends string,
     QueryTo,
-    BodyFrom,
+    QueryFrom extends Record<string, string | readonly string[] | undefined>,
     BodyTo,
+    BodyFrom,
     Response extends Record<string, unknown> | readonly ResponseType[],
   >(
     path: Path,
     route: Route<
-      RouteParameters<Path>,
       ParamsTo,
-      QueryFrom,
+      RouteParameters<Path>,
       QueryTo,
-      BodyFrom,
+      QueryFrom,
       BodyTo,
+      BodyFrom,
       RouteCodecs<
-        RouteParameters<Path>,
         ParamsTo,
-        QueryFrom,
+        RouteParameters<Path>,
         QueryTo,
-        BodyFrom,
-        BodyTo
+        QueryFrom,
+        BodyTo,
+        BodyFrom
       >,
       Response
     >,
@@ -144,29 +144,29 @@ export class Router {
   }
 
   static patch<
-    Path extends string,
     ParamsTo,
-    QueryFrom extends Record<string, string | readonly string[] | undefined>,
+    Path extends string,
     QueryTo,
-    BodyFrom,
+    QueryFrom extends Record<string, string | readonly string[] | undefined>,
     BodyTo,
+    BodyFrom,
     Response extends Record<string, unknown> | readonly ResponseType[],
   >(
     path: Path,
     route: Route<
-      RouteParameters<Path>,
       ParamsTo,
-      QueryFrom,
+      RouteParameters<Path>,
       QueryTo,
-      BodyFrom,
+      QueryFrom,
       BodyTo,
+      BodyFrom,
       RouteCodecs<
-        RouteParameters<Path>,
         ParamsTo,
-        QueryFrom,
+        RouteParameters<Path>,
         QueryTo,
-        BodyFrom,
-        BodyTo
+        QueryFrom,
+        BodyTo,
+        BodyFrom
       >,
       Response
     >,
@@ -175,29 +175,29 @@ export class Router {
   }
 
   static put<
-    Path extends string,
     ParamsTo,
-    QueryFrom extends Record<string, string | readonly string[] | undefined>,
+    Path extends string,
     QueryTo,
-    BodyFrom,
+    QueryFrom extends Record<string, string | readonly string[] | undefined>,
     BodyTo,
+    BodyFrom,
     Response extends Record<string, unknown> | readonly ResponseType[],
   >(
     path: Path,
     route: Route<
-      RouteParameters<Path>,
       ParamsTo,
-      QueryFrom,
+      RouteParameters<Path>,
       QueryTo,
-      BodyFrom,
+      QueryFrom,
       BodyTo,
+      BodyFrom,
       RouteCodecs<
-        RouteParameters<Path>,
         ParamsTo,
-        QueryFrom,
+        RouteParameters<Path>,
         QueryTo,
-        BodyFrom,
-        BodyTo
+        QueryFrom,
+        BodyTo,
+        BodyFrom
       >,
       Response
     >,
@@ -206,25 +206,25 @@ export class Router {
   }
 
   static delete<
-    Path extends string,
     ParamsTo,
-    QueryFrom extends Record<string, string | readonly string[] | undefined>,
+    Path extends string,
     QueryTo,
+    QueryFrom extends Record<string, string | readonly string[] | undefined>,
     Response extends Record<string, unknown> | readonly ResponseType[],
   >(
     path: Path,
     route: Route<
-      RouteParameters<Path>,
       ParamsTo,
-      QueryFrom,
+      RouteParameters<Path>,
       QueryTo,
+      QueryFrom,
       never,
       never,
       RouteCodecs<
-        RouteParameters<Path>,
         ParamsTo,
-        QueryFrom,
+        RouteParameters<Path>,
         QueryTo,
+        QueryFrom,
         never,
         never
       >,
@@ -235,25 +235,25 @@ export class Router {
   }
 
   public get<
-    Path extends string,
     ParamsTo,
-    QueryFrom extends Record<string, string | readonly string[] | undefined>,
+    Path extends string,
     QueryTo,
+    QueryFrom extends Record<string, string | readonly string[] | undefined>,
     Response extends Record<string, unknown> | readonly ResponseType[],
   >(
     path: Path,
     route: Route<
-      RouteParameters<Path>,
       ParamsTo,
-      QueryFrom,
+      RouteParameters<Path>,
       QueryTo,
+      QueryFrom,
       never,
       never,
       RouteCodecs<
-        RouteParameters<Path>,
         ParamsTo,
-        QueryFrom,
+        RouteParameters<Path>,
         QueryTo,
+        QueryFrom,
         never,
         never
       >,
@@ -273,29 +273,29 @@ export class Router {
   }
 
   public post<
-    Path extends string,
     ParamsTo,
-    QueryFrom extends Record<string, string | readonly string[] | undefined>,
+    Path extends string,
     QueryTo,
-    BodyFrom,
+    QueryFrom extends Record<string, string | readonly string[] | undefined>,
     BodyTo,
+    BodyFrom,
     Response extends Record<string, unknown> | readonly ResponseType[],
   >(
     path: Path,
     route: Route<
-      RouteParameters<Path>,
       ParamsTo,
-      QueryFrom,
+      RouteParameters<Path>,
       QueryTo,
-      BodyFrom,
+      QueryFrom,
       BodyTo,
+      BodyFrom,
       RouteCodecs<
-        RouteParameters<Path>,
         ParamsTo,
-        QueryFrom,
+        RouteParameters<Path>,
         QueryTo,
-        BodyFrom,
-        BodyTo
+        QueryFrom,
+        BodyTo,
+        BodyFrom
       >,
       Response
     >,
@@ -313,29 +313,29 @@ export class Router {
   }
 
   public patch<
-    Path extends string,
     ParamsTo,
-    QueryFrom extends Record<string, string | readonly string[] | undefined>,
+    Path extends string,
     QueryTo,
-    BodyFrom,
+    QueryFrom extends Record<string, string | readonly string[] | undefined>,
     BodyTo,
+    BodyFrom,
     Response extends Record<string, unknown> | readonly ResponseType[],
   >(
     path: Path,
     route: Route<
-      RouteParameters<Path>,
       ParamsTo,
-      QueryFrom,
+      RouteParameters<Path>,
       QueryTo,
-      BodyFrom,
+      QueryFrom,
       BodyTo,
+      BodyFrom,
       RouteCodecs<
-        RouteParameters<Path>,
         ParamsTo,
-        QueryFrom,
+        RouteParameters<Path>,
         QueryTo,
-        BodyFrom,
-        BodyTo
+        QueryFrom,
+        BodyTo,
+        BodyFrom
       >,
       Response
     >,
@@ -353,29 +353,29 @@ export class Router {
   }
 
   public put<
-    Path extends string,
     ParamsTo,
-    QueryFrom extends Record<string, string | readonly string[] | undefined>,
+    Path extends string,
     QueryTo,
-    BodyFrom,
+    QueryFrom extends Record<string, string | readonly string[] | undefined>,
     BodyTo,
+    BodyFrom,
     Response extends Record<string, unknown> | readonly ResponseType[],
   >(
     path: Path,
     route: Route<
-      RouteParameters<Path>,
       ParamsTo,
-      QueryFrom,
+      RouteParameters<Path>,
       QueryTo,
-      BodyFrom,
+      QueryFrom,
       BodyTo,
+      BodyFrom,
       RouteCodecs<
-        RouteParameters<Path>,
         ParamsTo,
-        QueryFrom,
+        RouteParameters<Path>,
         QueryTo,
-        BodyFrom,
-        BodyTo
+        QueryFrom,
+        BodyTo,
+        BodyFrom
       >,
       Response
     >,
@@ -393,25 +393,25 @@ export class Router {
   }
 
   public delete<
-    Path extends string,
     ParamsTo,
-    QueryFrom extends Record<string, string | readonly string[] | undefined>,
+    Path extends string,
     QueryTo,
+    QueryFrom extends Record<string, string | readonly string[] | undefined>,
     Response extends Record<string, unknown> | readonly ResponseType[],
   >(
     path: Path,
     route: Route<
-      RouteParameters<Path>,
       ParamsTo,
-      QueryFrom,
+      RouteParameters<Path>,
       QueryTo,
+      QueryFrom,
       never,
       never,
       RouteCodecs<
-        RouteParameters<Path>,
         ParamsTo,
-        QueryFrom,
+        RouteParameters<Path>,
         QueryTo,
+        QueryFrom,
         never,
         never
       >,
@@ -431,28 +431,28 @@ export class Router {
   }
 
   private handle<
-    Path extends string,
     ParamsTo,
-    QueryFrom extends Record<string, string | readonly string[] | undefined>,
+    Path extends string,
     QueryTo,
-    BodyFrom,
+    QueryFrom extends Record<string, string | readonly string[] | undefined>,
     BodyTo,
+    BodyFrom,
     Response extends Record<string, unknown> | readonly ResponseType[],
   >(
     route: Route<
-      RouteParameters<Path>,
       ParamsTo,
-      QueryFrom,
+      RouteParameters<Path>,
       QueryTo,
-      BodyFrom,
+      QueryFrom,
       BodyTo,
+      BodyFrom,
       RouteCodecs<
-        RouteParameters<Path>,
         ParamsTo,
-        QueryFrom,
+        RouteParameters<Path>,
         QueryTo,
-        BodyFrom,
-        BodyTo
+        QueryFrom,
+        BodyTo,
+        BodyFrom
       >,
       Response
     >,

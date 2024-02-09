@@ -26,9 +26,9 @@ interface HttpError {
 
 export function populateUrlParams<Path extends string, O>(
   urlTemplate: Path,
-  codec: S.Schema<never, RouteParameters<Path>, O>,
+  codec: S.Schema<O, RouteParameters<Path>>,
   data: O,
-): Effect.Effect<never, HttpError, string> {
+): Effect.Effect<string, HttpError> {
   return pipe(
     data,
     S.encode(codec),
@@ -52,9 +52,9 @@ export function populateUrlQuery<
   O,
 >(
   url: string,
-  codec: S.Schema<never, I, O>,
+  codec: S.Schema<O, I>,
   data: O,
-): Effect.Effect<never, HttpError, string> {
+): Effect.Effect<string, HttpError> {
   return pipe(
     data,
     S.encode(codec),
@@ -84,24 +84,24 @@ export function populateUrlQuery<
 }
 
 function sendHttpRequest<
-  Path extends string,
   ParamsTo,
-  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  Path extends string,
   QueryTo,
-  BodyFrom,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
   BodyTo,
-  ResponseFrom,
+  BodyFrom,
   ResponseTo,
+  ResponseFrom,
 >(
   request: HttpRequest<
-    Path,
     ParamsTo,
-    QueryFrom,
+    Path,
     QueryTo,
-    BodyFrom,
+    QueryFrom,
     BodyTo,
-    ResponseFrom,
-    ResponseTo
+    BodyFrom,
+    ResponseTo,
+    ResponseFrom
   >,
   data: {
     readonly [key in keyof Omit<
@@ -109,7 +109,7 @@ function sendHttpRequest<
       "response"
     >]-?: S.Schema.To<(typeof request.codecs)[key]>
   },
-): Effect.Effect<never, HttpError, ResponseTo> {
+): Effect.Effect<ResponseTo, HttpError> {
   const urlTemplate = (env.VITE_API_URL + request.path) as Path
 
   const paramsEncoding = pipe(
@@ -122,11 +122,7 @@ function sendHttpRequest<
     }),
   )
 
-  const bodyEncoding: Effect.Effect<
-    never,
-    HttpError,
-    Option.Option<string>
-  > = pipe(
+  const bodyEncoding: Effect.Effect<Option.Option<string>, HttpError> = pipe(
     request.codecs.body,
     Option.fromNullable,
     Option.match({
@@ -159,7 +155,7 @@ function sendHttpRequest<
   function sendRequest(
     urlWithParamsAndQuery: string,
     body: Option.Option<string>,
-  ) {
+  ): Effect.Effect<Response, HttpError> {
     return Effect.tryPromise({
       try: () =>
         window.fetch(urlWithParamsAndQuery, {
@@ -191,7 +187,9 @@ function sendHttpRequest<
     })
   }
 
-  function parseResponse(response: Response) {
+  function parseResponse(
+    response: Response,
+  ): Effect.Effect<unknown, HttpError> {
     return Effect.tryPromise({
       try: () => response.json(),
       catch: (error): HttpError => ({
@@ -202,7 +200,10 @@ function sendHttpRequest<
     })
   }
 
-  function decodeResponseContent(response: Response, content: unknown) {
+  function decodeResponseContent(
+    response: Response,
+    content: unknown,
+  ): Effect.Effect<ResponseTo, HttpError> {
     if (Math.floor(response.status / 100) !== 2) {
       return S.decodeUnknown(ApiError)(content)
         .pipe(
@@ -286,19 +287,19 @@ function causeToHttpError(cause: Cause.Cause<HttpError>): HttpError {
 }
 
 type UseLazyQueryOutput<
-  Path extends string,
   ParamsTo,
-  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  Path extends string,
   QueryTo,
-  ResponseFrom,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
   ResponseTo,
+  ResponseFrom,
   Request extends HttpGetRequest<
-    Path,
     ParamsTo,
-    QueryFrom,
+    Path,
     QueryTo,
-    ResponseFrom,
-    ResponseTo
+    QueryFrom,
+    ResponseTo,
+    ResponseFrom
   >,
 > = [
   response: NetworkResponse<ResponseTo>,
@@ -311,29 +312,29 @@ type UseLazyQueryOutput<
 ]
 
 export function useLazyQuery<
-  Path extends string,
   ParamsTo,
-  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  Path extends string,
   QueryTo,
-  ResponseFrom,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
   ResponseTo,
+  ResponseFrom,
 >(
   request: HttpGetRequest<
-    Path,
     ParamsTo,
-    QueryFrom,
+    Path,
     QueryTo,
-    ResponseFrom,
-    ResponseTo
+    QueryFrom,
+    ResponseTo,
+    ResponseFrom
   >,
 ): UseLazyQueryOutput<
-  Path,
   ParamsTo,
-  QueryFrom,
+  Path,
   QueryTo,
-  ResponseFrom,
+  QueryFrom,
   ResponseTo,
-  HttpGetRequest<Path, ParamsTo, QueryFrom, QueryTo, ResponseFrom, ResponseTo>
+  ResponseFrom,
+  HttpGetRequest<ParamsTo, Path, QueryTo, QueryFrom, ResponseTo, ResponseFrom>
 > {
   const [response, setResponse] = useState<NetworkResponse<ResponseTo>>(
     networkResponse.make(),
@@ -393,20 +394,20 @@ type UseQueryOutput<Response> = [
 ]
 
 export function useQuery<
-  Path extends string,
   ParamsTo,
-  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  Path extends string,
   QueryTo,
-  ResponseFrom,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
   ResponseTo,
+  ResponseFrom,
 >(
   request: HttpGetRequest<
-    Path,
     ParamsTo,
-    QueryFrom,
+    Path,
     QueryTo,
-    ResponseFrom,
-    ResponseTo
+    QueryFrom,
+    ResponseTo,
+    ResponseFrom
   >,
   data: {
     readonly [key in keyof Omit<
@@ -463,72 +464,72 @@ export function useQuery<
 }
 
 type CommandRequest<
-  Path extends string,
   ParamsTo,
-  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  Path extends string,
   QueryTo,
-  BodyFrom,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
   BodyTo,
-  ResponseFrom,
+  BodyFrom,
   ResponseTo,
+  ResponseFrom,
 > =
   | HttpPostRequest<
-      Path,
       ParamsTo,
-      QueryFrom,
+      Path,
       QueryTo,
-      BodyFrom,
+      QueryFrom,
       BodyTo,
-      ResponseFrom,
-      ResponseTo
+      BodyFrom,
+      ResponseTo,
+      ResponseFrom
     >
   | HttpPutRequest<
-      Path,
       ParamsTo,
-      QueryFrom,
+      Path,
       QueryTo,
-      BodyFrom,
+      QueryFrom,
       BodyTo,
-      ResponseFrom,
-      ResponseTo
+      BodyFrom,
+      ResponseTo,
+      ResponseFrom
     >
   | HttpPatchRequest<
-      Path,
       ParamsTo,
-      QueryFrom,
+      Path,
       QueryTo,
-      BodyFrom,
+      QueryFrom,
       BodyTo,
-      ResponseFrom,
-      ResponseTo
+      BodyFrom,
+      ResponseTo,
+      ResponseFrom
     >
   | HttpDeleteRequest<
-      Path,
       ParamsTo,
-      QueryFrom,
+      Path,
       QueryTo,
-      ResponseFrom,
-      ResponseTo
+      QueryFrom,
+      ResponseTo,
+      ResponseFrom
     >
 
 type UseCommandOutput<
-  Path extends string,
   ParamsTo,
-  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  Path extends string,
   QueryTo,
-  BodyFrom,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
   BodyTo,
-  ResponseFrom,
+  BodyFrom,
   ResponseTo,
+  ResponseFrom,
   Request extends CommandRequest<
-    Path,
     ParamsTo,
-    QueryFrom,
+    Path,
     QueryTo,
-    BodyFrom,
+    QueryFrom,
     BodyTo,
-    ResponseFrom,
-    ResponseTo
+    BodyFrom,
+    ResponseTo,
+    ResponseFrom
   >,
 > = [
   response: NetworkResponse<ResponseTo>,
@@ -540,43 +541,43 @@ type UseCommandOutput<
 ]
 
 export function useCommand<
-  Path extends string,
   ParamsTo,
-  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  Path extends string,
   QueryTo,
-  BodyFrom,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
   BodyTo,
-  ResponseFrom,
+  BodyFrom,
   ResponseTo,
+  ResponseFrom,
 >(
   request: CommandRequest<
-    Path,
     ParamsTo,
-    QueryFrom,
+    Path,
     QueryTo,
-    BodyFrom,
+    QueryFrom,
     BodyTo,
-    ResponseFrom,
-    ResponseTo
+    BodyFrom,
+    ResponseTo,
+    ResponseFrom
   >,
 ): UseCommandOutput<
-  Path,
   ParamsTo,
-  QueryFrom,
+  Path,
   QueryTo,
-  BodyFrom,
+  QueryFrom,
   BodyTo,
-  ResponseFrom,
+  BodyFrom,
   ResponseTo,
+  ResponseFrom,
   CommandRequest<
-    Path,
     ParamsTo,
-    QueryFrom,
+    Path,
     QueryTo,
-    BodyFrom,
+    QueryFrom,
     BodyTo,
-    ResponseFrom,
-    ResponseTo
+    BodyFrom,
+    ResponseTo,
+    ResponseFrom
   >
 > {
   const [response, setResponse] = useState<NetworkResponse<ResponseTo>>(
@@ -594,14 +595,14 @@ export function useCommand<
     return Effect.runPromiseExit(
       sendHttpRequest(
         request as HttpRequest<
-          Path,
           ParamsTo,
-          QueryFrom,
+          Path,
           QueryTo,
-          BodyFrom,
+          QueryFrom,
           BodyTo,
-          ResponseFrom,
-          ResponseTo
+          BodyFrom,
+          ResponseTo,
+          ResponseFrom
         >,
         data,
       ),

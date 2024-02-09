@@ -18,309 +18,309 @@ export type RouteParameters<Route extends string> =
       {}
 
 interface HttpRequestCodecs<
-  ParamsFrom extends Record<string, string | undefined>,
   ParamsTo,
-  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  ParamsFrom extends Record<string, string | undefined>,
   QueryTo,
-  BodyFrom,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
   BodyTo,
-  ResponseFrom,
+  BodyFrom,
   ResponseTo,
+  ResponseFrom,
 > {
-  params?: S.Schema<never, ParamsFrom, ParamsTo>
-  query?: S.Schema<never, QueryFrom, QueryTo>
-  body?: S.Schema<never, BodyFrom, BodyTo>
-  response: S.Schema<never, ResponseFrom, ResponseTo>
+  params?: S.Schema<ParamsTo, ParamsFrom>
+  query?: S.Schema<QueryTo, QueryFrom>
+  body?: S.Schema<BodyTo, BodyFrom>
+  response: S.Schema<ResponseTo, ResponseFrom>
 }
 
 export interface HttpRequest<
-  Path extends string,
   ParamsTo,
-  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  Path extends string,
   QueryTo,
-  BodyFrom,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
   BodyTo,
-  ResponseFrom,
+  BodyFrom,
   ResponseTo,
+  ResponseFrom,
 > {
   path: Path
   method: HttpMethod
   codecs: HttpRequestCodecs<
-    RouteParameters<Path>,
     ParamsTo,
-    QueryFrom,
+    RouteParameters<Path>,
     QueryTo,
-    BodyFrom,
+    QueryFrom,
     BodyTo,
-    ResponseFrom,
-    ResponseTo
+    BodyFrom,
+    ResponseTo,
+    ResponseFrom
   >
 }
 
 export interface HttpGetRequest<
-  Path extends string,
   ParamsTo,
-  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  Path extends string,
   QueryTo,
-  ResponseFrom,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
   ResponseTo,
+  ResponseFrom,
 > extends HttpRequest<
-    Path,
     ParamsTo,
-    QueryFrom,
+    Path,
     QueryTo,
+    QueryFrom,
     never,
     never,
-    ResponseFrom,
-    ResponseTo
+    ResponseTo,
+    ResponseFrom
   > {
   method: "GET"
 }
 
 export interface HttpPostRequest<
-  Path extends string,
   ParamsTo,
-  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  Path extends string,
   QueryTo,
-  BodyFrom,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
   BodyTo,
-  ResponseFrom,
+  BodyFrom,
   ResponseTo,
+  ResponseFrom,
 > extends HttpRequest<
-    Path,
     ParamsTo,
-    QueryFrom,
+    Path,
     QueryTo,
-    BodyFrom,
+    QueryFrom,
     BodyTo,
-    ResponseFrom,
-    ResponseTo
+    BodyFrom,
+    ResponseTo,
+    ResponseFrom
   > {
   method: "POST"
 }
 
 export interface HttpPutRequest<
-  Path extends string,
   ParamsTo,
-  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  Path extends string,
   QueryTo,
-  BodyFrom,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
   BodyTo,
-  ResponseFrom,
+  BodyFrom,
   ResponseTo,
+  ResponseFrom,
 > extends HttpRequest<
-    Path,
     ParamsTo,
-    QueryFrom,
+    Path,
     QueryTo,
-    BodyFrom,
+    QueryFrom,
     BodyTo,
-    ResponseFrom,
-    ResponseTo
+    BodyFrom,
+    ResponseTo,
+    ResponseFrom
   > {
   method: "PUT"
 }
 
 export interface HttpPatchRequest<
-  Path extends string,
   ParamsTo,
-  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  Path extends string,
   QueryTo,
-  BodyFrom,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
   BodyTo,
-  ResponseFrom,
+  BodyFrom,
   ResponseTo,
+  ResponseFrom,
 > extends HttpRequest<
-    Path,
     ParamsTo,
-    QueryFrom,
+    Path,
     QueryTo,
-    BodyFrom,
+    QueryFrom,
     BodyTo,
-    ResponseFrom,
-    ResponseTo
+    BodyFrom,
+    ResponseTo,
+    ResponseFrom
   > {
   method: "PATCH"
 }
 
 export interface HttpDeleteRequest<
-  Path extends string,
   ParamsTo,
-  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  Path extends string,
   QueryTo,
-  ResponseFrom,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
   ResponseTo,
+  ResponseFrom,
 > extends HttpRequest<
-    Path,
     ParamsTo,
-    QueryFrom,
+    Path,
     QueryTo,
+    QueryFrom,
     never,
     never,
-    ResponseFrom,
-    ResponseTo
+    ResponseTo,
+    ResponseFrom
   > {
   method: "DELETE"
 }
 
 export function makeGet<
-  Path extends string,
   ParamsTo,
-  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  Path extends string,
   QueryTo,
-  ResponseFrom,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
   ResponseTo,
+  ResponseFrom,
 >(
   path: Path,
   codecs: HttpRequestCodecs<
-    RouteParameters<Path>,
     ParamsTo,
-    QueryFrom,
+    RouteParameters<Path>,
     QueryTo,
+    QueryFrom,
     never,
     never,
-    ResponseFrom,
-    ResponseTo
+    ResponseTo,
+    ResponseFrom
   >,
 ): HttpGetRequest<
-  Path,
   ParamsTo,
-  QueryFrom,
+  Path,
   QueryTo,
-  ResponseFrom,
-  ResponseTo
+  QueryFrom,
+  ResponseTo,
+  ResponseFrom
 > {
   return { path, method: "GET", codecs }
 }
 
 export function makePost<
-  Path extends string,
   ParamsTo,
-  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  Path extends string,
   QueryTo,
-  BodyFrom,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
   BodyTo,
-  ResponseFrom,
+  BodyFrom,
   ResponseTo,
+  ResponseFrom,
 >(
   path: Path,
   codecs: HttpRequestCodecs<
-    RouteParameters<Path>,
     ParamsTo,
-    QueryFrom,
+    RouteParameters<Path>,
     QueryTo,
-    BodyFrom,
+    QueryFrom,
     BodyTo,
-    ResponseFrom,
-    ResponseTo
+    BodyFrom,
+    ResponseTo,
+    ResponseFrom
   >,
 ): HttpPostRequest<
-  Path,
   ParamsTo,
-  QueryFrom,
+  Path,
   QueryTo,
-  BodyFrom,
+  QueryFrom,
   BodyTo,
-  ResponseFrom,
-  ResponseTo
+  BodyFrom,
+  ResponseTo,
+  ResponseFrom
 > {
   return { path, method: "POST", codecs }
 }
 
 export function makePut<
-  Path extends string,
   ParamsTo,
-  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  Path extends string,
   QueryTo,
-  BodyFrom,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
   BodyTo,
-  ResponseFrom,
+  BodyFrom,
   ResponseTo,
+  ResponseFrom,
 >(
   path: Path,
   codecs: HttpRequestCodecs<
-    RouteParameters<Path>,
     ParamsTo,
-    QueryFrom,
+    RouteParameters<Path>,
     QueryTo,
-    BodyFrom,
+    QueryFrom,
     BodyTo,
-    ResponseFrom,
-    ResponseTo
+    BodyFrom,
+    ResponseTo,
+    ResponseFrom
   >,
 ): HttpPutRequest<
-  Path,
   ParamsTo,
-  QueryFrom,
+  Path,
   QueryTo,
-  BodyFrom,
+  QueryFrom,
   BodyTo,
-  ResponseFrom,
-  ResponseTo
+  BodyFrom,
+  ResponseTo,
+  ResponseFrom
 > {
   return { path, method: "PUT", codecs }
 }
 
 export function makePatch<
-  Path extends string,
   ParamsTo,
-  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  Path extends string,
   QueryTo,
-  BodyFrom,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
   BodyTo,
-  ResponseFrom,
+  BodyFrom,
   ResponseTo,
+  ResponseFrom,
 >(
   path: Path,
   codecs: HttpRequestCodecs<
-    RouteParameters<Path>,
     ParamsTo,
-    QueryFrom,
+    RouteParameters<Path>,
     QueryTo,
-    BodyFrom,
+    QueryFrom,
     BodyTo,
-    ResponseFrom,
-    ResponseTo
+    BodyFrom,
+    ResponseTo,
+    ResponseFrom
   >,
 ): HttpPatchRequest<
-  Path,
   ParamsTo,
-  QueryFrom,
+  Path,
   QueryTo,
-  BodyFrom,
+  QueryFrom,
   BodyTo,
-  ResponseFrom,
-  ResponseTo
+  BodyFrom,
+  ResponseTo,
+  ResponseFrom
 > {
   return { path, method: "PATCH", codecs }
 }
 
 export function makeDelete<
-  Path extends string,
   ParamsTo,
-  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  Path extends string,
   QueryTo,
-  ResponseFrom,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
   ResponseTo,
+  ResponseFrom,
 >(
   path: Path,
   codecs: HttpRequestCodecs<
-    RouteParameters<Path>,
     ParamsTo,
-    QueryFrom,
+    RouteParameters<Path>,
     QueryTo,
+    QueryFrom,
     never,
     never,
-    ResponseFrom,
-    ResponseTo
+    ResponseTo,
+    ResponseFrom
   >,
 ): HttpDeleteRequest<
-  Path,
   ParamsTo,
-  QueryFrom,
+  Path,
   QueryTo,
-  ResponseFrom,
-  ResponseTo
+  QueryFrom,
+  ResponseTo,
+  ResponseFrom
 > {
   return { path, method: "DELETE", codecs }
 }
