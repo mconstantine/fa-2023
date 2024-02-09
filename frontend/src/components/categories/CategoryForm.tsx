@@ -26,8 +26,8 @@ export default function CategoryForm(props: Props) {
     {
       id: props.category?.id ?? null,
       name: props.category?.name ?? null,
-      keywords: props.category?.keywords ?? [],
-      isMeta: props.category?.isMeta ?? false,
+      keywords: props.category?.keywords ?? ([] as string[]),
+      is_meta: props.category?.is_meta ?? false,
     },
     props.onSubmit,
   )
@@ -66,10 +66,10 @@ export default function CategoryForm(props: Props) {
             <FormControlLabel
               control={
                 <Checkbox
-                  {...inputProps("isMeta", false)}
-                  checked={inputProps("isMeta", false).value}
+                  {...inputProps("is_meta", false)}
+                  checked={inputProps("is_meta", false).value}
                   onChange={(_, isMeta) =>
-                    inputProps("isMeta", false).onChange(isMeta)
+                    inputProps("is_meta", false).onChange(isMeta)
                   }
                 />
               }

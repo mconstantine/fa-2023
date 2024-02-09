@@ -1,10 +1,17 @@
-import { Card, CardContent, Stack, Typography } from "@mui/material"
+import {
+  Button,
+  Card,
+  CardActions,
+  CardContent,
+  Stack,
+  Typography,
+} from "@mui/material"
 import { Category } from "./domain"
 
 interface Props {
   category: Category
-  // onEditButtonClick(): void
-  // onDeleteButtonClick(): void
+  onEditButtonClick(): void
+  onDeleteButtonClick(): void
 }
 
 export default function CategoryCard(props: Props) {
@@ -33,14 +40,14 @@ export default function CategoryCard(props: Props) {
           </Typography>
         </Stack>
       </CardContent>
-      {/* <CardActions>
+      <CardActions>
         <Button size="small" onClick={props.onEditButtonClick}>
           Edit
         </Button>
         <Button size="small" color="error" onClick={props.onDeleteButtonClick}>
           Delete
         </Button>
-      </CardActions> */}
+      </CardActions>
     </Card>
   )
 }

@@ -10,17 +10,13 @@ export const PaginationQuery = S.struct({
 
 export interface PaginationQuery extends S.Schema.To<typeof PaginationQuery> {}
 
-const CursorBrand = Symbol.for("Cursor")
-const Cursor = S.UUID.pipe(S.brand(CursorBrand))
-type Cursor = S.Schema.To<typeof Cursor>
-
 interface EdgeFrom<T> {
   readonly cursor: string
   readonly node: T
 }
 
 interface EdgeTo<T> {
-  readonly cursor: Cursor
+  readonly cursor: S.Schema.To<typeof S.UUID>
   readonly node: T
 }
 
@@ -28,15 +24,15 @@ const edge = <To, From>(
   schema: S.Schema<To, From>,
 ): S.Schema<EdgeTo<To>, EdgeFrom<From>> => {
   return S.struct({
-    cursor: Cursor,
+    cursor: S.UUID,
     node: schema,
   })
 }
 
 const PageInfo = S.struct({
   total_count: S.number.pipe(S.int()).pipe(S.greaterThanOrEqualTo(0)),
-  start_cursor: S.nullable(Cursor),
-  end_cursor: S.nullable(Cursor),
+  start_cursor: S.nullable(S.UUID),
+  end_cursor: S.nullable(S.UUID),
   has_previous_page: S.boolean,
   has_next_page: S.boolean,
 })

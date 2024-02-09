@@ -41,7 +41,7 @@ export default function SearchTransactionsInput(props: Props) {
             <Search />
           </InputAdornment>
         }
-        label="Password"
+        label="Search"
         value={transactionsQuery}
         onChange={onTransactionsQueryChange}
       />

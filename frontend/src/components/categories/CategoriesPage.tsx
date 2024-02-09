@@ -1,90 +1,112 @@
-import { useQuery, useRequestData } from "../../hooks/network"
+import { Either, pipe } from "effect"
+import { useCommand, useQuery, useRequestData } from "../../hooks/network"
 import CategoriesList from "./CategoriesList"
-import { listCategoriesRequest } from "./api"
+import {
+  deleteCategoryRequest,
+  insertCategoryRequest,
+  listCategoriesRequest,
+  updateCategoryRequest,
+} from "./api"
+import { Category, InsertCategoryInput, ListCategoriesInput } from "./domain"
+import { constFalse } from "effect/Function"
+import { PaginationResponse } from "../../network/PaginationResponse"
 
 export default function CategoriesPage() {
-  const [data] = useRequestData<typeof listCategoriesRequest>({
+  const [filters, setFilters] = useRequestData<typeof listCategoriesRequest>({
     query: {
       direction: "forward",
       count: 20,
     },
   })
 
-  const [categories] = useQuery(listCategoriesRequest, data)
+  const [categories, updateCategories] = useQuery(
+    listCategoriesRequest,
+    filters,
+  )
 
-  // const [updateResponse, updateCategory] = useCommand<Category, Category>(
-  //   "PUT",
-  //   "/categories/",
-  // )
+  const [newCategory, insertCategory] = useCommand(insertCategoryRequest)
+  const [deletedCategory, deleteCategory] = useCommand(deleteCategoryRequest)
+  const [updatedCategory, updateCategory] = useCommand(updateCategoryRequest)
 
-  // const [creationResponse, createCategory] = useCommand<Category, Category>(
-  //   "POST",
-  //   "/categories/",
-  // )
+  function onChangeFilters(filters: ListCategoriesInput): void {
+    setFilters({ query: filters })
+  }
 
-  // const [deletionResponse, deleteCategory] = useCommand<
-  //   Category,
-  //   Omit<Category, "id">
-  // >("DELETE", "/categories/")
+  async function onInsertCategory(body: InsertCategoryInput): Promise<boolean> {
+    const response = await insertCategory({ body })
 
-  // async function onCategoryCreate(category: Category): Promise<boolean> {
-  //   console.log("TODO: create category", { category })
-  //   return true
-  //   // const response = await createCategory(category)
-  //   // const isSuccess = response !== null
+    return pipe(
+      response,
+      Either.match({
+        onLeft: constFalse,
+        onRight: (newCategory) => {
+          updateCategories(
+            (categories) =>
+              PaginationResponse.of(categories).prepend(newCategory).response,
+          )
 
-  //   // if (isSuccess) {
-  //   //   updateCategories((categories) => [category, ...categories])
-  //   // }
+          return true
+        },
+      }),
+    )
+  }
 
-  //   // return isSuccess
-  // }
+  async function onUpdateCategory(category: Category): Promise<boolean> {
+    const response = await updateCategory({
+      params: { id: category.id },
+      body: category,
+    })
 
-  // async function onCategoryUpdate(category: Category): Promise<boolean> {
-  //   console.log("TODO: update category", category)
-  //   return true
-  //   // const response = await updateCategory(category)
-  //   // const isSuccess = response !== null
+    return pipe(
+      response,
+      Either.match({
+        onLeft: constFalse,
+        onRight: (updatedCategory) => {
+          updateCategories(
+            (categories) =>
+              PaginationResponse.of(categories).replace(updatedCategory)
+                .response,
+          )
 
-  //   // if (isSuccess) {
-  //   //   updateCategories((categories) =>
-  //   //     categories.map((category) => {
-  //   //       if (category.id === response.id) {
-  //   //         return response
-  //   //       } else {
-  //   //         return category
-  //   //       }
-  //   //     }),
-  //   //   )
-  //   // }
+          return true
+        },
+      }),
+    )
+  }
 
-  //   // return isSuccess
-  // }
+  async function onCategoryDelete(deleted: Category): Promise<boolean> {
+    const response = await deleteCategory({
+      params: { id: deleted.id },
+    })
 
-  // async function onCategoryDelete(deleted: Category): Promise<boolean> {
-  //   console.log("TODO: delete category", { deleted })
-  //   return true
-  //   // const response = await deleteCategory(deleted)
-  //   // const isSuccess = response !== null
+    return pipe(
+      response,
+      Either.match({
+        onLeft: constFalse,
+        onRight: (deletedCategory) => {
+          updateCategories(
+            (categories) =>
+              PaginationResponse.of(categories).remove(deletedCategory)
+                .response,
+          )
 
-  //   // if (isSuccess) {
-  //   //   updateCategories((categories) =>
-  //   //     categories.filter((category) => category.id !== deleted.id),
-  //   //   )
-  //   // }
-
-  //   // return isSuccess
-  // }
+          return true
+        },
+      }),
+    )
+  }
 
   return (
     <CategoriesList
+      filters={filters.query}
       categories={categories}
-      // creationResponse={creationResponse}
-      // updateResponse={updateResponse}
-      // deletionResponse={deletionResponse}
-      // onCategoryCreate={onCategoryCreate}
-      // onCategoryUpdate={onCategoryUpdate}
-      // onCategoryDelete={onCategoryDelete}
+      insertionResponse={newCategory}
+      updateResponse={updatedCategory}
+      deletionResponse={deletedCategory}
+      onChangeFilters={onChangeFilters}
+      onInsertCategory={onInsertCategory}
+      onUpdateCategory={onUpdateCategory}
+      onDeleteCategory={onCategoryDelete}
     />
   )
 }

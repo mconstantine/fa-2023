@@ -113,12 +113,12 @@ export const Default: Story = {
     return (
       <CategoriesList
         readingResponse={readingResponse}
-        creationResponse={creationResponse}
+        insertionResponse={creationResponse}
         updateResponse={updateResponse}
         deletionResponse={deletionResponse}
-        onCategoryCreate={onCategoryCreate}
+        onInsertCategory={onCategoryCreate}
         onCategoryUpdate={onCategoryUpdate}
-        onCategoryDelete={onCategoryDelete}
+        onDeleteCategory={onCategoryDelete}
       />
     )
   },

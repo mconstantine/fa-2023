@@ -13,7 +13,7 @@ interface Props {
   title: string
   name: string
   label: string
-  value: string[]
+  value: readonly string[]
   errorMessageWhenBlank: string
   onChange(value: string[]): void
 }

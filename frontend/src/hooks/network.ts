@@ -291,128 +291,6 @@ function causeToHttpError(cause: Cause.Cause<HttpError>): HttpError {
   )
 }
 
-type UseLazyQueryOutput<
-  ParamsTo,
-  Path extends string,
-  QueryTo,
-  QueryFrom extends Record<string, string | readonly string[] | undefined>,
-  ResponseTo,
-  ResponseFrom,
-  Request extends HttpGetRequest<
-    ParamsTo,
-    Path,
-    QueryTo,
-    QueryFrom,
-    ResponseTo,
-    ResponseFrom
-  >,
-> = [
-  response: NetworkResponse<ResponseTo>,
-  refresh: (
-    data: HttpRequestData<
-      ParamsTo,
-      RouteParameters<Path>,
-      QueryTo,
-      QueryFrom,
-      never,
-      never,
-      ResponseTo,
-      ResponseFrom,
-      Request["codecs"]
-    >,
-  ) => void,
-  optimisticUpdate: (data: ResponseTo) => void,
-]
-
-export function useLazyQuery<
-  ParamsTo,
-  Path extends string,
-  QueryTo,
-  QueryFrom extends Record<string, string | readonly string[] | undefined>,
-  ResponseTo,
-  ResponseFrom,
->(
-  request: HttpGetRequest<
-    ParamsTo,
-    Path,
-    QueryTo,
-    QueryFrom,
-    ResponseTo,
-    ResponseFrom
-  >,
-): UseLazyQueryOutput<
-  ParamsTo,
-  Path,
-  QueryTo,
-  QueryFrom,
-  ResponseTo,
-  ResponseFrom,
-  HttpGetRequest<ParamsTo, Path, QueryTo, QueryFrom, ResponseTo, ResponseFrom>
-> {
-  const [response, setResponse] = useState<NetworkResponse<ResponseTo>>(
-    networkResponse.make(),
-  )
-
-  function sendQuery(
-    data: HttpRequestData<
-      ParamsTo,
-      RouteParameters<Path>,
-      QueryTo,
-      QueryFrom,
-      never,
-      never,
-      ResponseTo,
-      ResponseFrom,
-      typeof request.codecs
-    >,
-  ): void {
-    setResponse((response) => response.load())
-
-    Effect.runPromiseExit(sendHttpRequest(request, data)).then(
-      flow(
-        Exit.match({
-          onFailure(cause) {
-            const error: HttpError = causeToHttpError(cause)
-
-            setResponse((response) =>
-              response.match({
-                onIdle: identity,
-                onSuccess: identity,
-                onFailure: identity,
-                onLoading: (response) => {
-                  console.log(error.extras)
-                  return response.fail(error.code, error.message)
-                },
-              }),
-            )
-          },
-          onSuccess(data) {
-            setResponse((response) =>
-              response.match({
-                onIdle: identity,
-                onSuccess: identity,
-                onFailure: identity,
-                onLoading: (response) => response.succeed(data),
-              }),
-            )
-          },
-        }),
-      ),
-    )
-  }
-
-  function update(data: ResponseTo): void {
-    setResponse((response) => response.map(() => data))
-  }
-
-  return [response, sendQuery, update]
-}
-
-type UseQueryOutput<Response> = [
-  response: NetworkResponse<Response>,
-  optimisticUpdate: (data: Response) => void,
-]
-
 type HttpRequestData<
   ParamsTo,
   Path extends Record<string, string | undefined>,
@@ -543,6 +421,142 @@ export function useRequestData<
   return useState(data)
 }
 
+type UseLazyQueryOutput<
+  ParamsTo,
+  Path extends string,
+  QueryTo,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  ResponseTo,
+  ResponseFrom,
+  Request extends HttpGetRequest<
+    ParamsTo,
+    Path,
+    QueryTo,
+    QueryFrom,
+    ResponseTo,
+    ResponseFrom
+  >,
+> = [
+  response: NetworkResponse<ResponseTo>,
+  refresh: (
+    data: HttpRequestData<
+      ParamsTo,
+      RouteParameters<Path>,
+      QueryTo,
+      QueryFrom,
+      never,
+      never,
+      ResponseTo,
+      ResponseFrom,
+      Request["codecs"]
+    >,
+  ) => void,
+  optimisticUpdate: (
+    data: ResponseTo | ((previousState: ResponseTo) => ResponseTo),
+  ) => void,
+]
+
+export function useLazyQuery<
+  ParamsTo,
+  Path extends string,
+  QueryTo,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  ResponseTo,
+  ResponseFrom,
+>(
+  request: HttpGetRequest<
+    ParamsTo,
+    Path,
+    QueryTo,
+    QueryFrom,
+    ResponseTo,
+    ResponseFrom
+  >,
+): UseLazyQueryOutput<
+  ParamsTo,
+  Path,
+  QueryTo,
+  QueryFrom,
+  ResponseTo,
+  ResponseFrom,
+  HttpGetRequest<ParamsTo, Path, QueryTo, QueryFrom, ResponseTo, ResponseFrom>
+> {
+  const [response, setResponse] = useState<NetworkResponse<ResponseTo>>(
+    networkResponse.make(),
+  )
+
+  function sendQuery(
+    data: HttpRequestData<
+      ParamsTo,
+      RouteParameters<Path>,
+      QueryTo,
+      QueryFrom,
+      never,
+      never,
+      ResponseTo,
+      ResponseFrom,
+      typeof request.codecs
+    >,
+  ): void {
+    setResponse((response) => response.load())
+
+    Effect.runPromiseExit(sendHttpRequest(request, data)).then(
+      flow(
+        Exit.match({
+          onFailure(cause) {
+            const error: HttpError = causeToHttpError(cause)
+
+            setResponse((response) =>
+              response.match({
+                onIdle: identity,
+                onSuccess: identity,
+                onFailure: identity,
+                onLoading: (response) => {
+                  console.log(error.extras)
+                  return response.fail(error.code, error.message)
+                },
+              }),
+            )
+          },
+          onSuccess(data) {
+            setResponse((response) =>
+              response.match({
+                onIdle: identity,
+                onSuccess: identity,
+                onFailure: identity,
+                onLoading: (response) => response.succeed(data),
+              }),
+            )
+          },
+        }),
+      ),
+    )
+  }
+
+  function update(
+    update: ResponseTo | ((previousState: ResponseTo) => ResponseTo),
+  ): void {
+    if (typeof update === "function") {
+      setResponse((response) =>
+        response.map((previousState) =>
+          (update as (previousState: ResponseTo) => ResponseTo)(previousState),
+        ),
+      )
+    } else {
+      setResponse((response) => response.map(() => update))
+    }
+  }
+
+  return [response, sendQuery, update]
+}
+
+type UseQueryOutput<Response> = [
+  response: NetworkResponse<Response>,
+  optimisticUpdate: (
+    data: Response | ((previousState: Response) => Response),
+  ) => void,
+]
+
 export function useQuery<
   ParamsTo,
   Path extends string,
@@ -611,8 +625,18 @@ export function useQuery<
     )
   }, [request, data])
 
-  function update(data: ResponseTo): void {
-    setResponse((response) => response.map(() => data))
+  function update(
+    update: ResponseTo | ((previousState: ResponseTo) => ResponseTo),
+  ): void {
+    if (typeof update === "function") {
+      setResponse((response) =>
+        response.map((previousState) =>
+          (update as (previousState: ResponseTo) => ResponseTo)(previousState),
+        ),
+      )
+    } else {
+      setResponse((response) => response.map(() => update))
+    }
   }
 
   return [response, update]
