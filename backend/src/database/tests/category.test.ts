@@ -359,29 +359,31 @@ describe("database category functions", () => {
             search_query: "",
             direction: "backward",
             count: 3,
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            target: categories[3]!.id,
           }),
         )
 
         expect(result).toEqual({
           page_info: {
             total_count: 7,
-            start_cursor: categories[6]?.id,
-            end_cursor: categories[4]?.id,
+            start_cursor: categories[0]?.id,
+            end_cursor: categories[2]?.id,
             has_previous_page: false,
             has_next_page: true,
           },
           edges: [
             {
-              cursor: categories[6]?.id,
-              node: categories[6],
+              cursor: categories[0]?.id,
+              node: categories[0],
             },
             {
-              cursor: categories[5]?.id,
-              node: categories[5],
+              cursor: categories[1]?.id,
+              node: categories[1],
             },
             {
-              cursor: categories[4]?.id,
-              node: categories[4],
+              cursor: categories[2]?.id,
+              node: categories[2],
             },
           ],
         })
@@ -401,23 +403,23 @@ describe("database category functions", () => {
         expect(result).toEqual({
           page_info: {
             total_count: 7,
-            start_cursor: categories[4]?.id,
-            end_cursor: categories[2]?.id,
+            start_cursor: categories[2]?.id,
+            end_cursor: categories[4]?.id,
             has_previous_page: true,
             has_next_page: true,
           },
           edges: [
             {
-              cursor: categories[4]?.id,
-              node: categories[4],
+              cursor: categories[2]?.id,
+              node: categories[2],
             },
             {
               cursor: categories[3]?.id,
               node: categories[3],
             },
             {
-              cursor: categories[2]?.id,
-              node: categories[2],
+              cursor: categories[4]?.id,
+              node: categories[4],
             },
           ],
         })
@@ -429,31 +431,29 @@ describe("database category functions", () => {
             search_query: "",
             direction: "backward",
             count: 3,
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            target: categories[3]!.id,
           }),
         )
 
         expect(result).toEqual({
           page_info: {
             total_count: 7,
-            start_cursor: categories[2]?.id,
-            end_cursor: categories[0]?.id,
+            start_cursor: categories[4]?.id,
+            end_cursor: categories[6]?.id,
             has_previous_page: true,
             has_next_page: false,
           },
           edges: [
             {
-              cursor: categories[2]?.id,
-              node: categories[2],
+              cursor: categories[4]?.id,
+              node: categories[4],
             },
             {
-              cursor: categories[1]?.id,
-              node: categories[1],
+              cursor: categories[5]?.id,
+              node: categories[5],
             },
             {
-              cursor: categories[0]?.id,
-              node: categories[0],
+              cursor: categories[6]?.id,
+              node: categories[6],
             },
           ],
         })

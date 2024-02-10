@@ -49,16 +49,8 @@ into p;
 
 select
 	count(id),
-	case
-		when p.direction = 'backward'
-		then max(name)
-		else min(name)
-		end,
-	case
-		when p.direction = 'backward'
-		then min(name)
-		else max(name)
-		end
+	min(name),
+	max(name)
 from category
 where case
 	when search_query != ''
@@ -78,8 +70,15 @@ where name = max_name
 into max_cursor;
 
 open c;
-fetch first from c into start_cursor;
-fetch last from c into end_cursor;
+
+if p.direction = 'forward' then
+	fetch first from c into start_cursor;
+	fetch last from c into end_cursor;
+else
+	fetch last from c into start_cursor;
+	fetch first from c into end_cursor;
+end if;
+
 
 move first from c;
 move prior from c;
@@ -87,9 +86,18 @@ move prior from c;
 loop
 	fetch c into row;
 	exit when not found;
-	select result || jsonb_build_object(
-		'cursor', row.id,
-		'node', to_jsonb(row)
+	select (
+		case
+			when p.direction = 'forward'
+			then result || jsonb_build_object(
+				'cursor', row.id,
+				'node', to_jsonb(row)
+			)
+			else jsonb_build_object(
+				'cursor', row.id,
+				'node', to_jsonb(row)
+			) || result
+			end
 	) into result;
 
 	if row.id = min_cursor then

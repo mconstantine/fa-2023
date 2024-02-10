@@ -552,6 +552,7 @@ describe("database transaction functions", () => {
           const result = await listTransactions({
             direction: "backward",
             count: 3,
+            target: transactions[3]?.id,
             subject: "none",
             categories: "all",
             date_since: new Date(2020, 0, 1),
@@ -561,18 +562,15 @@ describe("database transaction functions", () => {
           expect(result).toEqual({
             page_info: {
               total_count: 7,
-              start_cursor: transactions[6]?.id,
-              end_cursor: transactions[4]?.id,
+              start_cursor: transactions[0]?.id,
+              end_cursor: transactions[2]?.id,
               has_previous_page: false,
               has_next_page: true,
             },
-            edges: transactions
-              .toReversed()
-              .slice(0, 3)
-              .map((t) => ({
-                cursor: t.id,
-                node: t,
-              })),
+            edges: transactions.slice(0, 3).map((t) => ({
+              cursor: t.id,
+              node: t,
+            })),
           })
         })
 
@@ -590,18 +588,15 @@ describe("database transaction functions", () => {
           expect(result).toEqual({
             page_info: {
               total_count: 7,
-              start_cursor: transactions[4]?.id,
-              end_cursor: transactions[2]?.id,
+              start_cursor: transactions[2]?.id,
+              end_cursor: transactions[4]?.id,
               has_previous_page: true,
               has_next_page: true,
             },
-            edges: transactions
-              .toReversed()
-              .slice(2, 5)
-              .map((t) => ({
-                cursor: t.id,
-                node: t,
-              })),
+            edges: transactions.slice(2, 5).map((t) => ({
+              cursor: t.id,
+              node: t,
+            })),
           })
         })
 
@@ -609,7 +604,6 @@ describe("database transaction functions", () => {
           const result = await listTransactions({
             direction: "backward",
             count: 3,
-            target: transactions[3]?.id,
             subject: "none",
             categories: "all",
             date_since: new Date(2020, 0, 1),
@@ -619,18 +613,15 @@ describe("database transaction functions", () => {
           expect(result).toEqual({
             page_info: {
               total_count: 7,
-              start_cursor: transactions[2]?.id,
-              end_cursor: transactions[0]?.id,
+              start_cursor: transactions[4]?.id,
+              end_cursor: transactions[6]?.id,
               has_previous_page: true,
               has_next_page: false,
             },
-            edges: transactions
-              .toReversed()
-              .slice(4)
-              .map((t) => ({
-                cursor: t.id,
-                node: t,
-              })),
+            edges: transactions.slice(4).map((t) => ({
+              cursor: t.id,
+              node: t,
+            })),
           })
         })
       })
