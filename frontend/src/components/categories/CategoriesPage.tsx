@@ -28,11 +28,11 @@ export default function CategoriesPage() {
   const [deletedCategory, deleteCategory] = useCommand(deleteCategoryRequest)
   const [updatedCategory, updateCategory] = useCommand(updateCategoryRequest)
 
-  function onChangeFilters(filters: ListCategoriesInput): void {
+  function onFiltersChange(filters: ListCategoriesInput): void {
     setFilters({ query: filters })
   }
 
-  async function onInsertCategory(body: InsertCategoryInput): Promise<boolean> {
+  async function onCategoryInsert(body: InsertCategoryInput): Promise<boolean> {
     const response = await insertCategory({ body })
 
     return pipe(
@@ -51,7 +51,7 @@ export default function CategoriesPage() {
     )
   }
 
-  async function onUpdateCategory(category: Category): Promise<boolean> {
+  async function onCategoryUpdate(category: Category): Promise<boolean> {
     const response = await updateCategory({
       params: { id: category.id },
       body: category,
@@ -103,10 +103,10 @@ export default function CategoriesPage() {
       insertionResponse={newCategory}
       updateResponse={updatedCategory}
       deletionResponse={deletedCategory}
-      onChangeFilters={onChangeFilters}
-      onInsertCategory={onInsertCategory}
-      onUpdateCategory={onUpdateCategory}
-      onDeleteCategory={onCategoryDelete}
+      onFiltersChange={onFiltersChange}
+      onCategoryInsert={onCategoryInsert}
+      onCategoryUpdate={onCategoryUpdate}
+      onCategoryDelete={onCategoryDelete}
     />
   )
 }

@@ -116,9 +116,9 @@ export const Default: Story = {
         insertionResponse={creationResponse}
         updateResponse={updateResponse}
         deletionResponse={deletionResponse}
-        onInsertCategory={onCategoryCreate}
+        onCategoryInsert={onCategoryCreate}
         onCategoryUpdate={onCategoryUpdate}
-        onDeleteCategory={onCategoryDelete}
+        onCategoryDelete={onCategoryDelete}
       />
     )
   },

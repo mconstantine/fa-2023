@@ -20,8 +20,8 @@ import CategoryForm from "./CategoryForm"
 import { useConfirmation } from "../../hooks/useConfirmation"
 import { Search } from "@mui/icons-material"
 import { useDebounce } from "../../hooks/useDebounce"
-
-// TODO: figure out pagination
+import { usePagination } from "../../hooks/usePagination"
+import Pagination from "../Pagination"
 
 interface ListingMode {
   type: "listing"
@@ -44,10 +44,10 @@ interface Props {
   insertionResponse: NetworkResponse<Category>
   updateResponse: NetworkResponse<Category>
   deletionResponse: NetworkResponse<Omit<Category, "id">>
-  onChangeFilters(filters: ListCategoriesInput): void
-  onInsertCategory(category: Category): Promise<boolean>
-  onUpdateCategory(category: Category): Promise<boolean>
-  onDeleteCategory(category: Category): Promise<boolean>
+  onFiltersChange(filters: ListCategoriesInput): void
+  onCategoryInsert(category: Category): Promise<boolean>
+  onCategoryUpdate(category: Category): Promise<boolean>
+  onCategoryDelete(category: Category): Promise<boolean>
 }
 
 export default function CategoriesList(props: Props) {
@@ -58,7 +58,7 @@ export default function CategoriesList(props: Props) {
   )
 
   const [onDeleteCategoryButtonClick, deleteConfirmationDialog] =
-    useConfirmation(props.onDeleteCategory, (category) => ({
+    useConfirmation(props.onCategoryDelete, (category) => ({
       title: "Warning! One way decision",
       message: `Are you sure you want delete category "${category.name}"? The category will be lost forever!`,
     }))
@@ -74,7 +74,7 @@ export default function CategoriesList(props: Props) {
   })()
 
   const debounceUpdateFiltersQuery = useDebounce((searchQuery: string) => {
-    props.onChangeFilters({
+    props.onFiltersChange({
       direction: props.filters.direction,
       count: props.filters.count,
       ...(searchQuery === "" ? {} : { search_query: searchQuery }),
@@ -101,14 +101,14 @@ export default function CategoriesList(props: Props) {
   function onSubmit(category: Category): void {
     switch (mode.type) {
       case "inserting":
-        props.onInsertCategory(category).then((result) => {
+        props.onCategoryInsert(category).then((result) => {
           if (result) {
             setMode({ type: "listing" })
           }
         })
         return
       case "updating":
-        props.onUpdateCategory(category).then((result) => {
+        props.onCategoryUpdate(category).then((result) => {
           if (result) {
             setMode({ type: "listing" })
           }
@@ -122,7 +122,7 @@ export default function CategoriesList(props: Props) {
   return (
     <>
       <Container>
-        <Stack spacing={1.5} sx={{ mt: 1.5 }}>
+        <Stack spacing={1.5} sx={{ mt: 1.5, mb: 1.5 }}>
           <Paper
             sx={{
               mt: 1.5,
@@ -154,22 +154,13 @@ export default function CategoriesList(props: Props) {
           <Query
             response={props.categories}
             render={(categories) => (
-              <Stack spacing={3}>
-                <Stack spacing={1.5}>
-                  {categories.edges.map((category) => (
-                    <CategoryCard
-                      key={category.cursor}
-                      category={category.node}
-                      onEditButtonClick={() =>
-                        onEditCategoryButtonClick(category.node)
-                      }
-                      onDeleteButtonClick={() =>
-                        onDeleteCategoryButtonClick(category.node)
-                      }
-                    />
-                  ))}
-                </Stack>
-              </Stack>
+              <List
+                categories={categories}
+                filters={props.filters}
+                onFiltersChange={props.onFiltersChange}
+                onEditCategoryButtonClick={onEditCategoryButtonClick}
+                onDeleteCategoryButtonClick={onDeleteCategoryButtonClick}
+              />
             )}
           />
         </Stack>
@@ -204,5 +195,43 @@ export default function CategoriesList(props: Props) {
       </Container>
       {deleteConfirmationDialog}
     </>
+  )
+}
+
+interface ListProps {
+  categories: PaginationResponse<Category>
+  filters: ListCategoriesInput
+  onFiltersChange(filters: ListCategoriesInput): void
+  onEditCategoryButtonClick(category: Category): void
+  onDeleteCategoryButtonClick(category: Category): void
+}
+
+function List(props: ListProps) {
+  const paginationProps = usePagination({
+    filters: props.filters,
+    paginationResponse: props.categories,
+    rowsPerPageOptions: [20, 50, 100],
+    onFiltersChange: props.onFiltersChange,
+  })
+
+  return (
+    <Stack spacing={3}>
+      <Pagination {...paginationProps} />
+      <Stack spacing={1.5}>
+        {props.categories.edges.map((category) => (
+          <CategoryCard
+            key={category.cursor}
+            category={category.node}
+            onEditButtonClick={() =>
+              props.onEditCategoryButtonClick(category.node)
+            }
+            onDeleteButtonClick={() =>
+              props.onDeleteCategoryButtonClick(category.node)
+            }
+          />
+        ))}
+      </Stack>
+      <Pagination {...paginationProps} />
+    </Stack>
   )
 }
