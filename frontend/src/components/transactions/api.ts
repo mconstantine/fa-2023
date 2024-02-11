@@ -1,15 +1,48 @@
 import * as S from "@effect/schema/Schema"
 import {
   InsertTransactionInput,
-  ListTransactionsInput as ServerListTransactionsInput,
   TransactionWithCategories as ServerTransactionWithCategories,
   UpdateTransactionsInput as ServerUpdateTransactionsInput,
 } from "../../../../backend/src/database/functions/transaction/domain"
-import { PaginationResponse } from "../../globalDomain"
+import { PaginationQuery, PaginationResponse } from "../../globalDomain"
 import { makeGet, makePatch, makePost } from "../../network/HttpRequest"
 
-// TODO: values are turned into currency twice and viceversa
-export const ListTransactionsInput = ServerListTransactionsInput
+const ListTransactionsFiltersSubject = S.union(
+  S.struct({
+    subject: S.literal("description"),
+    search_query: S.string,
+  }),
+  S.struct({
+    subject: S.literal("value"),
+    max: S.NumberFromString,
+    min: S.NumberFromString,
+  }),
+)
+
+const ListTransactionsFiltersCategories = S.union(
+  S.struct({ categories: S.literal("all") }),
+  S.struct({ categories: S.literal("uncategorized") }),
+  S.struct({
+    categories: S.literal("specific"),
+    categories_ids: S.nonEmptyArray(S.UUID),
+  }),
+)
+
+const ListTransactionsFilters = S.extend(
+  S.extend(ListTransactionsFiltersSubject, ListTransactionsFiltersCategories),
+  S.struct({
+    date_since: S.DateFromString,
+    date_until: S.DateFromString,
+  }),
+)
+
+type ListTransactionsFilters = S.Schema.To<typeof ListTransactionsFilters>
+
+export const ListTransactionsInput = S.extend(
+  PaginationQuery,
+  ListTransactionsFilters,
+)
+
 export type ListTransactionsInput = S.Schema.To<typeof ListTransactionsInput>
 
 export const UpdateTransactionsInput = ServerUpdateTransactionsInput

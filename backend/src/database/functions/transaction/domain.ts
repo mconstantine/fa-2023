@@ -33,8 +33,8 @@ const ListTransactionsFiltersSubject = S.union(
   }),
   S.struct({
     subject: S.literal("value"),
-    max: S.compose(S.NumberFromString, CurrencyFromValue),
-    min: S.compose(S.NumberFromString, CurrencyFromValue),
+    max: S.compose(S.NumberFromString, ValueFromCurrency),
+    min: S.compose(S.NumberFromString, ValueFromCurrency),
   }),
 )
 

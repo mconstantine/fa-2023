@@ -7,6 +7,8 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Toolbar,
+  Typography,
 } from "@mui/material"
 import { PaginationQuery, PaginationResponse } from "../../globalDomain"
 import { ChangeEvent } from "react"
@@ -45,9 +47,9 @@ export default function TransactionsTable(props: Props) {
     0,
   )
 
-  // const total = props.transactions
-  //   .reduce((sum, transaction) => sum + transaction.value, 0)
-  //   .toFixed(2)
+  const total = props.selectableTransactions.edges
+    .reduce((sum, transaction) => sum + transaction.node.value, 0)
+    .toFixed(2)
 
   // const onRowsPerPageChange: ChangeEventHandler<HTMLInputElement> = (event) => {
   //   const perPage = parseInt(event.target.value)
@@ -148,9 +150,9 @@ export default function TransactionsTable(props: Props) {
           </Table>
         </TableContainer>
         <Pagination {...paginationProps} />
-        {/* <Toolbar sx={{ justifyContent: "end" }}>
+        <Toolbar sx={{ justifyContent: "end" }}>
           <Typography>Total: {total}</Typography>
-        </Toolbar> */}
+        </Toolbar>
       </Paper>
       {/* {deleteTransactionConfirmationDialog} */}
     </>
