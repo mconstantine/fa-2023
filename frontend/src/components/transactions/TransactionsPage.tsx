@@ -2,10 +2,7 @@ import { Container, Paper, Stack, Typography } from "@mui/material"
 import { useEffect, useState } from "react"
 import { useCommand, useQuery, useRequestData } from "../../hooks/network"
 import Query from "../Query"
-import {
-  PaginationResponse as PaginationResponseType,
-  emptyPaginationResponse,
-} from "../../globalDomain"
+import { PaginationResponse as PaginationResponseType } from "../../globalDomain"
 import TransactionsTable from "./TransactionsTable"
 import TransactionFilters from "./filters/TransactionFilters"
 import {
@@ -18,6 +15,7 @@ import {
 import { Either, pipe } from "effect"
 import { constFalse } from "effect/Function"
 import { PaginationResponse } from "../../network/PaginationResponse"
+import { NetworkResponse, networkResponse } from "../../network/NetworkResponse"
 
 export interface SelectableTransaction extends TransactionWithCategories {
   isSelected: boolean
@@ -54,7 +52,8 @@ export default function TransactionsPage() {
     query: {
       direction: "forward",
       count: 100,
-      subject: "none",
+      subject: "description",
+      search_query: "",
       categories: "all",
       date_since: new Date(new Date().getFullYear() - 1, 0, 1),
       date_until: new Date(new Date().getFullYear(), 0, 0),
@@ -78,8 +77,8 @@ export default function TransactionsPage() {
   )
 
   const [selectableTransactions, setSelectableTransactions] = useState<
-    PaginationResponseType<SelectableTransaction>
-  >(emptyPaginationResponse())
+    NetworkResponse<PaginationResponseType<SelectableTransaction>>
+  >(networkResponse.make())
 
   const [updatedTransactions, bulkUpdateTransactions] = useCommand(
     updateTransactionsRequest,
@@ -118,25 +117,29 @@ export default function TransactionsPage() {
   // }
 
   function onTransactionSelectionChange(id: string): void {
-    setSelectableTransactions(
-      (transactions) =>
-        PaginationResponse.of(transactions).mapNodes((transaction) => {
-          if (transaction.id === id) {
-            return { ...transaction, isSelected: !transaction.isSelected }
-          } else {
-            return transaction
-          }
-        }).response,
+    setSelectableTransactions((response) =>
+      response.map(
+        (transactions) =>
+          PaginationResponse.of(transactions).mapNodes((transaction) => {
+            if (transaction.id === id) {
+              return { ...transaction, isSelected: !transaction.isSelected }
+            } else {
+              return transaction
+            }
+          }).response,
+      ),
     )
   }
 
   function onAllTransactionsSelectionChange(selection: boolean) {
-    setSelectableTransactions(
-      (transactions) =>
-        PaginationResponse.of(transactions).mapNodes((transaction) => ({
-          ...transaction,
-          isSelected: selection,
-        })).response,
+    setSelectableTransactions((response) =>
+      response.map(
+        (transactions) =>
+          PaginationResponse.of(transactions).mapNodes((transaction) => ({
+            ...transaction,
+            isSelected: selection,
+          })).response,
+      ),
     )
   }
 
@@ -147,27 +150,31 @@ export default function TransactionsPage() {
   async function onTransactionsUpdate(
     data: Omit<UpdateTransactionsInput, "ids">,
   ): Promise<boolean> {
-    const ids: string[] = selectableTransactions.edges
-      .filter((edge) => edge.node.isSelected)
-      .map((edge) => edge.node.id)
+    if (selectableTransactions.isSuccessful()) {
+      const ids: string[] = selectableTransactions.data.edges
+        .filter((edge) => edge.node.isSelected)
+        .map((edge) => edge.node.id)
 
-    const response = await bulkUpdateTransactions({ body: { ids, ...data } })
+      const response = await bulkUpdateTransactions({ body: { ids, ...data } })
 
-    return pipe(
-      response,
-      Either.match({
-        onLeft: constFalse,
-        onRight: (updatedTransactions) => {
-          updateTransactions(
-            (transactions) =>
-              PaginationResponse.of(transactions).replace(updatedTransactions)
-                .response,
-          )
+      return pipe(
+        response,
+        Either.match({
+          onLeft: constFalse,
+          onRight: (updatedTransactions) => {
+            updateTransactions(
+              (transactions) =>
+                PaginationResponse.of(transactions).replace(updatedTransactions)
+                  .response,
+            )
 
-          return true
-        },
-      }),
-    )
+            return true
+          },
+        }),
+      )
+    } else {
+      return false
+    }
   }
 
   // function onEditTransactionButtonClick(transaction: Transaction): void {
@@ -234,13 +241,19 @@ export default function TransactionsPage() {
   useEffect(() => {
     if (transactions.isSuccessful()) {
       setSelectableTransactions(
-        PaginationResponse.of(transactions.data).mapNodes((node) => ({
-          ...node,
-          isSelected: false,
-        })).response,
+        networkResponse.fromSuccess(
+          PaginationResponse.of(transactions.data).mapNodes((node) => ({
+            ...node,
+            isSelected: false,
+          })).response,
+        ),
       )
     } else {
-      setSelectableTransactions(emptyPaginationResponse())
+      setSelectableTransactions(
+        transactions as NetworkResponse<
+          PaginationResponseType<SelectableTransaction>
+        >,
+      )
     }
   }, [transactions])
 
@@ -266,28 +279,29 @@ export default function TransactionsPage() {
             </Button>
           </Stack> */}
         </Paper>
-        <TransactionFilters
-          listNetworkResponse={transactions}
-          updateNetworkResponse={updatedTransactions}
-          filters={filters.query}
-          onFiltersChange={onFiltersChange}
-          // selectedCount={selectedCount}
-          onUpdate={onTransactionsUpdate}
-        />
         <Query
-          response={transactions}
-          render={() => (
-            <TransactionsTable
-              selectableTransactions={selectableTransactions}
-              filters={filters.query}
-              onFiltersChange={onFiltersChange}
-              onTransactionSelectionChange={onTransactionSelectionChange}
-              onAllTransactionsSelectionChange={
-                onAllTransactionsSelectionChange
-              }
-              // onEditTransactionButtonClick={onEditTransactionButtonClick}
-              // onDeleteTransactionButtonClick={onDeleteTransactionButtonClick}
-            />
+          response={selectableTransactions}
+          render={(selectableTransactions) => (
+            <Stack spacing={1.5}>
+              <TransactionFilters
+                selectableTransactions={selectableTransactions}
+                updateNetworkResponse={updatedTransactions}
+                filters={filters.query}
+                onFiltersChange={onFiltersChange}
+                onUpdate={onTransactionsUpdate}
+              />
+              <TransactionsTable
+                selectableTransactions={selectableTransactions}
+                filters={filters.query}
+                onFiltersChange={onFiltersChange}
+                onTransactionSelectionChange={onTransactionSelectionChange}
+                onAllTransactionsSelectionChange={
+                  onAllTransactionsSelectionChange
+                }
+                // onEditTransactionButtonClick={onEditTransactionButtonClick}
+                // onDeleteTransactionButtonClick={onDeleteTransactionButtonClick}
+              />
+            </Stack>
           )}
         />
       </Stack>

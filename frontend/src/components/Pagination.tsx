@@ -7,6 +7,7 @@ import {
   Paper,
   Select,
   Stack,
+  Typography,
 } from "@mui/material"
 import { UsePaginationOutput } from "../hooks/usePagination"
 import { ChevronLeft, ChevronRight } from "@mui/icons-material"
@@ -21,6 +22,7 @@ export default function Pagination(props: UsePaginationOutput) {
         alignItems="center"
         sx={{ p: 1.5 }}
       >
+        <Typography>{props.count} total rows</Typography>
         <FormControl>
           <FormControlLabel
             label="Rows per page"

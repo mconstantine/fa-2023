@@ -29,15 +29,12 @@ export type TransactionWithCategories = S.Schema.To<
 const ListTransactionsFiltersSubject = S.union(
   S.struct({
     subject: S.literal("description"),
-    search_query: S.string.pipe(S.nonEmpty()),
+    search_query: S.string,
   }),
   S.struct({
     subject: S.literal("value"),
     max: S.compose(S.NumberFromString, CurrencyFromValue),
     min: S.compose(S.NumberFromString, CurrencyFromValue),
-  }),
-  S.struct({
-    subject: S.literal("none"),
   }),
 )
 

@@ -1,10 +1,6 @@
-import { Edit, Tune } from "@mui/icons-material"
-import { IconButton, Stack, Typography } from "@mui/material"
-import { Dispatch, SetStateAction, useState } from "react"
-import { FindTransactionsBy, FindTransactionsParams } from "../domain"
+import { Stack, Typography } from "@mui/material"
+import { useState } from "react"
 import { NetworkResponse } from "../../../network/NetworkResponse"
-import BulkUpdateTransactionsDialog from "../bulkUpdate/BulkUpdateTransactionsDialog"
-import TransactionFiltersDialog from "./TransactionFiltersDialog"
 import SearchTransactionsInput from "./SearchTransactionsInput"
 import ValidatedSelect from "../../forms/inputs/ValidatedSelect"
 import NumberInput from "../../forms/inputs/NumberInput"
@@ -15,11 +11,10 @@ import {
   TransactionWithCategories,
   UpdateTransactionsInput,
 } from "../api"
+import { SelectableTransaction } from "../TransactionsPage"
 
 interface Props {
-  listNetworkResponse: NetworkResponse<
-    PaginationResponse<TransactionWithCategories>
-  >
+  selectableTransactions: PaginationResponse<SelectableTransaction>
   updateNetworkResponse: NetworkResponse<readonly TransactionWithCategories[]>
   filters: ListTransactionsInput
   onFiltersChange(filters: ListTransactionsInput): void
@@ -27,47 +22,90 @@ interface Props {
   onUpdate(data: Omit<UpdateTransactionsInput, "ids">): Promise<boolean>
 }
 
+interface LocalState {
+  query: string
+  min: number
+  max: number
+}
+
 export default function TransactionFilters(props: Props) {
-  const [filtersDialogIsOpen, setFiltersDialogIsOpen] = useState(false)
-  const [updateDialogIsOpen, setUpdateDialogIsOpen] = useState(false)
+  // const [filtersDialogIsOpen, setFiltersDialogIsOpen] = useState(false)
+  // const [updateDialogIsOpen, setUpdateDialogIsOpen] = useState(false)
 
-  const debounceOnFiltersChange: Dispatch<
-    SetStateAction<FindTransactionsParams>
-  > = useDebounce(props.onFiltersChange, 500)
+  const [localState, setLocalState] = useState<LocalState>({
+    query: "search_query" in props.filters ? props.filters.search_query : "",
+    min: "min" in props.filters ? props.filters.min : 0,
+    max: "max" in props.filters ? props.filters.max : 0,
+  })
 
-  function onFindTransactionsByChange(findBy: FindTransactionsBy): void {
-    switch (findBy) {
-      case FindTransactionsBy.DESCRIPTION:
-        return props.onFiltersChange((params) => ({ ...params, findBy }))
-      case FindTransactionsBy.VALUE: {
-        const min = props.listNetworkResponse
-          .map(([transactions]) =>
-            Math.min(...transactions.map((transaction) => transaction.value)),
-          )
-          .getOrElse(0)
+  const debounceOnFiltersChange: (filters: ListTransactionsInput) => void =
+    useDebounce(props.onFiltersChange, 500)
 
-        const max = props.listNetworkResponse
-          .map(([transactions]) =>
-            Math.max(...transactions.map((transaction) => transaction.value)),
-          )
-          .getOrElse(0)
+  const selectedCount = props.selectableTransactions.edges.reduce(
+    (count, edge) => {
+      if (edge.node.isSelected) {
+        return count + 1
+      } else {
+        return count
+      }
+    },
+    0,
+  )
 
-        return props.onFiltersChange((params) => ({
-          ...params,
-          findBy,
-          min,
-          max,
-        }))
+  function onSubjectChange(subject: ListTransactionsInput["subject"]): void {
+    switch (subject) {
+      case "description":
+        return props.onFiltersChange({
+          ...props.filters,
+          subject,
+          search_query: "",
+        })
+      case "value": {
+        const values = props.selectableTransactions.edges.map(
+          (edge) => edge.node.value,
+        )
+
+        const min = Math.min(...values)
+        const max = Math.max(...values)
+
+        setLocalState((state) => ({ ...state, min, max }))
+        return props.onFiltersChange({ ...props.filters, subject, min, max })
       }
     }
   }
 
+  function onQueryChange(query: string): void {
+    setLocalState((state) => ({ ...state, query }))
+
+    debounceOnFiltersChange({
+      ...props.filters,
+      subject: "description",
+      search_query: query,
+    })
+  }
+
   function onMaxValueChange(max: number): void {
-    debounceOnFiltersChange((params) => ({ ...params, max }))
+    setLocalState((state) => ({ ...state, max }))
+
+    if (props.filters.subject === "value") {
+      debounceOnFiltersChange({
+        ...props.filters,
+        subject: "value",
+        max,
+      })
+    }
   }
 
   function onMinValueChange(min: number): void {
-    debounceOnFiltersChange((params) => ({ ...params, min }))
+    setLocalState((state) => ({ ...state, min }))
+
+    if (props.filters.subject === "value") {
+      debounceOnFiltersChange({
+        ...props.filters,
+        subject: "value",
+        min,
+      })
+    }
   }
 
   return (
@@ -77,47 +115,47 @@ export default function TransactionFilters(props: Props) {
       alignItems="center"
       justifyContent="space-between"
     >
-      {props.selectedCount > 0 ? (
+      {selectedCount > 0 ? (
         <>
-          <Typography>{props.selectedCount} selected</Typography>
-          <IconButton
+          <Typography>{selectedCount} selected</Typography>
+          {/* <IconButton
             aria-label="Edit"
             onClick={() => setUpdateDialogIsOpen(true)}
             color="primary"
           >
             <Edit />
-          </IconButton>
-          <BulkUpdateTransactionsDialog
+          </IconButton> */}
+          {/* <BulkUpdateTransactionsDialog
             isOpen={updateDialogIsOpen}
             onOpenChange={setUpdateDialogIsOpen}
             updateTransactionsNetworkResponse={props.updateNetworkResponse}
             onBulkUpdate={props.onBulkUpdate}
-          />
+          /> */}
         </>
       ) : (
         <>
           {(() => {
-            switch (props.filters.findBy) {
-              case FindTransactionsBy.DESCRIPTION:
+            switch (props.filters.subject) {
+              case "description":
                 return (
                   <SearchTransactionsInput
-                    params={props.filters}
-                    onParamsChange={debounceOnFiltersChange}
+                    query={localState.query}
+                    onQueryChange={onQueryChange}
                   />
                 )
-              case FindTransactionsBy.VALUE:
+              case "value":
                 return (
                   <Stack direction="row" spacing={1.5} sx={{ width: "100%" }}>
                     <NumberInput
                       name="maxValue"
-                      value={props.filters.min}
+                      value={localState.min}
                       onChange={onMinValueChange}
                       errorMessage="Min value should be a number"
                       label="Min"
                     />
                     <NumberInput
                       name="maxValue"
-                      value={props.filters.max}
+                      value={localState.max}
                       onChange={onMaxValueChange}
                       errorMessage="Max value should be a number"
                       label="Max"
@@ -127,30 +165,34 @@ export default function TransactionFilters(props: Props) {
             }
           })()}
           <ValidatedSelect
+            sx={{ minWidth: "9em" }}
             name="findTransactionsBy"
-            value={props.filters.findBy}
-            options={FindTransactionsBy}
-            onChange={onFindTransactionsByChange}
+            value={props.filters.subject}
+            options={{
+              description: "description",
+              value: "value",
+            }}
+            onChange={onSubjectChange}
             label="Find by"
             optionLabels={{
-              DESCRIPTION: "Description",
-              VALUE: "Value",
+              description: "Description",
+              value: "Value",
             }}
           />
-          <IconButton
+          {/* <IconButton
             aria-label="Filters"
             sx={{ width: "40px" }}
             onClick={() => setFiltersDialogIsOpen(true)}
           >
             <Tune />
-          </IconButton>
-          <TransactionFiltersDialog
+          </IconButton> */}
+          {/* <TransactionFiltersDialog
             isOpen={filtersDialogIsOpen}
             onOpenChange={setFiltersDialogIsOpen}
-            findTransactionsNetworkResponse={props.listNetworkResponse}
+            findTransactionsNetworkResponse={props.selectableTransactions}
             params={props.filters}
             onParamsChange={props.onFiltersChange}
-          />
+          /> */}
         </>
       )}
     </Stack>

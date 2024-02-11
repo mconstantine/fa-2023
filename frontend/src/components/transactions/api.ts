@@ -8,8 +8,9 @@ import {
 import { PaginationResponse } from "../../globalDomain"
 import { makeGet, makePatch, makePost } from "../../network/HttpRequest"
 
+// TODO: values are turned into currency twice and viceversa
 export const ListTransactionsInput = ServerListTransactionsInput
-export type ListTransactionsInput = ServerListTransactionsInput
+export type ListTransactionsInput = S.Schema.To<typeof ListTransactionsInput>
 
 export const UpdateTransactionsInput = ServerUpdateTransactionsInput
 export type UpdateTransactionsInput = ServerUpdateTransactionsInput

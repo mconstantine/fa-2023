@@ -1,5 +1,3 @@
-import { ChangeEventHandler, useState } from "react"
-import { FindTransactionsParams } from "../domain"
 import {
   FormControl,
   InputAdornment,
@@ -9,28 +7,11 @@ import {
 import { Search } from "@mui/icons-material"
 
 interface Props {
-  params: FindTransactionsParams
-  onParamsChange(params: FindTransactionsParams): void
+  query: string
+  onQueryChange(query: string): void
 }
 
 export default function SearchTransactionsInput(props: Props) {
-  const [transactionsQuery, setTransactionsQuery] = useState(
-    props.params.query ?? "",
-  )
-
-  const onTransactionsQueryChange: ChangeEventHandler<HTMLInputElement> = (
-    event,
-  ) => {
-    const query = event.currentTarget.value
-
-    setTransactionsQuery(query)
-
-    props.onParamsChange({
-      ...props.params,
-      query: query === "" ? undefined : query,
-    })
-  }
-
   return (
     <FormControl variant="outlined" fullWidth>
       <InputLabel htmlFor="search">Search</InputLabel>
@@ -42,8 +23,9 @@ export default function SearchTransactionsInput(props: Props) {
           </InputAdornment>
         }
         label="Search"
-        value={transactionsQuery}
-        onChange={onTransactionsQueryChange}
+        value={props.query}
+        onChange={(event) => props.onQueryChange(event.currentTarget.value)}
+        autoFocus
       />
     </FormControl>
   )
