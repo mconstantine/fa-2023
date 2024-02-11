@@ -6,109 +6,100 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  TablePagination,
   TableRow,
-  Toolbar,
-  Typography,
 } from "@mui/material"
-import { Transaction } from "./domain"
-import { PaginationParams } from "../../globalDomain"
-import {
-  ChangeEvent,
-  ChangeEventHandler,
-  MouseEvent,
-  MouseEventHandler,
-} from "react"
-import { useConfirmation } from "../../hooks/useConfirmation"
+import { PaginationQuery, PaginationResponse } from "../../globalDomain"
+import { ChangeEvent } from "react"
 import TransactionsTableRow from "./TransactonsTableRow"
-
-export interface SelectableTransaction extends Transaction {
-  isSelected: boolean
-}
+import { ListTransactionsInput } from "./api"
+import { usePagination } from "../../hooks/usePagination"
+import Pagination from "../Pagination"
+import { SelectableTransaction } from "./TransactionsPage"
 
 interface Props {
-  transactions: SelectableTransaction[]
-  transactionsCount: number
-  params: PaginationParams
-  onTransactionsSelectionChange(selected: boolean, ids: string[]): void
-  onParamsChange(params: PaginationParams): void
-  onEditTransactionButtonClick(transaction: Transaction): void
-  onDeleteTransactionButtonClick(transaction: Transaction): void
+  selectableTransactions: PaginationResponse<SelectableTransaction>
+  filters: ListTransactionsInput
+  onFiltersChange(filters: ListTransactionsInput): void
+  onTransactionSelectionChange(transactionId: string): void
+  onAllTransactionsSelectionChange(selection: boolean): void
+  // onEditTransactionButtonClick(transaction: Transaction): void
+  // onDeleteTransactionButtonClick(transaction: Transaction): void
 }
 
 export default function TransactionsTable(props: Props) {
-  const selectedRowsCount = props.transactions.filter(
-    (transaction) => transaction.isSelected,
-  ).length
+  const paginationProps = usePagination({
+    filters: props.filters,
+    paginationResponse: props.selectableTransactions,
+    rowsPerPageOptions: [50, 100, 500, 1000],
+    onFiltersChange: onPaginationFiltersChange,
+  })
 
-  const total = props.transactions
-    .reduce((sum, transaction) => sum + transaction.value, 0)
-    .toFixed(2)
+  const selectedRowsCount = props.selectableTransactions.edges.reduce(
+    (count, edge) => {
+      if (edge.node.isSelected) {
+        return count + 1
+      } else {
+        return count
+      }
+    },
+    0,
+  )
 
-  const onRowsPerPageChange: ChangeEventHandler<HTMLInputElement> = (event) => {
-    const perPage = parseInt(event.target.value)
+  // const total = props.transactions
+  //   .reduce((sum, transaction) => sum + transaction.value, 0)
+  //   .toFixed(2)
 
-    if (!Number.isNaN(perPage)) {
-      props.onParamsChange({ page: 0, perPage })
-    }
-  }
+  // const onRowsPerPageChange: ChangeEventHandler<HTMLInputElement> = (event) => {
+  //   const perPage = parseInt(event.target.value)
 
-  const [deleteTransaction, deleteTransactionConfirmationDialog] =
-    useConfirmation(props.onDeleteTransactionButtonClick, (transaction) => ({
-      title: "Do you really want to delete this transaction?",
-      message: `Deleting transaction "${transaction.description}" cannot be undone!`,
-      yesButtonLabel: "Yes",
-      noButtonLabel: "No",
-    }))
+  //   if (!Number.isNaN(perPage)) {
+  //     props.onParamsChange({ page: 0, perPage })
+  //   }
+  // }
 
-  function onPageChange(
-    _: MouseEvent<HTMLButtonElement> | null,
-    page: number,
-  ): void {
-    props.onParamsChange({ ...props.params, page })
+  // const [deleteTransaction, deleteTransactionConfirmationDialog] =
+  //   useConfirmation(props.onDeleteTransactionButtonClick, (transaction) => ({
+  //     title: "Do you really want to delete this transaction?",
+  //     message: `Deleting transaction "${transaction.description}" cannot be undone!`,
+  //     yesButtonLabel: "Yes",
+  //     noButtonLabel: "No",
+  //   }))
+
+  function onPaginationFiltersChange(filters: PaginationQuery): void {
+    props.onFiltersChange({
+      ...props.filters,
+      ...filters,
+    })
   }
 
   function onSelectAllClick(
     _: ChangeEvent<HTMLInputElement>,
     checked: boolean,
   ) {
-    props.onTransactionsSelectionChange(
-      checked,
-      props.transactions.map((transaction) => transaction.id),
-    )
+    props.onAllTransactionsSelectionChange(checked)
   }
 
-  function onSelectOneClick(
-    id: string,
-  ): (event: MouseEvent<HTMLTableRowElement>) => void {
-    return () => {
-      const transaction = props.transactions.find(
-        (transaction) => transaction.id === id,
-      )
-
-      if (typeof transaction !== "undefined") {
-        props.onTransactionsSelectionChange(!transaction.isSelected, [id])
-      }
-    }
+  function onSelectOneClick(id: string) {
+    props.onTransactionSelectionChange(id)
   }
 
-  function onEditButtonClick(
-    transaction: Transaction,
-  ): MouseEventHandler<HTMLButtonElement> {
-    return (event) => {
-      event.stopPropagation()
-      props.onEditTransactionButtonClick(transaction)
-    }
-  }
+  // function onEditButtonClick(
+  //   transaction: Transaction,
+  // ): MouseEventHandler<HTMLButtonElement> {
+  //   return (event) => {
+  //     event.stopPropagation()
+  //     props.onEditTransactionButtonClick(transaction)
+  //   }
+  // }
 
-  function onDeleteButtonClick(
-    transaction: Transaction,
-  ): MouseEventHandler<HTMLButtonElement> {
-    return (event) => {
-      event.stopPropagation()
-      deleteTransaction(transaction)
-    }
-  }
+  // function onDeleteButtonClick(
+  //   transaction: Transaction,
+  // ): MouseEventHandler<HTMLButtonElement> {
+  //   return (event) => {
+  //     event.stopPropagation()
+  //     deleteTransaction(transaction)
+  //   }
+  // }
 
   return (
     <>
@@ -122,9 +113,13 @@ export default function TransactionsTable(props: Props) {
                     color="primary"
                     indeterminate={
                       selectedRowsCount > 0 &&
-                      selectedRowsCount < props.transactions.length
+                      selectedRowsCount <
+                        props.selectableTransactions.edges.length
                     }
-                    checked={selectedRowsCount === props.transactions.length}
+                    checked={
+                      selectedRowsCount ===
+                      props.selectableTransactions.edges.length
+                    }
                     onChange={onSelectAllClick}
                     inputProps={{
                       "aria-label": "select all transactions",
@@ -140,32 +135,24 @@ export default function TransactionsTable(props: Props) {
               </TableRow>
             </TableHead>
             <TableBody>
-              {props.transactions.map((transaction) => (
+              {props.selectableTransactions.edges.map((edge) => (
                 <TransactionsTableRow
-                  key={transaction.id}
-                  transaction={transaction}
-                  onSelectClick={onSelectOneClick(transaction.id)}
-                  onEditButtonClick={onEditButtonClick(transaction)}
-                  onDeleteButtonClick={onDeleteButtonClick(transaction)}
+                  key={edge.cursor}
+                  selectableTransaction={edge.node}
+                  onSelectClick={() => onSelectOneClick(edge.node.id)}
+                  // onEditButtonClick={onEditButtonClick(edge)}
+                  // onDeleteButtonClick={onDeleteButtonClick(edge)}
                 />
               ))}
             </TableBody>
           </Table>
         </TableContainer>
-        <TablePagination
-          component="div"
-          rowsPerPageOptions={[100, 500, 1000]}
-          count={props.transactionsCount}
-          rowsPerPage={props.params.perPage}
-          page={props.params.page}
-          onPageChange={onPageChange}
-          onRowsPerPageChange={onRowsPerPageChange}
-        />
-        <Toolbar sx={{ justifyContent: "end" }}>
+        <Pagination {...paginationProps} />
+        {/* <Toolbar sx={{ justifyContent: "end" }}>
           <Typography>Total: {total}</Typography>
-        </Toolbar>
+        </Toolbar> */}
       </Paper>
-      {deleteTransactionConfirmationDialog}
+      {/* {deleteTransactionConfirmationDialog} */}
     </>
   )
 }

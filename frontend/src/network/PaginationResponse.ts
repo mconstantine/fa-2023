@@ -1,11 +1,10 @@
-import * as S from "@effect/schema/Schema"
 import { PaginationResponse as PaginationResponseType } from "../../../backend/src/database/domain"
 import { Option } from "effect"
 
-export class PaginationResponse<T extends { id: S.Schema.To<typeof S.UUID> }> {
+export class PaginationResponse<T extends { id: string }> {
   private constructor(public readonly response: PaginationResponseType<T>) {}
 
-  public static of<T extends { id: S.Schema.To<typeof S.UUID> }>(
+  public static of<T extends { id: string }>(
     content: PaginationResponseType<T>,
   ): PaginationResponse<T> {
     return new PaginationResponse(content)
@@ -47,14 +46,26 @@ export class PaginationResponse<T extends { id: S.Schema.To<typeof S.UUID> }> {
     })
   }
 
-  public replace(node: T): PaginationResponse<T> {
+  public replace(update: T): PaginationResponse<T>
+  public replace(update: readonly T[]): PaginationResponse<T>
+  public replace(update: T | readonly T[]): PaginationResponse<T> {
     return new PaginationResponse({
       ...this.response,
       edges: this.response.edges.map((edge) => {
-        if (edge.node.id === node.id) {
-          return { cursor: node.id, node }
+        if (Array.isArray(update)) {
+          const updated = update.find((node) => edge.node.id === node.id)
+
+          if (typeof updated !== "undefined") {
+            return { cursor: updated.id, node: updated }
+          } else {
+            return edge
+          }
         } else {
-          return edge
+          if (edge.node.id === (update as T).id) {
+            return { cursor: (update as T).id, node: update }
+          } else {
+            return edge
+          }
         }
       }),
     })
@@ -91,6 +102,18 @@ export class PaginationResponse<T extends { id: S.Schema.To<typeof S.UUID> }> {
     })
   }
 
+  public mapNodes<R extends { id: string }>(
+    mapFn: (node: T) => R,
+  ): PaginationResponse<R> {
+    return new PaginationResponse({
+      page_info: this.response.page_info,
+      edges: this.response.edges.map((edge) => ({
+        cursor: edge.cursor,
+        node: mapFn(edge.node),
+      })),
+    })
+  }
+
   public getNodes(): T[] {
     return this.response.edges.map((edge) => edge.node)
   }
@@ -99,11 +122,11 @@ export class PaginationResponse<T extends { id: S.Schema.To<typeof S.UUID> }> {
     return this.response.page_info.total_count
   }
 
-  public getStartCursor(): Option.Option<S.Schema.To<typeof S.UUID>> {
+  public getStartCursor(): Option.Option<string> {
     return Option.fromNullable(this.response.page_info.start_cursor)
   }
 
-  public getEndCursor(): Option.Option<S.Schema.To<typeof S.UUID>> {
+  public getEndCursor(): Option.Option<string> {
     return Option.fromNullable(this.response.page_info.end_cursor)
   }
 

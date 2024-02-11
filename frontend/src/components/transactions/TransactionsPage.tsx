@@ -1,226 +1,248 @@
-import {
-  Button,
-  Container,
-  Dialog,
-  DialogContent,
-  Paper,
-  Stack,
-  Typography,
-} from "@mui/material"
-import { useState } from "react"
-import ImportTransactionsDialog from "./ImportTransactionsDialog"
-import { useCommand, useQuery } from "../../hooks/network"
+import { Container, Paper, Stack, Typography } from "@mui/material"
+import { useEffect, useState } from "react"
+import { useCommand, useQuery, useRequestData } from "../../hooks/network"
 import Query from "../Query"
-import { PaginatedResponse, PaginationParams } from "../../globalDomain"
 import {
-  BulkUpdateTransactionsBody,
-  CategoryMode,
-  FindTransactionsBy,
-  FindTransactionsParams,
-  Transaction,
-  TransactionCreationBody,
-  TransactionUpdateBody,
-} from "./domain"
-import TransactionsTable, { SelectableTransaction } from "./TransactionsTable"
+  PaginationResponse as PaginationResponseType,
+  emptyPaginationResponse,
+} from "../../globalDomain"
+import TransactionsTable from "./TransactionsTable"
 import TransactionFilters from "./filters/TransactionFilters"
-import { BulkUpdateTransactionsData } from "./bulkUpdate/BulkUpdateTransactionsDialog"
-import TransactionForm from "./TransactionForm"
+import {
+  ListTransactionsInput,
+  TransactionWithCategories,
+  UpdateTransactionsInput,
+  listTransactionsRequest,
+  updateTransactionsRequest,
+} from "./api"
+import { Either, pipe } from "effect"
+import { constFalse } from "effect/Function"
+import { PaginationResponse } from "../../network/PaginationResponse"
 
-interface TransactionFormState {
-  open: boolean
-  subject: Transaction | null
+export interface SelectableTransaction extends TransactionWithCategories {
+  isSelected: boolean
 }
 
-function transactionsQueryTransformer(
-  response: PaginatedResponse<Transaction>,
-): PaginatedResponse<SelectableTransaction> {
-  const [transactions, count] = response
+// interface TransactionFormState {
+//   open: boolean
+//   subject: Transaction | null
+// }
 
-  return [
-    transactions.map((t) => {
-      t["isSelected"] = false
-      return t as SelectableTransaction
-    }),
-    count,
-  ]
-}
+// function transactionsQueryTransformer(
+//   response: PaginatedResponse<Transaction>,
+// ): PaginatedResponse<SelectableTransaction> {
+//   const [transactions, count] = response
+
+//   return [
+//     transactions.map((t) => {
+//       t["isSelected"] = false
+//       return t as SelectableTransaction
+//     }),
+//     count,
+//   ]
+// }
 
 export default function TransactionsPage() {
-  const [importDialogIsOpen, setImportDialogOpen] = useState(false)
+  // const [importDialogIsOpen, setImportDialogOpen] = useState(false)
 
-  const [formState, setFormState] = useState<TransactionFormState>({
-    open: false,
-    subject: null,
+  // const [formState, setFormState] = useState<TransactionFormState>({
+  //   open: false,
+  //   subject: null,
+  // })
+
+  const [filters, setFilters] = useRequestData<typeof listTransactionsRequest>({
+    query: {
+      direction: "forward",
+      count: 100,
+      subject: "none",
+      categories: "all",
+      date_since: new Date(new Date().getFullYear() - 1, 0, 1),
+      date_until: new Date(new Date().getFullYear(), 0, 0),
+    },
   })
 
-  const [params, setParams] = useState<FindTransactionsParams>({
-    findBy: FindTransactionsBy.DESCRIPTION,
-    page: 0,
-    perPage: 100,
-    startDate: new Date(
-      Date.UTC(new Date().getFullYear() - 1, 0, 1),
-    ).toISOString(),
-    endDate: new Date(Date.UTC(new Date().getFullYear(), 0, 1)).toISOString(),
-    categoryMode: CategoryMode.ALL,
-  })
+  // const [params, setParams] = useState<FindTransactionsParams>({
+  //   findBy: FindTransactionsBy.DESCRIPTION,
+  //   page: 0,
+  //   perPage: 100,
+  //   startDate: new Date(
+  //     Date.UTC(new Date().getFullYear() - 1, 0, 1),
+  //   ).toISOString(),
+  //   endDate: new Date(Date.UTC(new Date().getFullYear(), 0, 1)).toISOString(),
+  //   categoryMode: CategoryMode.ALL,
+  // })
 
-  const [paginatedTransactions, updateTransactions, fetchTransactions] =
-    useQuery<
-      FindTransactionsParams,
-      PaginatedResponse<Transaction>,
-      PaginatedResponse<SelectableTransaction>
-    >("/transactions", params, transactionsQueryTransformer)
-
-  const [bulkUpdateNetworkResponse, bulkUpdate] = useCommand<
-    BulkUpdateTransactionsBody,
-    Transaction[]
-  >("PATCH", "/transactions/bulk/")
-
-  const [createTransactionResponse, createTransaction] = useCommand<
-    TransactionCreationBody,
-    Transaction
-  >("POST", "/transactions/")
-
-  const [updateTransactionResponse, updateTransaction] = useCommand<
-    TransactionUpdateBody,
-    Transaction
-  >("PATCH", "/transactions/")
-
-  const [, deleteTransaction] = useCommand<TransactionUpdateBody, Transaction>(
-    "DELETE",
-    "/transactions/",
+  const [transactions, updateTransactions] = useQuery(
+    listTransactionsRequest,
+    filters,
   )
 
-  const selectedCount = paginatedTransactions
-    .map(([transactions]) =>
-      transactions.reduce((sum, t) => {
-        if (t.isSelected) {
-          return sum + 1
-        } else {
-          return sum
-        }
-      }, 0),
-    )
-    .getOrElse(0)
+  const [selectableTransactions, setSelectableTransactions] = useState<
+    PaginationResponseType<SelectableTransaction>
+  >(emptyPaginationResponse())
 
-  function onImportSubmit(): void {
-    setImportDialogOpen(false)
-    fetchTransactions()
-  }
+  const [updatedTransactions, bulkUpdateTransactions] = useCommand(
+    updateTransactionsRequest,
+  )
 
-  function onTransactionsSelectionChange(
-    selected: boolean,
-    ids: string[],
-  ): void {
-    updateTransactions(([transactions, count]) => {
-      return [
-        transactions.map((transaction) => {
-          if (ids.includes(transaction.id)) {
-            transaction.isSelected = selected
-          }
+  // const [createTransactionResponse, createTransaction] = useCommand<
+  //   TransactionCreationBody,
+  //   Transaction
+  // >("POST", "/transactions/")
 
-          return transaction
-        }),
-        count,
-      ]
-    })
-  }
+  // const [updateTransactionResponse, updateTransaction] = useCommand<
+  //   TransactionUpdateBody,
+  //   Transaction
+  // >("PATCH", "/transactions/")
 
-  function onPaginationParamsChange(paginationParams: PaginationParams) {
-    setParams((params) => ({ ...params, ...paginationParams }))
-  }
+  // const [, deleteTransaction] = useCommand<TransactionUpdateBody, Transaction>(
+  //   "DELETE",
+  //   "/transactions/",
+  // )
 
-  async function onBulkUpdate(
-    data: BulkUpdateTransactionsData,
-  ): Promise<boolean> {
-    const ids: string[] = paginatedTransactions
-      .map(([transactions]) =>
-        transactions.filter((t) => t.isSelected).map((t) => t.id),
-      )
-      .getOrElse([])
+  // const selectedCount = paginatedTransactions
+  //   .map(([transactions]) =>
+  //     transactions.reduce((sum, t) => {
+  //       if (t.isSelected) {
+  //         return sum + 1
+  //       } else {
+  //         return sum
+  //       }
+  //     }, 0),
+  //   )
+  //   .getOrElse(0)
 
-    const response = await bulkUpdate({ ids, ...data })
+  // function onImportSubmit(): void {
+  //   setImportDialogOpen(false)
+  //   fetchTransactions()
+  // }
 
-    if (response === null) {
-      return false
-    } else {
-      updateTransactions(([transactions, count]) => [
-        transactions.map((transaction) => {
-          const updated = response.find((t) => t.id === transaction.id)
-
-          if (typeof updated === "undefined") {
-            return transaction
+  function onTransactionSelectionChange(id: string): void {
+    setSelectableTransactions(
+      (transactions) =>
+        PaginationResponse.of(transactions).mapNodes((transaction) => {
+          if (transaction.id === id) {
+            return { ...transaction, isSelected: !transaction.isSelected }
           } else {
-            return { ...updated, isSelected: true }
+            return transaction
           }
-        }),
-        count,
-      ])
-
-      return true
-    }
+        }).response,
+    )
   }
 
-  function onEditTransactionButtonClick(transaction: Transaction): void {
-    setFormState({ open: true, subject: transaction })
+  function onAllTransactionsSelectionChange(selection: boolean) {
+    setSelectableTransactions(
+      (transactions) =>
+        PaginationResponse.of(transactions).mapNodes((transaction) => ({
+          ...transaction,
+          isSelected: selection,
+        })).response,
+    )
   }
 
-  async function onDeleteTransactionButtonClick(
-    deleted: Transaction,
-  ): Promise<void> {
-    const result = await deleteTransaction({
-      ...deleted,
-      categoryIds: deleted.categories.map((category) => category.id),
-    })
-
-    if (result !== null) {
-      updateTransactions(([transactions, count]) => [
-        transactions.filter((transaction) => transaction.id !== deleted.id),
-        count,
-      ])
-    }
+  function onFiltersChange(filters: ListTransactionsInput): void {
+    setFilters({ query: filters })
   }
 
-  async function onTransactionFormSubmit(
-    data: TransactionCreationBody,
-  ): Promise<void> {
-    if (formState.subject === null) {
-      const result = await createTransaction(data)
+  async function onTransactionsUpdate(
+    data: Omit<UpdateTransactionsInput, "ids">,
+  ): Promise<boolean> {
+    const ids: string[] = selectableTransactions.edges
+      .filter((edge) => edge.node.isSelected)
+      .map((edge) => edge.node.id)
 
-      if (result !== null) {
-        updateTransactions(([transactions, count]) => [
-          [
-            {
-              ...result,
-              isSelected: false,
-            },
-            ...transactions,
-          ],
-          count,
-        ])
-      }
+    const response = await bulkUpdateTransactions({ body: { ids, ...data } })
+
+    return pipe(
+      response,
+      Either.match({
+        onLeft: constFalse,
+        onRight: (updatedTransactions) => {
+          updateTransactions(
+            (transactions) =>
+              PaginationResponse.of(transactions).replace(updatedTransactions)
+                .response,
+          )
+
+          return true
+        },
+      }),
+    )
+  }
+
+  // function onEditTransactionButtonClick(transaction: Transaction): void {
+  //   setFormState({ open: true, subject: transaction })
+  // }
+
+  // async function onDeleteTransactionButtonClick(
+  //   deleted: Transaction,
+  // ): Promise<void> {
+  //   const result = await deleteTransaction({
+  //     ...deleted,
+  //     categoryIds: deleted.categories.map((category) => category.id),
+  //   })
+
+  //   if (result !== null) {
+  //     updateTransactions(([transactions, count]) => [
+  //       transactions.filter((transaction) => transaction.id !== deleted.id),
+  //       count,
+  //     ])
+  //   }
+  // }
+
+  // async function onTransactionFormSubmit(
+  //   data: TransactionCreationBody,
+  // ): Promise<void> {
+  //   if (formState.subject === null) {
+  //     const result = await createTransaction(data)
+
+  //     if (result !== null) {
+  //       updateTransactions(([transactions, count]) => [
+  //         [
+  //           {
+  //             ...result,
+  //             isSelected: false,
+  //           },
+  //           ...transactions,
+  //         ],
+  //         count,
+  //       ])
+  //     }
+  //   } else {
+  //     const result = await updateTransaction({
+  //       ...data,
+  //       id: formState.subject.id,
+  //     })
+
+  //     if (result !== null) {
+  //       updateTransactions(([transactions, count]) => [
+  //         transactions.map((transaction) => {
+  //           if (transaction.id === result.id) {
+  //             return { ...result, isSelected: false }
+  //           } else {
+  //             return transaction
+  //           }
+  //         }),
+  //         count,
+  //       ])
+  //     }
+  //   }
+
+  //   setFormState((formState) => ({ ...formState, open: false }))
+  // }
+
+  useEffect(() => {
+    if (transactions.isSuccessful()) {
+      setSelectableTransactions(
+        PaginationResponse.of(transactions.data).mapNodes((node) => ({
+          ...node,
+          isSelected: false,
+        })).response,
+      )
     } else {
-      const result = await updateTransaction({
-        ...data,
-        id: formState.subject.id,
-      })
-
-      if (result !== null) {
-        updateTransactions(([transactions, count]) => [
-          transactions.map((transaction) => {
-            if (transaction.id === result.id) {
-              return { ...result, isSelected: false }
-            } else {
-              return transaction
-            }
-          }),
-          count,
-        ])
-      }
+      setSelectableTransactions(emptyPaginationResponse())
     }
-
-    setFormState((formState) => ({ ...formState, open: false }))
-  }
+  }, [transactions])
 
   return (
     <Container>
@@ -235,39 +257,41 @@ export default function TransactionsPage() {
           }}
         >
           <Typography variant="h5">Transactions</Typography>
-          <Stack direction="row" spacing={0.5}>
+          {/* <Stack direction="row" spacing={0.5}>
             <Button onClick={() => setFormState({ open: true, subject: null })}>
               Add transaction
             </Button>
             <Button onClick={() => setImportDialogOpen(true)}>
               Import transactions
             </Button>
-          </Stack>
+          </Stack> */}
         </Paper>
         <TransactionFilters
-          findTransactionsNetworkResponse={paginatedTransactions}
-          updateTransactionsNetworkResponse={bulkUpdateNetworkResponse}
-          params={params}
-          onParamsChange={setParams}
-          selectedCount={selectedCount}
-          onBulkUpdate={onBulkUpdate}
+          listNetworkResponse={transactions}
+          updateNetworkResponse={updatedTransactions}
+          filters={filters.query}
+          onFiltersChange={onFiltersChange}
+          // selectedCount={selectedCount}
+          onUpdate={onTransactionsUpdate}
         />
         <Query
-          response={paginatedTransactions}
-          render={([transactions, count]) => (
+          response={transactions}
+          render={() => (
             <TransactionsTable
-              transactions={transactions}
-              transactionsCount={count}
-              onTransactionsSelectionChange={onTransactionsSelectionChange}
-              params={params}
-              onParamsChange={onPaginationParamsChange}
-              onEditTransactionButtonClick={onEditTransactionButtonClick}
-              onDeleteTransactionButtonClick={onDeleteTransactionButtonClick}
+              selectableTransactions={selectableTransactions}
+              filters={filters.query}
+              onFiltersChange={onFiltersChange}
+              onTransactionSelectionChange={onTransactionSelectionChange}
+              onAllTransactionsSelectionChange={
+                onAllTransactionsSelectionChange
+              }
+              // onEditTransactionButtonClick={onEditTransactionButtonClick}
+              // onDeleteTransactionButtonClick={onDeleteTransactionButtonClick}
             />
           )}
         />
       </Stack>
-      <ImportTransactionsDialog
+      {/* <ImportTransactionsDialog
         isOpen={importDialogIsOpen}
         onClose={() => setImportDialogOpen(false)}
         onSubmit={onImportSubmit}
@@ -291,7 +315,7 @@ export default function TransactionsPage() {
             }
           />
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
     </Container>
   )
 }
