@@ -1,56 +1,77 @@
+import * as S from "@effect/schema/Schema"
+import { Either, Option } from "effect"
 import { useState } from "react"
 
-type FormData<T extends Record<string, unknown>> = {
-  [key in keyof T]: T[key] | null
+type Validators<Values extends Record<string, unknown>> = {
+  [key in keyof Values]?: S.Schema<unknown, unknown>
 }
 
-function isValidFormData<T extends Record<string, unknown>>(
-  formData: FormData<T>,
-): formData is T {
-  return Object.entries(formData)
-    .filter(([key]) => key !== "id")
-    .every(([, value]) => value !== null)
+type FormData<R extends Record<string, unknown>, V extends Validators<R>> = {
+  [key in keyof R]: V[key] extends S.Schema<infer A, unknown> ? A : R[key]
 }
 
-interface UseFormOutput<T extends Record<string, unknown>> {
-  inputProps<K extends keyof T, D = null>(
-    key: K,
-    defaultValue: D,
-  ): {
-    name: K
-    value: T[K] | D
-    onChange(value: T[K]): void
-  }
+interface UseFormInput<
+  R extends Record<string, unknown>,
+  V extends Validators<R>,
+> {
+  initialValues: FormData<R, V>
+  validators: V
+  formValidator(data: FormData<R, V>): Option.Option<{ error: string }>
+  submit(data: FormData<R, V>): void
+}
+
+export interface InputProps<T> {
+  name: string
+  value: T
+  error: Option.Option<string>
+  onChange(value: T): void
+}
+
+interface UseFormOutput<Values extends Record<string, unknown>> {
+  inputProps<K extends keyof Values>(name: K): InputProps<Values[K]>
   submit(): void
-  isValid: () => boolean
+  isValid(): boolean
 }
 
-export function useForm<T extends Record<string, unknown>>(
-  data: FormData<T>,
-  onSubmit: (data: T) => void,
-): UseFormOutput<T> {
-  const [state, setState] = useState(data)
+type FormState<R extends Record<string, unknown>, V extends Validators<R>> = {
+  [key in keyof R]: {
+    value: FormData<R, V>[key]
+    validation: Either.Either<string, FormData<R, V>[key]>
+  }
+}
+
+export function useForm<
+  R extends Record<string, unknown>,
+  V extends Validators<R>,
+>(input: UseFormInput<R, V>): UseFormOutput<R> {
+  const [state, setState] = useState<FormState<R, V>>(
+    Object.fromEntries(
+      Object.entries(input.initialValues).map(([k, v]) => {
+        const value = initialValueToFormDataEntry(v, input.validators[v])
+        return [k, value]
+      }),
+    ) as FormState<R, V>,
+  )
+
+  function inputProps<K extends keyof R>(name: K): InputProps<V[K]> {}
+
+  function submit(): void {}
+
+  function isValid(): boolean {}
+
+  return { inputProps, submit, isValid }
+}
+
+function initialValueToFormDataEntry<
+  K extends keyof R,
+  R extends Record<string, unknown>,
+  V extends Validators<R>,
+>(value: FormData<R, V>[K], validator: V[K]): FormData<R, V>[K] {
+  const encoded =
+    typeof validator === "undefined" ? value : S.encodeSync(validator)(value)
 
   return {
-    inputProps(key, defaultValue) {
-      return {
-        name: key,
-        value: state[key] ?? defaultValue,
-        onChange: (value) => {
-          setState((state) => ({
-            ...state,
-            [key]: value,
-          }))
-        },
-      }
-    },
-    submit() {
-      if (isValidFormData(state)) {
-        onSubmit(state)
-      }
-    },
-    isValid() {
-      return isValidFormData(state)
-    },
-  }
+    encoded,
+    validation: Either.right(value),
+  } as FormData<R, V>[K]
 }

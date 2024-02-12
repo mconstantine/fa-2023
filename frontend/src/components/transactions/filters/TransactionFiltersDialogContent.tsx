@@ -1,3 +1,4 @@
+import * as S from "@effect/schema/Schema"
 import {
   Button,
   FormControl,
@@ -12,7 +13,6 @@ import {
 } from "@mui/material"
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers"
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
-import { CategoryMode, FindTransactionsParams, Transaction } from "../domain"
 import dayjs, { Dayjs } from "dayjs"
 import { NetworkResponse } from "../../../network/NetworkResponse"
 import PositiveIntegerInput from "../../forms/inputs/PositiveIntegerInput"
@@ -21,45 +21,53 @@ import { useState } from "react"
 import { DateTimeRange, RelativeTimeRange, ShortcutRange } from "./TimeRange"
 import CategorySelect from "../../forms/inputs/CategorySelect"
 import { Category } from "../../categories/domain"
-import { PaginatedResponse } from "../../../globalDomain"
+import { PaginationResponse as PaginationResponseType } from "../../../globalDomain"
+import { PaginationResponse } from "../../../network/PaginationResponse"
+import { Option, pipe } from "effect"
+import { constVoid } from "effect/Function"
+import { ListTransactionsInput, TransactionWithCategories } from "../domain"
 
 interface Props {
-  params: FindTransactionsParams
-  onFiltersChange(params: FindTransactionsParams): void
-  transactionsNetworkResponse: NetworkResponse<PaginatedResponse<Transaction>>
-  categoriesNetworkResponse: NetworkResponse<Category[]>
+  filters: ListTransactionsInput
+  onFiltersChange(filters: ListTransactionsInput): void
+  listTransactionsResponse: NetworkResponse<
+    PaginationResponseType<TransactionWithCategories>
+  >
+  listCategoriesResponse: NetworkResponse<PaginationResponseType<Category>>
   categoriesSearchQuery: string
-  onCategoriesSearchQueryChange(searchQuery: string): void
+  onCategoriesSearchQueryChange(query: string): void
   onCancel(): void
 }
 
 type Mode = "RelativeTimeRange" | "DateRange"
 
-type TransactionFilters = FindTransactionsParams & {
+type TransactionFilters = Omit<ListTransactionsInput, "categories_ids"> & {
   mode: Mode
+  categories_ids: readonly string[]
 }
 
 export default function TransactionFiltersDialogContent(props: Props) {
   const [filters, setFilters] = useState<TransactionFilters>({
-    ...props.params,
+    ...props.filters,
     mode: "RelativeTimeRange",
+    categories_ids:
+      "categories_ids" in props.filters ? props.filters.categories_ids : [],
   })
 
   const [categoriesSelection, setCategoriesSelection] = useState<Category[]>([])
 
   const datesAreValid =
-    typeof filters.startDate !== "undefined" &&
-    typeof filters.endDate !== "undefined" &&
-    filters.startDate.localeCompare(filters.endDate) <= 0
+    filters.date_since
+      .toISOString()
+      .localeCompare(filters.date_until.toISOString()) <= 0
 
   const categoriesAreValid =
-    filters.categoryMode !== CategoryMode.SPECIFIC ||
-    filters.categories.length > 0
+    filters.categories !== "specific" || filters.categories_ids.length > 0
 
   const submitIsDisabled =
     !datesAreValid ||
     !categoriesAreValid ||
-    props.transactionsNetworkResponse.isLoading()
+    props.listTransactionsResponse.isLoading()
 
   function onTimeRangeModeChange(mode: Mode) {
     setFilters((filters) => ({ ...filters, mode }))
@@ -73,16 +81,21 @@ export default function TransactionFiltersDialogContent(props: Props) {
     }))
   }
 
-  function onCategoryModeChange(categoryMode: CategoryMode): void {
-    switch (categoryMode) {
-      case CategoryMode.ALL:
-      case CategoryMode.UNCATEGORIZED:
-        return setFilters((filters) => ({ ...filters, categoryMode }))
-      case CategoryMode.SPECIFIC:
+  function onCategoryModeChange(
+    categories: ListTransactionsInput["categories"],
+  ): void {
+    switch (categories) {
+      case "all":
+      case "uncategorized":
         return setFilters((filters) => ({
           ...filters,
-          categoryMode,
-          categories: categoriesSelection.map((category) => category.id),
+          categoryMode: categories,
+        }))
+      case "specific":
+        return setFilters((filters) => ({
+          ...filters,
+          categories,
+          categories_ids: categoriesSelection.map((category) => category.id),
         }))
     }
   }
@@ -92,43 +105,43 @@ export default function TransactionFiltersDialogContent(props: Props) {
 
     setFilters((filters) => ({
       ...filters,
-      categories: selection.map((category) => category.id),
+      categories_ids: selection.map((category) => category.id),
     }))
   }
 
   return (
     <Stack spacing={3}>
       <RelativeTimeRangeForm
-        startDate={filters.startDate ? new Date(filters.startDate) : null}
-        endDate={filters.endDate ? new Date(filters.endDate) : null}
+        startDate={filters.date_since ? new Date(filters.date_since) : null}
+        endDate={filters.date_until ? new Date(filters.date_until) : null}
         onChange={onDatesChange}
         disabled={filters.mode !== "RelativeTimeRange"}
         onEnable={() => onTimeRangeModeChange("RelativeTimeRange")}
       />
       <DateRangeForm
-        startDate={filters.startDate ? new Date(filters.startDate) : null}
-        endDate={filters.endDate ? new Date(filters.endDate) : null}
+        startDate={filters.date_since ? new Date(filters.date_since) : null}
+        endDate={filters.date_until ? new Date(filters.date_until) : null}
         isValid={datesAreValid}
         onChange={onDatesChange}
         disabled={filters.mode !== "DateRange"}
         onEnable={() => onTimeRangeModeChange("DateRange")}
       />
       {(() => {
-        switch (filters.categoryMode) {
-          case CategoryMode.ALL:
-          case CategoryMode.UNCATEGORIZED:
+        switch (filters.categories) {
+          case "all":
+          case "uncategorized":
             return (
               <CategoriesFiltersForm
-                mode={filters.categoryMode}
+                mode={filters.categories}
                 onModeChange={onCategoryModeChange}
               />
             )
-          case CategoryMode.SPECIFIC:
+          case "specific":
             return (
               <CategoriesFiltersForm
-                mode={filters.categoryMode}
+                mode={filters.categories}
                 onModeChange={onCategoryModeChange}
-                networkResponse={props.categoriesNetworkResponse}
+                networkResponse={props.listCategoriesResponse}
                 searchQuery={props.categoriesSearchQuery}
                 onSearchQueryChange={props.onCategoriesSearchQueryChange}
                 categories={categoriesSelection}
@@ -140,7 +153,23 @@ export default function TransactionFiltersDialogContent(props: Props) {
       <Stack direction="row" spacing={1.5}>
         <Button
           variant="contained"
-          onClick={() => props.onFiltersChange(filters)}
+          onClick={() => {
+            switch (filters.categories) {
+              case "all":
+              case "uncategorized":
+                return props.onFiltersChange(filters)
+              case "specific":
+                return pipe(
+                  filters.categories_ids,
+                  S.decodeUnknownOption(S.nonEmptyArray(S.UUID)),
+                  Option.match({
+                    onNone: constVoid,
+                    onSome: (categories_ids) =>
+                      props.onFiltersChange({ ...filters, categories_ids }),
+                  }),
+                )
+            }
+          }}
           disabled={submitIsDisabled}
         >
           Set filters
@@ -281,22 +310,22 @@ function DateRangeForm(props: DateRangeFormProps) {
 }
 
 interface BaseCategoriesFiltersProps {
-  onModeChange(mode: CategoryMode): void
+  onModeChange(categories: ListTransactionsInput["categories"]): void
 }
 
 interface SpecificCategoriesFiltersFormProps
   extends BaseCategoriesFiltersProps {
-  mode: CategoryMode.SPECIFIC
-  networkResponse: NetworkResponse<Category[]>
+  mode: "specific"
+  networkResponse: NetworkResponse<PaginationResponseType<Category>>
   categories: Category[]
   searchQuery: string
-  onSearchQueryChange(searchQuery: string): void
+  onSearchQueryChange(query: string): void
   onSelectionChange(selection: Category[]): void
 }
 
 interface NonSpecificCategoryFiltersFormProps
   extends BaseCategoriesFiltersProps {
-  mode: CategoryMode.ALL | CategoryMode.UNCATEGORIZED
+  mode: "all" | "uncategorized"
 }
 
 type CategoriesFiltersFormProps =
@@ -313,29 +342,29 @@ function CategoriesFiltersForm(props: CategoriesFiltersFormProps) {
             aria-labelledby="categories-filter-label"
             name="categories-filter"
             value={props.mode}
-            onChange={(_, value) => props.onModeChange(value as CategoryMode)}
+            onChange={(_, value) =>
+              props.onModeChange(value as ListTransactionsInput["categories"])
+            }
           >
             <FormControlLabel
-              value={CategoryMode.ALL}
+              value="all"
               control={<Radio />}
               label="All categories"
             />
             <FormControlLabel
-              value={CategoryMode.UNCATEGORIZED}
+              value="uncategorized"
               control={<Radio />}
               label="Uncategorized only"
             />
             <FormControlLabel
-              value={CategoryMode.SPECIFIC}
+              value="specific"
               control={<Radio />}
               label="Choose specific categories"
             />
           </RadioGroup>
         </FormControl>
 
-        {props.mode === CategoryMode.SPECIFIC ? (
-          <CategorySelectForm {...props} />
-        ) : null}
+        {props.mode === "specific" ? <CategorySelectForm {...props} /> : null}
       </Stack>
     </Paper>
   )
@@ -346,7 +375,9 @@ function CategorySelectForm(props: SpecificCategoriesFiltersFormProps) {
     <CategorySelect
       creatable={false}
       multiple
-      categories={props.networkResponse}
+      categories={props.networkResponse.map((response) =>
+        PaginationResponse.of(response).getNodes(),
+      )}
       searchQuery={props.searchQuery}
       onSearchQueryChange={props.onSearchQueryChange}
       selection={props.categories}

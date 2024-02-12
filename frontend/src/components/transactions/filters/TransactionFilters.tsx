@@ -6,12 +6,12 @@ import ValidatedSelect from "../../forms/inputs/ValidatedSelect"
 import NumberInput from "../../forms/inputs/NumberInput"
 import { useDebounce } from "../../../hooks/useDebounce"
 import { PaginationResponse } from "../../../globalDomain"
+import { SelectableTransaction } from "../TransactionsPage"
 import {
   ListTransactionsInput,
   TransactionWithCategories,
   UpdateTransactionsInput,
-} from "../api"
-import { SelectableTransaction } from "../TransactionsPage"
+} from "../domain"
 
 interface Props {
   selectableTransactions: PaginationResponse<SelectableTransaction>

@@ -77,8 +77,8 @@ export const Default: Story = {
       <TransactionFiltersDialogContent
         params={params}
         onFiltersChange={onFiltersChange}
-        transactionsNetworkResponse={transactionsNetworkResponse}
-        categoriesNetworkResponse={categoriesResponse}
+        listTransactionsResponse={transactionsNetworkResponse}
+        listCategoriesResponse={categoriesResponse}
         categoriesSearchQuery={categoriesSearchQuery}
         onCategoriesSearchQueryChange={onCategoriesSearchQueryChange}
         onCancel={() => {}}

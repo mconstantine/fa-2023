@@ -1,33 +1,36 @@
-import { useEffect, useState } from "react"
-import { PaginatedResponse } from "../../../globalDomain"
+import { useState } from "react"
 import { NetworkResponse } from "../../../network/NetworkResponse"
-import { FindTransactionsParams, Transaction } from "../domain"
-import { Category, FindCategoryParams } from "../../categories/domain"
 import { useLazyQuery } from "../../../hooks/network"
 import { useDebounce } from "../../../hooks/useDebounce"
 import { Dialog, DialogContent } from "@mui/material"
 import TransactionFiltersDialogContent from "./TransactionFiltersDialogContent"
+import { PaginationResponse } from "../../../globalDomain"
+import { listCategoriesRequest } from "../../categories/api"
+import { ListTransactionsInput, TransactionWithCategories } from "../domain"
 
 interface Props {
   isOpen: boolean
-  onOpenChange(isOpen: boolean): void
-  findTransactionsNetworkResponse: NetworkResponse<
-    PaginatedResponse<Transaction>
+  onClose(): void
+  listTransactionsResponse: NetworkResponse<
+    PaginationResponse<TransactionWithCategories>
   >
-  params: FindTransactionsParams
-  onParamsChange(params: FindTransactionsParams): void
+  filters: ListTransactionsInput
+  onFiltersChange(filters: ListTransactionsInput): void
 }
 
 export default function TransactionFiltersDialog(props: Props) {
   const [categoriesQuery, setCategoriesQuery] = useState("")
 
-  const [categoriesResponse, , fetchCategories] = useLazyQuery<
-    Category[],
-    FindCategoryParams
-  >("/categories")
+  const [categories, fetchCategories] = useLazyQuery(listCategoriesRequest)
 
   const debounceFetchCategories = useDebounce(function search(query: string) {
-    fetchCategories(query === "" ? {} : { query })
+    fetchCategories({
+      query: {
+        direction: "forward",
+        count: 25,
+        ...(query === "" ? {} : { search_query: query }),
+      },
+    })
   }, 500)
 
   function onCategoriesQueryChange(query: string) {
@@ -35,28 +38,34 @@ export default function TransactionFiltersDialog(props: Props) {
     debounceFetchCategories(query)
   }
 
-  function onFiltersChange(params: FindTransactionsParams): void {
-    props.onParamsChange(params)
-    props.onOpenChange(false)
+  function onFiltersChange(filters: ListTransactionsInput): void {
+    props.onFiltersChange(filters)
+    props.onClose()
   }
 
-  useEffect(() => {
-    if (props.isOpen && categoriesResponse.isIdle()) {
-      fetchCategories({})
-    }
-  }, [props.isOpen, categoriesResponse, fetchCategories])
+  // TODO: maybe useless?
+  // useEffect(() => {
+  //   if (props.isOpen && categories.isIdle()) {
+  //     fetchCategories({
+  //       query: {
+  //         direction: "forward",
+  //         count: 100,
+  //       },
+  //     })
+  //   }
+  // }, [props.isOpen, categories, fetchCategories])
 
   return (
-    <Dialog open={props.isOpen} onClose={() => props.onOpenChange(false)}>
+    <Dialog open={props.isOpen} onClose={() => props.onClose()}>
       <DialogContent>
         <TransactionFiltersDialogContent
-          params={props.params}
+          filters={props.filters}
           onFiltersChange={onFiltersChange}
-          transactionsNetworkResponse={props.findTransactionsNetworkResponse}
-          categoriesNetworkResponse={categoriesResponse}
+          listTransactionsResponse={props.listTransactionsResponse}
+          listCategoriesResponse={categories}
           categoriesSearchQuery={categoriesQuery}
           onCategoriesSearchQueryChange={onCategoriesQueryChange}
-          onCancel={() => props.onOpenChange(false)}
+          onCancel={() => props.onClose()}
         />
       </DialogContent>
     </Dialog>

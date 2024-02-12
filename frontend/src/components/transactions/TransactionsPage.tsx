@@ -5,17 +5,16 @@ import Query from "../Query"
 import { PaginationResponse as PaginationResponseType } from "../../globalDomain"
 import TransactionsTable from "./TransactionsTable"
 import TransactionFilters from "./filters/TransactionFilters"
-import {
-  ListTransactionsInput,
-  TransactionWithCategories,
-  UpdateTransactionsInput,
-  listTransactionsRequest,
-  updateTransactionsRequest,
-} from "./api"
+import { listTransactionsRequest, updateTransactionsRequest } from "./api"
 import { Either, pipe } from "effect"
 import { constFalse } from "effect/Function"
 import { PaginationResponse } from "../../network/PaginationResponse"
 import { NetworkResponse, networkResponse } from "../../network/NetworkResponse"
+import {
+  ListTransactionsInput,
+  TransactionWithCategories,
+  UpdateTransactionsInput,
+} from "./domain"
 
 export interface SelectableTransaction extends TransactionWithCategories {
   isSelected: boolean
