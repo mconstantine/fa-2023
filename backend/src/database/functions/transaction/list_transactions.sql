@@ -48,9 +48,9 @@ declare c cursor for
 			end
 		and case
 			when f.subject = 'description' and f.search_query != ''
-			then lower(description) like concat('%', lower(f.search_query), '%')
+			then lower(t.description) like concat('%', lower(f.search_query), '%')
 			when f.subject = 'value'
-			then value >= f.min and value <= f.max
+			then t.value >= f.min and t.value <= f.max
 			else true
 			end
 		and case
@@ -109,21 +109,60 @@ from (
 			then tc.category_id = any(f.categories_ids)
 			else false
 			end
-		and date >= f.date_since
-		and date <= f.date_until
+		and t.date >= f.date_since
+		and t.date <= f.date_until
 	group by t.id
 ) r
 into total_count, min_date, max_date;
 
 select id
-from transaction
-where date = min_date
+from transaction t
+left join transactions_categories tc on tc.transaction_id = t.id
+where
+	t.date = min_date
+	and case
+		when f.subject = 'description' and f.search_query != ''
+		then lower(t.description) like concat('%', lower(f.search_query), '%')
+		when f.subject = 'value'
+		then t.value >= f.min and t.value <= f.max
+		else true
+		end
+	and case
+		when f.categories = 'all'
+		then true
+		when f.categories = 'uncategorized'
+		then tc.category_id is null
+		when f.categories = 'specific'
+		then tc.category_id = any(f.categories_ids)
+		else false
+		end
 into min_cursor;
 
 select id
-from transaction
-where date = max_date
+from transaction t
+left join transactions_categories tc on tc.transaction_id = t.id
+where
+	t.date = max_date
+	and case
+		when f.subject = 'description' and f.search_query != ''
+		then lower(t.description) like concat('%', lower(f.search_query), '%')
+		when f.subject = 'value'
+		then t.value >= f.min and t.value <= f.max
+		else true
+		end
+	and case
+		when f.categories = 'all'
+		then true
+		when f.categories = 'uncategorized'
+		then tc.category_id is null
+		when f.categories = 'specific'
+		then tc.category_id = any(f.categories_ids)
+		else false
+		end
 into max_cursor;
+
+raise notice 'min_cursor: %', min_cursor;
+raise notice 'max_cursor: %', max_cursor;
 
 open c;
 
