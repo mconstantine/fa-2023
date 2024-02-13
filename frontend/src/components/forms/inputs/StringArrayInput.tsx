@@ -5,17 +5,15 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material"
-import NonBlankInput from "./NonBlankInput"
 import { KeyboardEvent, useState } from "react"
 import { Add, Delete } from "@mui/icons-material"
+import { InputProps } from "../../../hooks/useForm"
+import TextInput from "./TextInput"
+import { Option, pipe } from "effect"
 
-interface Props {
+interface Props extends InputProps<readonly string[]> {
   title: string
-  name: string
   label: string
-  value: readonly string[]
-  errorMessageWhenBlank: string
-  onChange(value: string[]): void
 }
 
 export function StringArrayInput(props: Props) {
@@ -56,13 +54,16 @@ export function StringArrayInput(props: Props) {
     <Stack spacing={1.5}>
       <Typography variant="overline">{props.title}</Typography>
       {props.value.map((value, index) => (
-        <NonBlankInput
-          key={`${index}-${value}`}
+        <TextInput
+          key={index}
           name={`${props.name}-${index}`}
           label={props.label}
           value={value}
           onChange={(newValue) => onChange(newValue, index)}
-          errorMessageWhenBlank={props.errorMessageWhenBlank}
+          error={pipe(
+            props.error,
+            Option.map(() => ""),
+          )}
           fieldProps={{
             sx: { display: "block" },
             onKeyDown,
@@ -83,12 +84,12 @@ export function StringArrayInput(props: Props) {
           }}
         />
       ))}
-      <NonBlankInput
+      <TextInput
         name={props.name}
         label={props.label}
-        value={insertingValue}
+        value={insertingValue ?? ""}
         onChange={setInsertingValue}
-        errorMessageWhenBlank={props.errorMessageWhenBlank}
+        error={Option.none()}
         fieldProps={{
           sx: { display: "block" },
           onKeyDown,
@@ -99,6 +100,7 @@ export function StringArrayInput(props: Props) {
                   <IconButton
                     aria-label="Add"
                     onClick={() => onAddButtonClick()}
+                    disabled={Option.isSome(props.error)}
                   >
                     <Add />
                   </IconButton>

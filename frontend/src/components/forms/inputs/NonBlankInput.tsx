@@ -1,17 +1,12 @@
-import { NonBlankString } from "../validators"
 import { TextFieldProps } from "@mui/material"
-import ValidatedInput from "./ValidatedInput"
+import { InputProps } from "../../../hooks/useForm"
+import TextInput from "./TextInput"
 
-interface Props {
-  name: string
+interface Props extends InputProps<string> {
   label?: string | undefined
-  value: string | null
-  onChange(value: string): void
-  errorMessageWhenBlank: string
   fieldProps?: TextFieldProps
 }
 
 export default function NonBlankInput(props: Props) {
-  const validator = NonBlankString.withErrorMessage(props.errorMessageWhenBlank)
-  return <ValidatedInput {...props} validator={validator} />
+  return <TextInput fieldProps={props.fieldProps ?? {}} {...props} />
 }

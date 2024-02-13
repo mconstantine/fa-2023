@@ -1,3 +1,4 @@
+import * as S from "@effect/schema/Schema"
 import {
   Checkbox,
   Container,
@@ -7,12 +8,13 @@ import {
   Stack,
   Typography,
 } from "@mui/material"
-import NonBlankInput from "../forms/inputs/NonBlankInput"
 import { StringArrayInput } from "../forms/inputs/StringArrayInput"
 import { Category } from "./domain"
 import { useForm } from "../../hooks/useForm"
 import Form from "../forms/Form"
 import { NetworkResponse } from "../../network/NetworkResponse"
+import TextInput from "../forms/inputs/TextInput"
+import { Either } from "effect"
 
 interface Props {
   category: Category | null
@@ -22,15 +24,33 @@ interface Props {
 }
 
 export default function CategoryForm(props: Props) {
-  const { inputProps, submit, isValid } = useForm<Category>(
-    {
+  const { inputProps, submit, isValid, formError } = useForm({
+    initialValues: {
       id: props.category?.id ?? null,
-      name: props.category?.name ?? null,
+      name: props.category?.name ?? "",
       keywords: props.category?.keywords ?? ([] as string[]),
       is_meta: props.category?.is_meta ?? false,
     },
-    props.onSubmit,
-  )
+    validators: {
+      name: S.Trim.pipe(
+        S.nonEmpty({ message: () => "The category name cannot be empty" }),
+      ),
+      keywords: S.array(
+        S.Trim.pipe(S.nonEmpty({ message: () => "Keywords cannot be empty" })),
+      ),
+      is_meta: S.boolean,
+    },
+    formValidator: (data) => {
+      const uniqueKeywords = [...new Set(data.keywords)]
+
+      if (uniqueKeywords.length !== data.keywords.length) {
+        return Either.left("Duplicate keywords detected")
+      } else {
+        return Either.right(data)
+      }
+    },
+    submit: props.onSubmit,
+  })
 
   const title =
     props.category === null
@@ -49,27 +69,26 @@ export default function CategoryForm(props: Props) {
           networkResponse={props.networkResponse}
           submitButtonLabel={submitButtonLabel}
           cancelAction={props.cancelAction}
+          formError={formError}
         >
-          <NonBlankInput
-            {...inputProps("name", null)}
+          <TextInput
+            {...inputProps("name")}
             label="Name"
-            errorMessageWhenBlank="The category name cannot be blank"
             fieldProps={{ sx: { mb: 1.5 } }}
           />
           <StringArrayInput
-            {...inputProps("keywords", [])}
+            {...inputProps("keywords")}
             title="Keywords"
             label="Keyword"
-            errorMessageWhenBlank="A keyword cannot be blank"
           />
           <FormControl>
             <FormControlLabel
               control={
                 <Checkbox
-                  {...inputProps("is_meta", false)}
-                  checked={inputProps("is_meta", false).value}
-                  onChange={(_, isMeta) =>
-                    inputProps("is_meta", false).onChange(isMeta)
+                  {...inputProps("is_meta")}
+                  checked={inputProps("is_meta").value}
+                  onChange={(_, checked) =>
+                    inputProps("is_meta").onChange(checked)
                   }
                 />
               }

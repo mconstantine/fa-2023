@@ -9,10 +9,13 @@ import {
 import { FormEvent, PropsWithChildren } from "react"
 import { NetworkResponse } from "../../network/NetworkResponse"
 import { green, red } from "@mui/material/colors"
+import { Option, pipe } from "effect"
+import { constNull } from "effect/Function"
 
 interface Props {
   onSubmit(): void
   isValid(): boolean
+  formError?: Option.Option<string>
   submitButtonLabel: string
   networkResponse: NetworkResponse<unknown>
   cancelAction?: (() => void) | undefined
@@ -58,6 +61,19 @@ export default function Form(props: PropsWithChildren<Props>) {
               {props.networkResponse.status})
             </Typography>
           ) : null}
+          {typeof props.formError !== "undefined"
+            ? pipe(
+                props.formError,
+                Option.match({
+                  onNone: constNull,
+                  onSome: (error) => (
+                    <Typography color="error" variant="body2" sx={{ mb: 1.5 }}>
+                      {error}
+                    </Typography>
+                  ),
+                }),
+              )
+            : null}
           <Stack direction="row" spacing={1}>
             <Box sx={{ position: "relative", width: "fit-content" }}>
               <Button

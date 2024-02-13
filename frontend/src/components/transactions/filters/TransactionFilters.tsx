@@ -3,7 +3,6 @@ import { useState } from "react"
 import { NetworkResponse } from "../../../network/NetworkResponse"
 import SearchTransactionsInput from "./SearchTransactionsInput"
 import ValidatedSelect from "../../forms/inputs/ValidatedSelect"
-import NumberInput from "../../forms/inputs/NumberInput"
 import { useDebounce } from "../../../hooks/useDebounce"
 import { PaginationResponse } from "../../../globalDomain"
 import { SelectableTransaction } from "../TransactionsPage"
@@ -12,6 +11,8 @@ import {
   TransactionWithCategories,
   UpdateTransactionsInput,
 } from "../domain"
+import TextInput from "../../forms/inputs/TextInput"
+import { Option } from "effect"
 
 interface Props {
   selectableTransactions: PaginationResponse<SelectableTransaction>
@@ -84,27 +85,37 @@ export default function TransactionFilters(props: Props) {
     })
   }
 
-  function onMaxValueChange(max: number): void {
-    setLocalState((state) => ({ ...state, max }))
+  function onMaxValueChange(value: string): void {
+    // TODO: useForm?
+    const max = Number.parseFloat(value)
 
-    if (props.filters.subject === "value") {
-      debounceOnFiltersChange({
-        ...props.filters,
-        subject: "value",
-        max,
-      })
+    if (!Number.isNaN(max)) {
+      setLocalState((state) => ({ ...state, max }))
+
+      if (props.filters.subject === "value") {
+        debounceOnFiltersChange({
+          ...props.filters,
+          subject: "value",
+          max,
+        })
+      }
     }
   }
 
-  function onMinValueChange(min: number): void {
-    setLocalState((state) => ({ ...state, min }))
+  function onMinValueChange(value: string): void {
+    // TODO: useForm?
+    const min = Number.parseFloat(value)
 
-    if (props.filters.subject === "value") {
-      debounceOnFiltersChange({
-        ...props.filters,
-        subject: "value",
-        min,
-      })
+    if (!Number.isNaN(min)) {
+      setLocalState((state) => ({ ...state, min }))
+
+      if (props.filters.subject === "value") {
+        debounceOnFiltersChange({
+          ...props.filters,
+          subject: "value",
+          min,
+        })
+      }
     }
   }
 
@@ -146,19 +157,21 @@ export default function TransactionFilters(props: Props) {
               case "value":
                 return (
                   <Stack direction="row" spacing={1.5} sx={{ width: "100%" }}>
-                    <NumberInput
+                    <TextInput
                       name="maxValue"
-                      value={localState.min}
+                      value={localState.min.toString(10)}
                       onChange={onMinValueChange}
-                      errorMessage="Min value should be a number"
                       label="Min"
+                      // TODO:
+                      error={Option.none()}
                     />
-                    <NumberInput
+                    <TextInput
                       name="maxValue"
-                      value={localState.max}
+                      value={localState.max.toString(10)}
                       onChange={onMaxValueChange}
-                      errorMessage="Max value should be a number"
                       label="Max"
+                      // TODO:
+                      error={Option.none()}
                     />
                   </Stack>
                 )
