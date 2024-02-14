@@ -2,7 +2,7 @@ import { TextField, TextFieldProps } from "@mui/material"
 import { InputProps } from "../../../hooks/useForm"
 import { Option, pipe } from "effect"
 
-interface Props extends InputProps<string> {
+interface Props extends InputProps<unknown, string> {
   label: string
   fieldProps?: TextFieldProps
 }

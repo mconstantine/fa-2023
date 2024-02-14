@@ -1,3 +1,4 @@
+import * as S from "@effect/schema/Schema"
 import { Stack, Typography } from "@mui/material"
 import { useState } from "react"
 import { NetworkResponse } from "../../../network/NetworkResponse"
@@ -12,7 +13,9 @@ import {
   UpdateTransactionsInput,
 } from "../domain"
 import TextInput from "../../forms/inputs/TextInput"
-import { Option } from "effect"
+import { Either, pipe } from "effect"
+import { useForm } from "../../../hooks/useForm"
+import { constVoid } from "effect/Function"
 
 interface Props {
   selectableTransactions: PaginationResponse<SelectableTransaction>
@@ -23,20 +26,24 @@ interface Props {
   onUpdate(data: Omit<UpdateTransactionsInput, "ids">): Promise<boolean>
 }
 
-interface LocalState {
-  query: string
-  min: number
-  max: number
-}
-
 export default function TransactionFilters(props: Props) {
   // const [filtersDialogIsOpen, setFiltersDialogIsOpen] = useState(false)
   // const [updateDialogIsOpen, setUpdateDialogIsOpen] = useState(false)
 
-  const [localState, setLocalState] = useState<LocalState>({
-    query: "search_query" in props.filters ? props.filters.search_query : "",
-    min: "min" in props.filters ? props.filters.min : 0,
-    max: "max" in props.filters ? props.filters.max : 0,
+  const [query, setQuery] = useState(
+    "search_query" in props.filters ? props.filters.search_query : "",
+  )
+
+  const { inputProps } = useForm({
+    initialValues: {
+      min: "min" in props.filters ? props.filters.min : 0,
+      max: "max" in props.filters ? props.filters.max : 0,
+    },
+    validators: {
+      min: S.NumberFromString,
+      max: S.NumberFromString,
+    },
+    submit: constVoid,
   })
 
   const debounceOnFiltersChange: (filters: ListTransactionsInput) => void =
@@ -69,14 +76,13 @@ export default function TransactionFilters(props: Props) {
         const min = Math.min(...values)
         const max = Math.max(...values)
 
-        setLocalState((state) => ({ ...state, min, max }))
         return props.onFiltersChange({ ...props.filters, subject, min, max })
       }
     }
   }
 
   function onQueryChange(query: string): void {
-    setLocalState((state) => ({ ...state, query }))
+    setQuery(query)
 
     debounceOnFiltersChange({
       ...props.filters,
@@ -85,38 +91,46 @@ export default function TransactionFilters(props: Props) {
     })
   }
 
-  function onMaxValueChange(value: string): void {
-    // TODO: useForm?
-    const max = Number.parseFloat(value)
-
-    if (!Number.isNaN(max)) {
-      setLocalState((state) => ({ ...state, max }))
-
-      if (props.filters.subject === "value") {
-        debounceOnFiltersChange({
-          ...props.filters,
-          subject: "value",
-          max,
-        })
-      }
-    }
+  function onValuesChange(
+    min: Either.Either<string, number>,
+    max: Either.Either<string, number>,
+  ): void {
+    return pipe(
+      { min, max },
+      Either.all,
+      Either.match({
+        onLeft: constVoid,
+        onRight: ({ max, min }) =>
+          debounceOnFiltersChange({
+            ...props.filters,
+            subject: "value",
+            max,
+            min,
+          }),
+      }),
+    )
   }
 
-  function onMinValueChange(value: string): void {
-    // TODO: useForm?
-    const min = Number.parseFloat(value)
+  function onMaxValueChange(max: string): Either.Either<string, number> {
+    const maxValidation = inputProps("max").onChange(max)
 
-    if (!Number.isNaN(min)) {
-      setLocalState((state) => ({ ...state, min }))
+    onValuesChange(
+      inputProps("min").onChange(inputProps("min").value),
+      maxValidation,
+    )
 
-      if (props.filters.subject === "value") {
-        debounceOnFiltersChange({
-          ...props.filters,
-          subject: "value",
-          min,
-        })
-      }
-    }
+    return maxValidation
+  }
+
+  function onMinValueChange(min: string): Either.Either<string, number> {
+    const minValidation = inputProps("min").onChange(min)
+
+    onValuesChange(
+      minValidation,
+      inputProps("max").onChange(inputProps("max").value),
+    )
+
+    return minValidation
   }
 
   return (
@@ -150,7 +164,7 @@ export default function TransactionFilters(props: Props) {
               case "description":
                 return (
                   <SearchTransactionsInput
-                    query={localState.query}
+                    query={query}
                     onQueryChange={onQueryChange}
                   />
                 )
@@ -158,20 +172,14 @@ export default function TransactionFilters(props: Props) {
                 return (
                   <Stack direction="row" spacing={1.5} sx={{ width: "100%" }}>
                     <TextInput
-                      name="maxValue"
-                      value={localState.min.toString(10)}
+                      {...inputProps("min")}
                       onChange={onMinValueChange}
                       label="Min"
-                      // TODO:
-                      error={Option.none()}
                     />
                     <TextInput
-                      name="maxValue"
-                      value={localState.max.toString(10)}
+                      {...inputProps("max")}
                       onChange={onMaxValueChange}
                       label="Max"
-                      // TODO:
-                      error={Option.none()}
                     />
                   </Stack>
                 )

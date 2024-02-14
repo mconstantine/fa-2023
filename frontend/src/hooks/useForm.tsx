@@ -48,22 +48,42 @@ interface UseFormInputNoFormValidator<
   submit(data: Validated<R, V>): void
 }
 
-export interface InputProps<T> {
+export interface InputProps<A, I> {
   name: string
-  value: T
+  value: I
   error: Option.Option<string>
-  onChange(value: T): void
+  onChange(value: I): Either.Either<string, A>
 }
 
-interface UseFormOutput<R extends Record<string, unknown>> {
-  inputProps<K extends keyof R>(name: K): InputProps<R[K]>
+interface UseFormOutput<
+  R extends Record<string, unknown>,
+  V extends Validators<R>,
+> {
+  inputProps<K extends keyof R>(
+    name: K,
+  ): InputProps<
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    V[K] extends S.Schema<infer A, any> ? A : R[K],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    V[K] extends S.Schema<any, infer I> ? I : R[K]
+  >
   submit(): void
   isValid(): boolean
   formError: Option.Option<string>
 }
 
-interface UseFormOutputNoFormValidator<R extends Record<string, unknown>> {
-  inputProps<K extends keyof R>(name: K): InputProps<R[K]>
+interface UseFormOutputNoFormValidator<
+  R extends Record<string, unknown>,
+  V extends Validators<R>,
+> {
+  inputProps<K extends keyof R>(
+    name: K,
+  ): InputProps<
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    V[K] extends S.Schema<infer A, any> ? A : R[K],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    V[K] extends S.Schema<any, infer I> ? I : R[K]
+  >
   submit(): void
   isValid(): boolean
 }
@@ -83,11 +103,11 @@ export function useForm<
   V extends Validators<R>,
   F extends (data: Validated<R, V>) => Either.Either<string, T>,
   T extends Record<keyof R, unknown>,
->(input: UseFormInput<R, V, F, T>): UseFormOutput<R>
+>(input: UseFormInput<R, V, F, T>): UseFormOutput<R, V>
 export function useForm<
   R extends Record<string, unknown>,
   V extends Validators<R>,
->(input: UseFormInputNoFormValidator<R, V>): UseFormOutputNoFormValidator<R>
+>(input: UseFormInputNoFormValidator<R, V>): UseFormOutputNoFormValidator<R, V>
 export function useForm<
   R extends Record<string, unknown>,
   V extends Validators<R>,
@@ -95,21 +115,36 @@ export function useForm<
   T extends Record<keyof R, unknown>,
 >(
   input: UseFormInput<R, V, F, T> | UseFormInputNoFormValidator<R, V>,
-): UseFormOutput<R> {
+): UseFormOutput<R, V> {
   const [state, setState] = useState<FormState<R, V>>({
     formError: Option.none(),
-    props: Object.fromEntries(
-      Object.entries(input.initialValues).map(([k, v]) => {
-        const value = initialValueToFormDataEntry(v, input.validators[v])
-        return [k, value]
-      }),
+    props: pipe(
+      input.initialValues as Record<string, unknown>,
+      ReadonlyRecord.map((value, key) =>
+        initialValueToFormDataEntry(value, input.validators[key]),
+      ),
     ) as FormState<R, V>["props"],
   })
 
-  function inputProps<K extends keyof R>(name: K): InputProps<R[K]> {
+  function inputProps<K extends keyof R>(
+    name: K,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ): InputProps<
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    V[K] extends S.Schema<infer A, any> ? A : R[K],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    V[K] extends S.Schema<any, infer I> ? I : R[K]
+  > {
     return {
       name: name as string,
-      value: state.props[name].value,
+      value: state.props[name].value as V[K] extends S.Schema<
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        any,
+        infer I,
+        never
+      >
+        ? I
+        : R[K],
       error: pipe(
         state.props[name].validation,
         Either.match({
@@ -117,17 +152,17 @@ export function useForm<
           onRight: () => Option.none(),
         }),
       ),
-      onChange(value): void {
-        setState((state) => {
-          const validation =
-            typeof input.validators[name] === "undefined"
-              ? Either.right(value)
-              : pipe(
-                  value,
-                  S.decodeEither(input.validators[name]!),
-                  Either.mapLeft((error) => error.message),
-                )
+      onChange(value) {
+        const validation =
+          typeof input.validators[name] === "undefined"
+            ? Either.right(value)
+            : pipe(
+                value,
+                S.decodeEither(input.validators[name]!),
+                Either.mapLeft((error) => error.message),
+              )
 
+        setState((state) => {
           return {
             formError: Option.none(),
             props: {
@@ -136,6 +171,8 @@ export function useForm<
             },
           }
         })
+
+        return validation
       },
     }
   }
