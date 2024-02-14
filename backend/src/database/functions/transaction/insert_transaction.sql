@@ -9,7 +9,7 @@ returning id into created_id;
 
 insert into transactions_categories (transaction_id, category_id)
 select created_id, category_id::uuid
-from jsonb_array_elements_text((body->'categoriesIds')) as category_id;
+from jsonb_array_elements_text((body->'categories_ids')) as category_id;
 
 return (
   select to_jsonb(r.*) from (

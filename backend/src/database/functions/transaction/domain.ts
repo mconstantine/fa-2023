@@ -68,7 +68,7 @@ export const InsertTransactionInput = S.struct({
   description: S.string.pipe(S.nonEmpty()),
   value: ValueFromCurrency,
   date: S.DateFromString,
-  categoriesIds: S.array(S.UUID),
+  categories_ids: S.array(S.UUID),
 })
 
 export interface InsertTransactionInput
@@ -78,18 +78,32 @@ export const UpdateTransactionInput = S.struct({
   description: S.optional(S.string.pipe(S.nonEmpty())),
   value: S.optional(ValueFromCurrency),
   date: S.optional(S.DateFromString),
-  categoriesIds: S.optional(S.array(S.UUID)),
+  categories_ids: S.optional(S.array(S.UUID)),
 })
 
 export interface UpdateTransactionInput
   extends S.Schema.To<typeof UpdateTransactionInput> {}
 
-export const UpdateTransactionsInput = S.extend(
-  UpdateTransactionInput,
+const UpdateTransactionsInputNoCategories = S.struct({
+  ids: S.array(S.UUID),
+  description: S.optional(S.string.pipe(S.nonEmpty())),
+  value: S.optional(ValueFromCurrency),
+  date: S.optional(S.DateFromString),
+})
+
+const UpdateTransactionsInputCategories = S.extend(
+  UpdateTransactionsInputNoCategories,
   S.struct({
-    ids: S.array(S.UUID),
+    categories_mode: S.literal("add", "replace"),
+    categories_ids: S.array(S.UUID),
   }),
 )
 
-export interface UpdateTransactionsInput
-  extends S.Schema.To<typeof UpdateTransactionsInput> {}
+export const UpdateTransactionsInput = S.union(
+  UpdateTransactionsInputNoCategories,
+  UpdateTransactionsInputCategories,
+)
+
+export type UpdateTransactionsInput = S.Schema.To<
+  typeof UpdateTransactionsInput
+>

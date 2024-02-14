@@ -1,14 +1,24 @@
 import * as S from "@effect/schema/Schema"
 import { Dialog, DialogContent, Stack, Typography } from "@mui/material"
-import {
-  NetworkResponse,
-  networkResponse,
-} from "../../../network/NetworkResponse"
+import { NetworkResponse } from "../../../network/NetworkResponse"
 import { TransactionWithCategories, UpdateTransactionsInput } from "../domain"
 import { useForm } from "../../../hooks/useForm"
 import Form from "../../forms/Form"
 import ValidatedSelect from "../../forms/inputs/ValidatedSelect"
 import TextInput from "../../forms/inputs/TextInput"
+import { useCommand, useLazyQuery } from "../../../hooks/network"
+import {
+  insertCategoryRequest,
+  listCategoriesRequest,
+} from "../../categories/api"
+import { useEffect, useState } from "react"
+import { useDebounce } from "../../../hooks/useDebounce"
+import { Category } from "../../categories/domain"
+import CategorySelect, {
+  MultipleCategoriesSelection,
+} from "../../forms/inputs/CategorySelect"
+import { Either, pipe } from "effect"
+import { constVoid } from "effect/Function"
 
 interface Props {
   isOpen: boolean
@@ -18,56 +28,95 @@ interface Props {
 }
 
 export default function BulkUpdateTransactionsDialog(props: Props) {
-  // const {
-  //   categories,
-  //   searchQuery,
-  //   onSearchQueryChange,
-  //   selection,
-  //   onSelectionChange,
-  // } = useCategorySelect({
-  //   visible: props.isOpen,
-  //   multiple: true,
-  //   creatable: true,
-  //   initialValue: [],
-  //   categoriesQuery,
-  //   createCategoryCommand,
-  //   bulkCreateCategoriesCommand,
-  // })
+  const [categoriesSearchQuery, setCategoriesSearchQuery] = useState("")
+  const [categories, fetchCategories] = useLazyQuery(listCategoriesRequest)
+  const [, insertCategory] = useCommand(insertCategoryRequest)
+  const debounceFetchCategories = useDebounce(fetchCategories, 500)
 
   const { inputProps, submit, isValid } = useForm({
     initialValues: {
       description: "",
       categoryUpdateMode: "replace",
+      categories: [],
     },
     validators: {
-      description: S.Trim.pipe(
-        S.nonEmpty({ message: () => "The description cannot be empty" }),
-      ),
+      description: S.Trim,
       categoryUpdateMode: S.literal("add", "replace"),
+      categories: S.array(Category),
     },
     submit: (data) => {
-      /*
-      if (data.description !== "" || selection.length > 0) {
-        onBulkUpdateSubmit({
-          ...(data.description !== ""
-            ? {
-                description: data.description,
-              }
-            : {}),
-          ...(selection.length > 0
-            ? {
-                categoryIds: selection.map((category) => category.id),
-              }
-            : {}),
-          categoryUpdateMode: data.categoryUpdateMode,
-        })
+      if (data.description !== "" || data.categories.length > 0) {
+        props
+          .onUpdate({
+            ...(data.description !== ""
+              ? {
+                  description: data.description,
+                }
+              : {}),
+            ...(data.categories.length > 0
+              ? {
+                  categories_ids: data.categories.map(
+                    (category) => category.id,
+                  ),
+                  categories_mode: data.categoryUpdateMode,
+                }
+              : {}),
+          })
+          .then((result) => {
+            if (result) {
+              props.onClose()
+            }
+          })
       } else {
-        props.onClose(false)
+        props.onClose()
       }
-      */
-      console.log("TODO:", { data })
     },
   })
+
+  function onCategoriesSearchQueryChange(query: string) {
+    setCategoriesSearchQuery(query)
+
+    debounceFetchCategories({
+      query: {
+        direction: "forward",
+        count: 10,
+        ...(query === "" ? {} : { search_query: query }),
+      },
+    })
+  }
+
+  async function onCategoriesChange(
+    selection: MultipleCategoriesSelection,
+  ): Promise<void> {
+    const responses = await Promise.all(
+      selection.additions.map((body) => insertCategory({ body })),
+    )
+
+    pipe(
+      responses,
+      Either.all,
+      Either.match({
+        onLeft: constVoid,
+        onRight: (categories) => {
+          inputProps("categories").onChange([
+            ...categories,
+            ...selection.categories,
+          ])
+        },
+      }),
+    )
+  }
+
+  useEffect(() => {
+    if (props.isOpen && categories.isIdle()) {
+      fetchCategories({
+        query: {
+          direction: "forward",
+          count: 10,
+        },
+      })
+    }
+  }, [props.isOpen, categories, fetchCategories])
 
   return (
     <Dialog open={props.isOpen} onClose={props.onClose}>
@@ -76,22 +125,21 @@ export default function BulkUpdateTransactionsDialog(props: Props) {
           <Typography variant="h5">Update transactions</Typography>
           <Form
             onSubmit={submit}
-            // TODO:
-            networkResponse={networkResponse.make()}
+            networkResponse={props.updateNetworkResponse}
             submitButtonLabel="Save"
             cancelAction={props.onClose}
             isValid={isValid}
           >
             <TextInput {...inputProps("description")} label="Description" />
-            {/* <CategorySelect
+            <CategorySelect
               creatable
               multiple
               categories={categories}
-              searchQuery={searchQuery}
-              onSearchQueryChange={onSearchQueryChange}
-              selection={selection}
-              onSelectionChange={onSelectionChange}
-            /> */}
+              searchQuery={categoriesSearchQuery}
+              onSearchQueryChange={onCategoriesSearchQueryChange}
+              selection={inputProps("categories").value}
+              onSelectionChange={onCategoriesChange}
+            />
             <ValidatedSelect
               label="Categories update mode"
               {...inputProps("categoryUpdateMode")}

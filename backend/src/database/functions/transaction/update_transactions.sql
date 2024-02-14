@@ -19,12 +19,14 @@ select array_agg(updated.id) from updated into updated_ids;
 
 for i in 1 .. array_upper(updated_ids, 1)
 loop
-  if jsonb_array_length((body->>'categoriesIds')::jsonb) > 0 then
-    delete from transactions_categories where transaction_id = updated_ids[i];
+  if jsonb_array_length((body->>'categories_ids')::jsonb) > 0 then
+    if body->>'categories_mode' = 'replace' then
+      delete from transactions_categories where transaction_id = updated_ids[i];
+    end if;
 
     insert into transactions_categories (transaction_id, category_id)
     select updated_ids[i], category_id::uuid
-    from jsonb_array_elements_text((body->>'categoriesIds')::jsonb) as category_id;
+    from jsonb_array_elements_text((body->>'categories_ids')::jsonb) as category_id;
   end if;
 end loop;
 

@@ -15,7 +15,7 @@ for i in 1 .. array_upper(created_ids, 1)
 loop
   insert into transactions_categories (transaction_id, category_id)
   select created_ids[i], category_id::uuid
-  from jsonb_array_elements_text((body->(i - 1)->>'categoriesIds')::jsonb) as category_id;
+  from jsonb_array_elements_text((body->(i - 1)->>'categories_ids')::jsonb) as category_id;
 end loop;
 
 return (

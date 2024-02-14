@@ -15,6 +15,8 @@ import { insertCategory } from "../functions/category/insert_category"
 import { type Category } from "../functions/category/domain"
 import { listTransactions } from "../functions/transaction/list_transactions"
 
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+
 describe("database transaction functions", () => {
   let categories: Category[]
 
@@ -45,7 +47,7 @@ describe("database transaction functions", () => {
           description: "Insert transaction test",
           value: 1.5,
           date: "2020-01-01",
-          categoriesIds: [],
+          categories_ids: [],
         }),
       )
 
@@ -66,7 +68,7 @@ describe("database transaction functions", () => {
         description: "Insert transaction with categories test",
         value: 1300,
         date: new Date(2020, 0, 1),
-        categoriesIds: categories.map((category) => category.id),
+        categories_ids: categories.map((category) => category.id),
       })
 
       expect(result.categories).toEqual(categories)
@@ -80,13 +82,13 @@ describe("database transaction functions", () => {
           description: "Bulk transactions insertion test 1",
           value: 150,
           date: new Date(2020, 0, 1),
-          categoriesIds: [],
+          categories_ids: [],
         },
         {
           description: "Bulk transactions insertion test 2",
           value: 300,
           date: new Date(2020, 0, 2),
-          categoriesIds: [],
+          categories_ids: [],
         },
       ])
 
@@ -113,15 +115,13 @@ describe("database transaction functions", () => {
           description: "Bulk transactions insertion with categories test 1",
           value: 150,
           date: new Date(2020, 0, 1),
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          categoriesIds: [categories[0]!.id],
+          categories_ids: [categories[0]!.id],
         },
         {
           description: "Bulk transactions insertion with categories test 2",
           value: 300,
           date: new Date(2020, 0, 2),
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          categoriesIds: [categories[1]!.id],
+          categories_ids: [categories[1]!.id],
         },
       ])
 
@@ -136,7 +136,7 @@ describe("database transaction functions", () => {
         description: "Update transaction test",
         value: 420,
         date: new Date(2020, 0, 1),
-        categoriesIds: [],
+        categories_ids: [],
       })
 
       const result = await updateTransaction(
@@ -166,13 +166,11 @@ describe("database transaction functions", () => {
         description: "Update transaction with categories test",
         value: 420,
         date: new Date(2020, 0, 1),
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        categoriesIds: [categories[0]!.id],
+        categories_ids: [categories[0]!.id],
       })
 
       const result = await updateTransaction(transaction.id, {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        categoriesIds: [categories[1]!.id],
+        categories_ids: [categories[1]!.id],
       })
 
       expect(result.categories).toEqual([categories[1]])
@@ -183,7 +181,7 @@ describe("database transaction functions", () => {
         description: "Update transaction test",
         value: 420,
         date: new Date(2020, 0, 1),
-        categoriesIds: [],
+        categories_ids: [],
       })
 
       const result = await updateTransaction(transaction.id, {})
@@ -202,13 +200,13 @@ describe("database transaction functions", () => {
           description: "Bulk transactions update test 1",
           value: 150,
           date: new Date(2020, 0, 1),
-          categoriesIds: [],
+          categories_ids: [],
         },
         {
           description: "Bulk transactions update test 2",
           value: 300,
           date: new Date(2020, 0, 2),
-          categoriesIds: [],
+          categories_ids: [],
         },
       ])
 
@@ -241,27 +239,52 @@ describe("database transaction functions", () => {
       expect(rawResult.rows[1].value).toBe(420)
     })
 
-    it("should update categories", async () => {
+    it("should replace categories", async () => {
       const transactions = await insertTransactions([
         {
-          description: "Bulk transactions update with categories test 1",
+          description: "Bulk transactions update replace categories test 1",
           value: 150,
           date: new Date(2020, 0, 1),
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          categoriesIds: [categories[0]!.id],
+          categories_ids: [categories[0]!.id],
         },
         {
-          description: "Bulk transactions update with categories test 2",
+          description: "Bulk transactions update replace categories test 2",
           value: 300,
           date: new Date(2020, 0, 2),
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          categoriesIds: [categories[1]!.id],
+          categories_ids: [categories[0]!.id],
         },
       ])
 
       const result = await updateTransactions({
         ids: transactions.map((t) => t.id),
-        categoriesIds: categories.map((c) => c.id),
+        categories_mode: "replace",
+        categories_ids: [categories[1]!.id],
+      })
+
+      expect(result[0]?.categories).toEqual([categories[1]])
+      expect(result[1]?.categories).toEqual([categories[1]])
+    })
+
+    it("should add categories", async () => {
+      const transactions = await insertTransactions([
+        {
+          description: "Bulk transactions update add categories test 1",
+          value: 150,
+          date: new Date(2020, 0, 1),
+          categories_ids: [categories[0]!.id],
+        },
+        {
+          description: "Bulk transactions update add categories test 2",
+          value: 300,
+          date: new Date(2020, 0, 2),
+          categories_ids: [categories[0]!.id],
+        },
+      ])
+
+      const result = await updateTransactions({
+        ids: transactions.map((t) => t.id),
+        categories_mode: "add",
+        categories_ids: [categories[1]!.id],
       })
 
       expect(result[0]?.categories).toEqual(categories)
@@ -274,13 +297,13 @@ describe("database transaction functions", () => {
           description: "Bulk transactions update test 1",
           value: 150,
           date: new Date(2020, 0, 1),
-          categoriesIds: [],
+          categories_ids: [],
         },
         {
           description: "Bulk transactions update test 2",
           value: 300,
           date: new Date(2020, 0, 2),
-          categoriesIds: [],
+          categories_ids: [],
         },
       ])
 
@@ -307,7 +330,7 @@ describe("database transaction functions", () => {
         description: "Delete transaction test",
         value: 42,
         date: new Date(2020, 0, 1),
-        categoriesIds: [],
+        categories_ids: [],
       })
 
       const result = await deleteTransaction(transaction.id)
@@ -339,7 +362,7 @@ describe("database transaction functions", () => {
         description: "Relationship with categories test",
         value: 690,
         date: new Date(2020, 0, 1),
-        categoriesIds: [category.id],
+        categories_ids: [category.id],
       })
 
       const relationshipBefore = await db.getMany(
@@ -372,7 +395,8 @@ describe("database transaction functions", () => {
         const result = await listTransactions({
           direction: "forward",
           count: 10,
-          subject: "none",
+          subject: "description",
+          search_query: "",
           categories: "all",
           date_since: new Date(2020, 0, 1),
           date_until: new Date(2020, 11, 31),
@@ -400,47 +424,43 @@ describe("database transaction functions", () => {
             description: "AX",
             value: -10000,
             date: new Date(2020, 3, 1),
-            categoriesIds: categories.map((c) => c.id),
+            categories_ids: categories.map((c) => c.id),
           },
           {
             description: "BX",
             value: -6666,
             date: new Date(2020, 2, 15),
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            categoriesIds: [categories[0]!.id],
+            categories_ids: [categories[0]!.id],
           },
           {
             description: "CX",
             value: -3333,
             date: new Date(2020, 2, 1),
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            categoriesIds: [categories[1]!.id],
+            categories_ids: [categories[1]!.id],
           },
           {
             description: "DX",
             value: 0,
             date: new Date(2020, 1, 15),
-            categoriesIds: [],
+            categories_ids: [],
           },
           {
             description: "EX",
             value: 3333,
             date: new Date(2020, 1, 1),
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            categoriesIds: [categories[1]!.id],
+            categories_ids: [categories[1]!.id],
           },
           {
             description: "FX",
             value: 6666,
             date: new Date(2020, 0, 15),
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            categoriesIds: [categories[0]!.id],
+            categories_ids: [categories[0]!.id],
           },
           {
             description: "G",
             value: 10000,
             date: new Date(2020, 0, 1),
-            categoriesIds: categories.map((c) => c.id),
+            categories_ids: categories.map((c) => c.id),
           },
         ])
       })
@@ -450,7 +470,8 @@ describe("database transaction functions", () => {
           const result = await listTransactions({
             direction: "forward",
             count: 10,
-            subject: "none",
+            subject: "description",
+            search_query: "",
             categories: "all",
             date_since: new Date(2020, 0, 1),
             date_until: new Date(2020, 11, 31),
@@ -475,7 +496,8 @@ describe("database transaction functions", () => {
           const result = await listTransactions({
             direction: "forward",
             count: 3,
-            subject: "none",
+            subject: "description",
+            search_query: "",
             categories: "all",
             date_since: new Date(2020, 0, 1),
             date_until: new Date(2020, 11, 31),
@@ -501,7 +523,8 @@ describe("database transaction functions", () => {
             direction: "forward",
             count: 3,
             target: transactions[1]?.id,
-            subject: "none",
+            subject: "description",
+            search_query: "",
             categories: "all",
             date_since: new Date(2020, 0, 1),
             date_until: new Date(2020, 11, 31),
@@ -527,7 +550,8 @@ describe("database transaction functions", () => {
             direction: "forward",
             count: 3,
             target: transactions[3]?.id,
-            subject: "none",
+            subject: "description",
+            search_query: "",
             categories: "all",
             date_since: new Date(2020, 0, 1),
             date_until: new Date(2020, 11, 31),
@@ -553,7 +577,8 @@ describe("database transaction functions", () => {
             direction: "backward",
             count: 3,
             target: transactions[3]?.id,
-            subject: "none",
+            subject: "description",
+            search_query: "",
             categories: "all",
             date_since: new Date(2020, 0, 1),
             date_until: new Date(2020, 11, 31),
@@ -579,7 +604,8 @@ describe("database transaction functions", () => {
             direction: "backward",
             count: 3,
             target: transactions[5]?.id,
-            subject: "none",
+            subject: "description",
+            search_query: "",
             categories: "all",
             date_since: new Date(2020, 0, 1),
             date_until: new Date(2020, 11, 31),
@@ -604,7 +630,8 @@ describe("database transaction functions", () => {
           const result = await listTransactions({
             direction: "backward",
             count: 3,
-            subject: "none",
+            subject: "description",
+            search_query: "",
             categories: "all",
             date_since: new Date(2020, 0, 1),
             date_until: new Date(2020, 11, 31),
@@ -711,7 +738,8 @@ describe("database transaction functions", () => {
             const result = await listTransactions({
               direction: "forward",
               count: 10,
-              subject: "none",
+              subject: "description",
+              search_query: "",
               categories: "uncategorized",
               date_since: new Date(2020, 0, 1),
               date_until: new Date(2020, 11, 31),
@@ -736,9 +764,9 @@ describe("database transaction functions", () => {
             const result = await listTransactions({
               direction: "forward",
               count: 10,
-              subject: "none",
+              subject: "description",
+              search_query: "",
               categories: "specific",
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               categories_ids: [categories[0]!.id],
               date_since: new Date(2020, 0, 1),
               date_until: new Date(2020, 11, 31),
@@ -770,7 +798,8 @@ describe("database transaction functions", () => {
             const result = await listTransactions({
               direction: "forward",
               count: 10,
-              subject: "none",
+              subject: "description",
+              search_query: "",
               categories: "all",
               date_since: new Date(2020, 2, 1),
               date_until: new Date(2020, 3, 1),
@@ -795,7 +824,8 @@ describe("database transaction functions", () => {
             const result = await listTransactions({
               direction: "forward",
               count: 10,
-              subject: "none",
+              subject: "description",
+              search_query: "",
               categories: "all",
               date_since: new Date(2020, 3, 1),
               date_until: new Date(2020, 2, 1),

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { Category } from "../components/categories/domain"
 import { NetworkResponse, networkResponse } from "../network/NetworkResponse"
-import { CategorySelection } from "../components/forms/inputs/CategorySelect"
+import { MultipleCategoriesSelection } from "../components/forms/inputs/CategorySelect"
 import { useDebounce } from "./useDebounce"
 
 type Selection = Category | null | Category[]
@@ -73,7 +73,7 @@ interface SingleSelectableUseCategorySelectOutput
 interface MultipleCreatableUseCategorySelectOutput
   extends BaseUseCategorySelectOutput {
   selection: Category[]
-  onSelectionChange(selection: CategorySelection): void
+  onSelectionChange(selection: MultipleCategoriesSelection): void
 }
 
 interface MultipleSelectableUseCategorySelectOutput
@@ -209,7 +209,7 @@ export function useCategorySelect(
       ...result,
       selection: selection as Category[],
       onSelectionChange: async (
-        selection: CategorySelection,
+        selection: MultipleCategoriesSelection,
       ): Promise<void> => {
         const creationResult = await (async () => {
           if (selection.additions.length && bulkCreateCategories !== null) {

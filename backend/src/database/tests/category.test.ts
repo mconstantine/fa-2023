@@ -96,7 +96,7 @@ describe("database category functions", () => {
         description: "Relationship with categories test",
         value: 690,
         date: new Date(2020, 0, 1),
-        categoriesIds: [category.id],
+        categories_ids: [category.id],
       })
 
       const relationshipBefore = await db.getMany(
