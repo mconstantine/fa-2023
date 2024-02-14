@@ -1,5 +1,6 @@
 import {
   FormControl,
+  FormHelperText,
   InputLabel,
   MenuItem,
   Select,
@@ -7,25 +8,25 @@ import {
   SxProps,
   Theme,
 } from "@mui/material"
+import { InputProps } from "../../../hooks/useForm"
+import { Option, pipe } from "effect"
+import { constNull } from "effect/Function"
 
-interface Props<T extends Record<string, string>> {
-  name: string
-  value: T[string] | null
+interface Props<T extends Record<string, string>>
+  extends InputProps<keyof T, string> {
   options: T
-  onChange(value: T[string]): void
   label?: string
-  optionLabels?: { [key in keyof T]: string }
   sx?: SxProps<Theme>
 }
 
 export default function ValidatedSelect<T extends Record<string, string>>(
   props: Props<T>,
 ) {
-  function onChange(event: SelectChangeEvent<T[string] | null>): void {
+  function onChange(event: SelectChangeEvent<string | null>): void {
     const value = event.target.value
 
     if (value !== null) {
-      props.onChange(value as T[string])
+      props.onChange(value)
     }
   }
 
@@ -42,13 +43,18 @@ export default function ValidatedSelect<T extends Record<string, string>>(
         label={props.label}
       >
         {Object.entries(props.options).map(([key, value]) => (
-          <MenuItem key={key} value={value}>
-            {typeof props.optionLabels === "undefined"
-              ? value
-              : props.optionLabels[key]}
+          <MenuItem key={key} value={key}>
+            {value}
           </MenuItem>
         ))}
       </Select>
+      {pipe(
+        props.error,
+        Option.match({
+          onNone: constNull,
+          onSome: (error) => <FormHelperText error>{error}</FormHelperText>,
+        }),
+      )}
     </FormControl>
   )
 }

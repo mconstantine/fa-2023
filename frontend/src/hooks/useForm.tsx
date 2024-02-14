@@ -2,13 +2,13 @@ import * as S from "@effect/schema/Schema"
 import { Either, Option, ReadonlyRecord, pipe } from "effect"
 import { useState } from "react"
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 type Validators<Values extends Record<string, unknown>> = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [K in keyof Values]?: S.Schema<any, any>
 }
 
 type Validated<R extends Record<string, unknown>, V extends Validators<R>> = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [K in keyof R]: V[K] extends S.Schema<infer A, any> ? A : R[K]
 }
 
@@ -62,9 +62,7 @@ interface UseFormOutput<
   inputProps<K extends keyof R>(
     name: K,
   ): InputProps<
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     V[K] extends S.Schema<infer A, any> ? A : R[K],
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     V[K] extends S.Schema<any, infer I> ? I : R[K]
   >
   submit(): void
@@ -79,9 +77,7 @@ interface UseFormOutputNoFormValidator<
   inputProps<K extends keyof R>(
     name: K,
   ): InputProps<
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     V[K] extends S.Schema<infer A, any> ? A : R[K],
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     V[K] extends S.Schema<any, infer I> ? I : R[K]
   >
   submit(): void
@@ -128,17 +124,13 @@ export function useForm<
 
   function inputProps<K extends keyof R>(
     name: K,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): InputProps<
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     V[K] extends S.Schema<infer A, any> ? A : R[K],
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     V[K] extends S.Schema<any, infer I> ? I : R[K]
   > {
     return {
       name: name as string,
       value: state.props[name].value as V[K] extends S.Schema<
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         any,
         infer I,
         never
@@ -215,11 +207,20 @@ function initialValueToFormDataEntry<
   R extends Record<string, unknown>,
   V extends Validators<R>,
 >(value: Validated<R, V>[K], validator: V[K]): Validated<R, V>[K] {
-  const encoded =
-    typeof validator === "undefined" ? value : S.encodeSync(validator)(value)
+  const validation =
+    typeof validator === "undefined"
+      ? Either.right(value)
+      : pipe(
+          value,
+          S.encodeEither(validator),
+          Either.mapLeft((error) => error.message),
+        )
 
   return {
-    value: encoded,
-    validation: Either.right(value),
+    value: pipe(
+      validation,
+      Either.getOrElse(() => value),
+    ),
+    validation,
   } as Validated<R, V>[K]
 }

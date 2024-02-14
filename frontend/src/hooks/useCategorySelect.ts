@@ -1,12 +1,5 @@
 import { useEffect, useState } from "react"
-import { UseCommandOutput, UseLazyQueryOutput } from "./network"
-import {
-  Category,
-  CategoryBulkCreationBody,
-  CategoryCreationBody,
-  FindCategoryParams,
-  isCategory,
-} from "../components/categories/domain"
+import { Category } from "../components/categories/domain"
 import { NetworkResponse, networkResponse } from "../network/NetworkResponse"
 import { CategorySelection } from "../components/forms/inputs/CategorySelect"
 import { useDebounce } from "./useDebounce"

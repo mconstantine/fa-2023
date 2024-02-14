@@ -1,5 +1,5 @@
 import * as S from "@effect/schema/Schema"
-import { Stack, Typography } from "@mui/material"
+import { IconButton, Stack, Typography } from "@mui/material"
 import { useState } from "react"
 import { NetworkResponse } from "../../../network/NetworkResponse"
 import SearchTransactionsInput from "./SearchTransactionsInput"
@@ -13,22 +13,23 @@ import {
   UpdateTransactionsInput,
 } from "../domain"
 import TextInput from "../../forms/inputs/TextInput"
-import { Either, pipe } from "effect"
+import { Either, Option, pipe } from "effect"
 import { useForm } from "../../../hooks/useForm"
 import { constVoid } from "effect/Function"
+import { Edit } from "@mui/icons-material"
+import BulkUpdateTransactionsDialog from "../bulkUpdate/BulkUpdateTransactionsDialog"
 
 interface Props {
   selectableTransactions: PaginationResponse<SelectableTransaction>
   updateNetworkResponse: NetworkResponse<readonly TransactionWithCategories[]>
   filters: ListTransactionsInput
   onFiltersChange(filters: ListTransactionsInput): void
-  // selectedCount: number
   onUpdate(data: Omit<UpdateTransactionsInput, "ids">): Promise<boolean>
 }
 
 export default function TransactionFilters(props: Props) {
   // const [filtersDialogIsOpen, setFiltersDialogIsOpen] = useState(false)
-  // const [updateDialogIsOpen, setUpdateDialogIsOpen] = useState(false)
+  const [updateDialogIsOpen, setUpdateDialogIsOpen] = useState(false)
 
   const [query, setQuery] = useState(
     "search_query" in props.filters ? props.filters.search_query : "",
@@ -40,8 +41,12 @@ export default function TransactionFilters(props: Props) {
       max: "max" in props.filters ? props.filters.max : 0,
     },
     validators: {
-      min: S.NumberFromString,
-      max: S.NumberFromString,
+      min: S.NumberFromString.pipe(
+        S.finite({ message: () => "Min should be a number" }),
+      ),
+      max: S.NumberFromString.pipe(
+        S.finite({ message: () => "Max should be a number" }),
+      ),
     },
     submit: constVoid,
   })
@@ -60,14 +65,17 @@ export default function TransactionFilters(props: Props) {
     0,
   )
 
-  function onSubjectChange(subject: ListTransactionsInput["subject"]): void {
+  function onSubjectChange(
+    subject: ListTransactionsInput["subject"],
+  ): Either.Either<string, ListTransactionsInput["subject"]> {
     switch (subject) {
       case "description":
-        return props.onFiltersChange({
+        props.onFiltersChange({
           ...props.filters,
           subject,
           search_query: "",
         })
+        break
       case "value": {
         const values = props.selectableTransactions.edges.map(
           (edge) => edge.node.value,
@@ -76,9 +84,12 @@ export default function TransactionFilters(props: Props) {
         const min = Math.min(...values)
         const max = Math.max(...values)
 
-        return props.onFiltersChange({ ...props.filters, subject, min, max })
+        props.onFiltersChange({ ...props.filters, subject, min, max })
+        break
       }
     }
+
+    return Either.right(subject)
   }
 
   function onQueryChange(query: string): void {
@@ -143,19 +154,19 @@ export default function TransactionFilters(props: Props) {
       {selectedCount > 0 ? (
         <>
           <Typography>{selectedCount} selected</Typography>
-          {/* <IconButton
+          <IconButton
             aria-label="Edit"
             onClick={() => setUpdateDialogIsOpen(true)}
             color="primary"
           >
             <Edit />
-          </IconButton> */}
-          {/* <BulkUpdateTransactionsDialog
+          </IconButton>
+          <BulkUpdateTransactionsDialog
             isOpen={updateDialogIsOpen}
-            onOpenChange={setUpdateDialogIsOpen}
-            updateTransactionsNetworkResponse={props.updateNetworkResponse}
-            onBulkUpdate={props.onBulkUpdate}
-          /> */}
+            onClose={() => setUpdateDialogIsOpen(false)}
+            updateNetworkResponse={props.updateNetworkResponse}
+            onUpdate={props.onUpdate}
+          />
         </>
       ) : (
         <>
@@ -190,15 +201,12 @@ export default function TransactionFilters(props: Props) {
             name="findTransactionsBy"
             value={props.filters.subject}
             options={{
-              description: "description",
-              value: "value",
-            }}
-            onChange={onSubjectChange}
-            label="Find by"
-            optionLabels={{
               description: "Description",
               value: "Value",
             }}
+            error={Option.none()}
+            onChange={onSubjectChange}
+            label="Find by"
           />
           {/* <IconButton
             aria-label="Filters"
