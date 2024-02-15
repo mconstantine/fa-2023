@@ -16,8 +16,9 @@ import TextInput from "../../forms/inputs/TextInput"
 import { Either, Option, pipe } from "effect"
 import { useForm } from "../../../hooks/useForm"
 import { constVoid } from "effect/Function"
-import { Edit } from "@mui/icons-material"
-import BulkUpdateTransactionsDialog from "../bulkUpdate/BulkUpdateTransactionsDialog"
+import { Edit, Tune } from "@mui/icons-material"
+import BulkUpdateTransactionsDialog from "../BulkUpdateTransactionsDialog"
+import TransactionFiltersDialog from "./TransactionFiltersDialog"
 
 interface Props {
   selectableTransactions: PaginationResponse<SelectableTransaction>
@@ -28,7 +29,7 @@ interface Props {
 }
 
 export default function TransactionFilters(props: Props) {
-  // const [filtersDialogIsOpen, setFiltersDialogIsOpen] = useState(false)
+  const [filtersDialogIsOpen, setFiltersDialogIsOpen] = useState(false)
   const [updateDialogIsOpen, setUpdateDialogIsOpen] = useState(false)
 
   const [query, setQuery] = useState(
@@ -208,20 +209,20 @@ export default function TransactionFilters(props: Props) {
             onChange={onSubjectChange}
             label="Find by"
           />
-          {/* <IconButton
+          <IconButton
             aria-label="Filters"
             sx={{ width: "40px" }}
             onClick={() => setFiltersDialogIsOpen(true)}
           >
             <Tune />
-          </IconButton> */}
-          {/* <TransactionFiltersDialog
+          </IconButton>
+          <TransactionFiltersDialog
             isOpen={filtersDialogIsOpen}
-            onOpenChange={setFiltersDialogIsOpen}
-            findTransactionsNetworkResponse={props.selectableTransactions}
-            params={props.filters}
-            onParamsChange={props.onFiltersChange}
-          /> */}
+            onClose={() => setFiltersDialogIsOpen(false)}
+            listTransactionsResponse={props.selectableTransactions}
+            filters={props.filters}
+            onFiltersChange={props.onFiltersChange}
+          />
         </>
       )}
     </Stack>

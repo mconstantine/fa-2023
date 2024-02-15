@@ -1,5 +1,5 @@
 import * as S from "@effect/schema/Schema"
-import { Either, Option, ReadonlyRecord, pipe } from "effect"
+import { Either, Option, ReadonlyRecord, identity, pipe } from "effect"
 import { useState } from "react"
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -59,6 +59,7 @@ interface UseFormOutput<
   R extends Record<string, unknown>,
   V extends Validators<R>,
 > {
+  validated: Validated<R, V>
   inputProps<K extends keyof R>(
     name: K,
   ): InputProps<
@@ -74,6 +75,7 @@ interface UseFormOutputNoFormValidator<
   R extends Record<string, unknown>,
   V extends Validators<R>,
 > {
+  validated: Validated<R, V>
   inputProps<K extends keyof R>(
     name: K,
   ): InputProps<
@@ -92,6 +94,7 @@ type FormState<R extends Record<string, unknown>, V extends Validators<R>> = {
       validation: Either.Either<string, Validated<R, V>[K]>
     }
   }
+  validated: Validated<R, V>
 }
 
 export function useForm<
@@ -120,6 +123,7 @@ export function useForm<
         initialValueToFormDataEntry(value, input.validators[key]),
       ),
     ) as FormState<R, V>["props"],
+    validated: input.initialValues,
   })
 
   function inputProps<K extends keyof R>(
@@ -161,6 +165,16 @@ export function useForm<
               ...state.props,
               [name]: { value, validation },
             },
+            validated: {
+              ...state.validated,
+              [name]: pipe(
+                validation,
+                Either.match({
+                  onLeft: () => state.validated[name],
+                  onRight: identity,
+                }),
+              ),
+            },
           }
         })
 
@@ -199,7 +213,13 @@ export function useForm<
     )
   }
 
-  return { inputProps, submit, isValid, formError: state.formError }
+  return {
+    inputProps,
+    submit,
+    isValid,
+    validated: state.validated,
+    formError: state.formError,
+  }
 }
 
 function initialValueToFormDataEntry<

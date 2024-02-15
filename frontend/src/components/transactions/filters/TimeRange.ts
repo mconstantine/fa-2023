@@ -1,59 +1,48 @@
-import * as S from "@effect/schema/Schema"
-import { constTrue } from "effect/Function"
+import { RelativeRange } from "./TransactionFiltersDialogContent"
 
 const DAY_IN_MS = 1000 * 60 * 60 * 24
 const WEEK_IN_MS = DAY_IN_MS * 7
 
-export class RelativeTimeRange extends S.Class<RelativeTimeRange>()({
-  last: S.NumberFromString.pipe(S.compose(S.Int)).pipe(
-    S.filter(constTrue, { message: () => "This should be a positive integer" }),
-  ),
-  range: S.literal("days", "weeks", "months", "years"),
-  since: S.Date,
-}) {
+export class RelativeTimeRange {
+  public constructor(
+    public readonly last: number,
+    public readonly range: RelativeRange,
+    public readonly since: Date,
+  ) {}
+
   public static fromDateRange(r: DateTimeRange): RelativeTimeRange {
     const differenceInYears = getDifferenceInYears(r.dateSince, r.dateUntil)
 
     if (differenceInYears !== null) {
-      return new RelativeTimeRange({
-        last: differenceInYears,
-        range: "years",
-        since: r.dateUntil,
-      })
+      return new RelativeTimeRange(differenceInYears, "years", r.dateUntil)
     }
 
     const differenceInMonths = getDifferenceInMonths(r.dateSince, r.dateUntil)
 
     if (differenceInMonths !== null) {
-      return new RelativeTimeRange({
-        last: differenceInMonths,
-        range: "months",
-        since: r.dateUntil,
-      })
+      return new RelativeTimeRange(differenceInMonths, "months", r.dateUntil)
     }
 
     const differenceInWeeks = getDifferenceInWeeks(r.dateSince, r.dateUntil)
 
     if (differenceInWeeks !== null) {
-      return new RelativeTimeRange({
-        last: differenceInWeeks,
-        range: "weeks",
-        since: r.dateUntil,
-      })
+      return new RelativeTimeRange(differenceInWeeks, "weeks", r.dateUntil)
     }
 
-    return new RelativeTimeRange({
-      last: getDifferenceInDays(r.dateSince, r.dateUntil),
-      range: "days",
-      since: r.dateUntil,
-    })
+    return new RelativeTimeRange(
+      getDifferenceInDays(r.dateSince, r.dateUntil),
+      "days",
+      r.dateUntil,
+    )
   }
 }
 
-export class DateTimeRange extends S.Class<DateTimeRange>()({
-  dateSince: S.Date,
-  dateUntil: S.Date,
-}) {
+export class DateTimeRange {
+  public constructor(
+    public readonly dateSince: Date,
+    public readonly dateUntil: Date,
+  ) {}
+
   public static fromRelativeTimeRange(rtr: RelativeTimeRange): DateTimeRange {
     const startOfDay = new Date(
       rtr.since.getFullYear(),
@@ -82,10 +71,7 @@ export class DateTimeRange extends S.Class<DateTimeRange>()({
       }
     })()
 
-    return new DateTimeRange({
-      dateSince: startDate,
-      dateUntil: startOfDay,
-    })
+    return new DateTimeRange(startDate, startOfDay)
   }
 }
 

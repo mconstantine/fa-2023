@@ -17,6 +17,7 @@ interface Props<T extends Record<string, string>>
   options: T
   label?: string
   sx?: SxProps<Theme>
+  disabled?: boolean
 }
 
 export default function ValidatedSelect<T extends Record<string, string>>(
@@ -41,6 +42,7 @@ export default function ValidatedSelect<T extends Record<string, string>>(
         value={props.value}
         onChange={onChange}
         label={props.label}
+        disabled={props.disabled ?? false}
       >
         {Object.entries(props.options).map(([key, value]) => (
           <MenuItem key={key} value={key}>

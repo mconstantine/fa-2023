@@ -1,5 +1,4 @@
-import { useState } from "react"
-import { NetworkResponse } from "../../../network/NetworkResponse"
+import { useEffect, useState } from "react"
 import { useLazyQuery } from "../../../hooks/network"
 import { useDebounce } from "../../../hooks/useDebounce"
 import { Dialog, DialogContent } from "@mui/material"
@@ -11,16 +10,13 @@ import { ListTransactionsInput, TransactionWithCategories } from "../domain"
 interface Props {
   isOpen: boolean
   onClose(): void
-  listTransactionsResponse: NetworkResponse<
-    PaginationResponse<TransactionWithCategories>
-  >
+  listTransactionsResponse: PaginationResponse<TransactionWithCategories>
   filters: ListTransactionsInput
   onFiltersChange(filters: ListTransactionsInput): void
 }
 
 export default function TransactionFiltersDialog(props: Props) {
   const [categoriesQuery, setCategoriesQuery] = useState("")
-
   const [categories, fetchCategories] = useLazyQuery(listCategoriesRequest)
 
   const debounceFetchCategories = useDebounce(function search(query: string) {
@@ -43,17 +39,16 @@ export default function TransactionFiltersDialog(props: Props) {
     props.onClose()
   }
 
-  // TODO: maybe useless?
-  // useEffect(() => {
-  //   if (props.isOpen && categories.isIdle()) {
-  //     fetchCategories({
-  //       query: {
-  //         direction: "forward",
-  //         count: 100,
-  //       },
-  //     })
-  //   }
-  // }, [props.isOpen, categories, fetchCategories])
+  useEffect(() => {
+    if (props.isOpen && categories.isIdle()) {
+      fetchCategories({
+        query: {
+          direction: "forward",
+          count: 10,
+        },
+      })
+    }
+  }, [props.isOpen, categories, fetchCategories])
 
   return (
     <Dialog open={props.isOpen} onClose={() => props.onClose()}>
