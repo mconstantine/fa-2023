@@ -1,22 +1,19 @@
 import * as S from "@effect/schema/Schema"
 import { Dialog, DialogContent, Stack, Typography } from "@mui/material"
-import { NetworkResponse } from "../../../network/NetworkResponse"
-import { TransactionWithCategories, UpdateTransactionsInput } from "../domain"
-import { useForm } from "../../../hooks/useForm"
-import Form from "../../forms/Form"
-import ValidatedSelect from "../../forms/inputs/ValidatedSelect"
-import TextInput from "../../forms/inputs/TextInput"
-import { useCommand, useLazyQuery } from "../../../hooks/network"
-import {
-  insertCategoryRequest,
-  listCategoriesRequest,
-} from "../../categories/api"
+import { NetworkResponse } from "../../network/NetworkResponse"
+import { TransactionWithCategories, UpdateTransactionsInput } from "./domain"
+import { useForm } from "../../hooks/useForm"
+import Form from "../forms/Form"
+import ValidatedSelect from "../forms/inputs/ValidatedSelect"
+import TextInput from "../forms/inputs/TextInput"
+import { useCommand, useLazyQuery } from "../../hooks/network"
+import { insertCategoryRequest, listCategoriesRequest } from "../categories/api"
 import { useEffect, useState } from "react"
-import { useDebounce } from "../../../hooks/useDebounce"
-import { Category } from "../../categories/domain"
+import { useDebounce } from "../../hooks/useDebounce"
+import { Category } from "../categories/domain"
 import CategorySelect, {
   MultipleCategoriesSelection,
-} from "../../forms/inputs/CategorySelect"
+} from "../forms/inputs/CategorySelect"
 import { Either, pipe } from "effect"
 import { constVoid } from "effect/Function"
 
