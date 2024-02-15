@@ -186,7 +186,17 @@ export function useForm<
   function submit(): void {
     const validated = pipe(
       state.props as Record<string, FormState<R, V>["props"][keyof R]>,
-      ReadonlyRecord.map((entry) => entry.validation),
+      ReadonlyRecord.map((entry, key) => {
+        if (typeof input.validators[key] === "undefined") {
+          return Either.right(entry.value)
+        } else {
+          return pipe(
+            entry.value,
+            S.decodeEither(input.validators[key]!),
+            Either.mapLeft((error) => error.message),
+          )
+        }
+      }),
       Either.all,
     ) as Either.Either<string, Validated<R, V>>
 

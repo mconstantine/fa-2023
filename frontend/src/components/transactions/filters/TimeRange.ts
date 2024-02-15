@@ -1,4 +1,4 @@
-import { RelativeRange } from "./TransactionFiltersDialogContent"
+import { RelativeRange } from "./domain"
 
 const DAY_IN_MS = 1000 * 60 * 60 * 24
 const WEEK_IN_MS = DAY_IN_MS * 7

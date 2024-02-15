@@ -13,6 +13,7 @@ import {
   Paper,
   Radio,
   Stack,
+  Typography,
 } from "@mui/material"
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers"
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
@@ -24,6 +25,12 @@ import { constNull, constTrue, constVoid } from "effect/Function"
 import { DateTimeRange, RelativeTimeRange } from "./TimeRange"
 import TextInput from "../../forms/inputs/TextInput"
 import ValidatedSelect from "../../forms/inputs/ValidatedSelect"
+import CategorySelect from "../../forms/inputs/CategorySelect"
+import { useLazyQuery } from "../../../hooks/network"
+import { listCategoriesRequest } from "../../categories/api"
+import { useState } from "react"
+import { useDebounce } from "../../../hooks/useDebounce"
+import { RelativeRange } from "./domain"
 
 interface Props {
   filters: ListTransactionsInput
@@ -34,9 +41,6 @@ interface Props {
   onCategoriesSearchQueryChange(query: string): void
   onCancel(): void
 }
-
-export const RelativeRange = S.literal("days", "weeks", "months", "years")
-export type RelativeRange = S.Schema.To<typeof RelativeRange>
 
 export default function TransactionFiltersDialogContent(props: Props) {
   const { inputProps, validated, submit, isValid } = useForm({
@@ -55,6 +59,8 @@ export default function TransactionFiltersDialogContent(props: Props) {
           relativeSince: relativeTimeRange.since,
         }
       })(),
+      categoryMode: props.filters.categories,
+      categories: [],
     },
     validators: {
       timeRange: S.literal("DateTimeRange", "RelativeTimeRange"),
@@ -71,6 +77,7 @@ export default function TransactionFiltersDialogContent(props: Props) {
       relativeLast: S.NumberFromString.pipe(
         S.int({ message: () => "Last should be an integer" }),
       ).pipe(S.positive({ message: () => "Last should be positive" })),
+      categories: S.array(Category),
     },
     formValidator: (data) => {
       if (
@@ -80,10 +87,53 @@ export default function TransactionFiltersDialogContent(props: Props) {
       ) {
         return Either.left("Start date should come before end date")
       } else {
-        return Either.right(data)
+        switch (data.categoryMode) {
+          case "all":
+          case "uncategorized":
+            return Either.right(data)
+          case "specific":
+            return pipe(
+              data.categories.map((category) => category.id),
+              S.decodeEither(
+                S.array(S.UUID).pipe(
+                  S.minItems(1, {
+                    message: () =>
+                      "You should choose some categories if you want to filter by specific ones.",
+                  }),
+                ),
+              ),
+              Either.mapBoth({
+                onLeft: (error) => error.message,
+                onRight: (categories) => ({
+                  ...data,
+                  categories: categories as readonly [string, ...string[]],
+                }),
+              }),
+            )
+        }
       }
     },
-    submit: console.log,
+    submit: (data) =>
+      props.onFiltersChange({
+        ...props.filters,
+        date_since: data.dateSince,
+        date_until: data.dateUntil,
+        ...(() => {
+          switch (data.categoryMode) {
+            case "all":
+            case "uncategorized":
+              return { categories: data.categoryMode }
+            case "specific":
+              return {
+                categories: "specific",
+                categories_ids: data.categories as readonly [
+                  string,
+                  ...string[],
+                ],
+              }
+          }
+        })(),
+      }),
   })
 
   const timeRangeProps = inputProps("timeRange")
@@ -91,6 +141,10 @@ export default function TransactionFiltersDialogContent(props: Props) {
   const dateUntilProps = inputProps("dateUntil")
   const relativeLastProps = inputProps("relativeLast")
   const relativeRangeProps = inputProps("relativeRange")
+
+  const [categories, fetchCategories] = useLazyQuery(listCategoriesRequest)
+  const [categoriesSearchQuery, setCategoriesSearchQuery] = useState("")
+  const debounceFetchCategories = useDebounce(fetchCategories, 500)
 
   function onDateSinceChange(value: Dayjs | null): void {
     if (value !== null) {
@@ -190,6 +244,18 @@ export default function TransactionFiltersDialogContent(props: Props) {
     )
 
     return range
+  }
+
+  function onCategoriesSearchQueryChange(query: string) {
+    setCategoriesSearchQuery(query)
+
+    debounceFetchCategories({
+      query: {
+        direction: "forward",
+        count: 10,
+        ...(query === "" ? {} : { search_query: query }),
+      },
+    })
   }
 
   return (
@@ -303,6 +369,38 @@ export default function TransactionFiltersDialogContent(props: Props) {
             )} */}
             </Stack>
           </LocalizationProvider>
+        </Stack>
+      </Paper>
+      <Paper sx={{ p: 1.5 }}>
+        <Stack spacing={3}>
+          <Typography>Filter by categories</Typography>
+          <ValidatedSelect
+            {...inputProps("categoryMode")}
+            options={{
+              all: "All categories",
+              uncategorized: "Uncategorized only",
+              specific: "Specific categories",
+            }}
+          />
+          {(() => {
+            switch (inputProps("categoryMode").value) {
+              case "all":
+              case "uncategorized":
+                return null
+              case "specific":
+                return (
+                  <CategorySelect
+                    creatable={false}
+                    multiple
+                    selection={inputProps("categories").value}
+                    onSelectionChange={inputProps("categories").onChange}
+                    categories={categories}
+                    searchQuery={categoriesSearchQuery}
+                    onSearchQueryChange={onCategoriesSearchQueryChange}
+                  />
+                )
+            }
+          })()}
         </Stack>
       </Paper>
     </Form>

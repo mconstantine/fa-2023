@@ -67,7 +67,7 @@ export function populateUrlQuery<
         for (const [name, value] of Object.entries(params)) {
           if (typeof value !== "undefined") {
             if (Array.isArray(value)) {
-              value.forEach((value) => query.append(name, value))
+              value.forEach((value) => query.append(`${name}[]`, value))
             } else {
               query.append(name, value as string)
             }
