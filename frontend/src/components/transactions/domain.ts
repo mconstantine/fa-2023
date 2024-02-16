@@ -1,7 +1,9 @@
 import * as S from "@effect/schema/Schema"
 import {
+  InsertTransactionInput as ServerInsertTransactionInput,
   TransactionWithCategories as ServerTransactionWithCategories,
   UpdateTransactionsInput as ServerUpdateTransactionsInput,
+  UpdateTransactionInput as ServerUpdateTransactionInput,
 } from "../../../../backend/src/database/functions/transaction/domain"
 import { PaginationQuery } from "../../globalDomain"
 
@@ -43,8 +45,31 @@ export const ListTransactionsInput = S.extend(
 
 export type ListTransactionsInput = S.Schema.To<typeof ListTransactionsInput>
 
-export const UpdateTransactionsInput = ServerUpdateTransactionsInput
-export type UpdateTransactionsInput = ServerUpdateTransactionsInput
+export const UpdateTransactionsInput = S.extend(
+  ServerUpdateTransactionsInput.pipe(S.omit("value")),
+  S.struct({
+    value: S.optional(S.number),
+  }),
+)
+export type UpdateTransactionsInput = S.Schema.To<
+  typeof UpdateTransactionsInput
+>
+
+export const UpdateTransactionInput = S.extend(
+  ServerUpdateTransactionInput.pipe(S.omit("value")),
+  S.struct({
+    value: S.optional(S.number),
+  }),
+)
+export type UpdateTransactionInput = S.Schema.To<typeof UpdateTransactionInput>
+
+export const InsertTransactionInput = S.extend(
+  ServerInsertTransactionInput.pipe(S.omit("value")),
+  S.struct({
+    value: S.optional(S.number),
+  }),
+)
+export type InsertTransactionInput = S.Schema.To<typeof InsertTransactionInput>
 
 export const TransactionWithCategories = S.extend(
   S.omit<ServerTransactionWithCategories, ["value"]>("value")(

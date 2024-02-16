@@ -1,6 +1,7 @@
-import { Warning } from "@mui/icons-material"
+import { Delete, Edit, Warning } from "@mui/icons-material"
 import {
   Checkbox,
+  IconButton,
   Stack,
   TableCell,
   TableRow,
@@ -13,8 +14,8 @@ import { SelectableTransaction } from "./TransactionsPage"
 interface Props {
   selectableTransaction: SelectableTransaction
   onSelectClick: MouseEventHandler<HTMLTableRowElement>
-  // onEditButtonClick: MouseEventHandler<HTMLButtonElement>
-  // onDeleteButtonClick: MouseEventHandler<HTMLButtonElement>
+  onEditButtonClick: MouseEventHandler<HTMLButtonElement>
+  onDeleteButtonClick: MouseEventHandler<HTMLButtonElement>
 }
 
 export default function TransactionsTableRow(props: Props) {
@@ -76,14 +77,14 @@ export default function TransactionsTableRow(props: Props) {
         {props.selectableTransaction.value.toFixed(2)}
       </TableCell>
       <TableCell sx={{ minWidth: 116, maxWidth: 116, width: 116 }}>
-        {/* <Stack direction="row" spacing={0.5}>
+        <Stack direction="row" spacing={0.5}>
           <IconButton aria-label="Edit" onClick={props.onEditButtonClick}>
             <Edit />
           </IconButton>
           <IconButton aria-label="Delete" onClick={props.onDeleteButtonClick}>
             <Delete />
           </IconButton>
-        </Stack> */}
+        </Stack>
       </TableCell>
     </TableRow>
   )

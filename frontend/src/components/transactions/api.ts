@@ -1,11 +1,18 @@
 import * as S from "@effect/schema/Schema"
+import { PaginationResponse } from "../../globalDomain"
+import {
+  makeDelete,
+  makeGet,
+  makePatch,
+  makePost,
+} from "../../network/HttpRequest"
 import {
   InsertTransactionInput,
+  ListTransactionsInput,
+  TransactionWithCategories,
+  UpdateTransactionInput,
   UpdateTransactionsInput,
-} from "../../../../backend/src/database/functions/transaction/domain"
-import { PaginationResponse } from "../../globalDomain"
-import { makeGet, makePatch, makePost } from "../../network/HttpRequest"
-import { ListTransactionsInput, TransactionWithCategories } from "./domain"
+} from "./domain"
 
 export const listTransactionsRequest = makeGet("/transactions/", {
   query: ListTransactionsInput,
@@ -17,7 +24,22 @@ export const insertTransactionRequest = makePost("/transactions/", {
   response: TransactionWithCategories,
 })
 
+export const updateTransactionRequest = makePatch("/transactions/:id/", {
+  params: S.struct({
+    id: S.UUID,
+  }),
+  body: UpdateTransactionInput,
+  response: TransactionWithCategories,
+})
+
 export const updateTransactionsRequest = makePatch("/transactions/bulk/", {
   body: UpdateTransactionsInput,
   response: S.array(TransactionWithCategories),
+})
+
+export const deleteTransactionRequest = makeDelete("/transactions/:id/", {
+  params: S.struct({
+    id: S.UUID,
+  }),
+  response: TransactionWithCategories,
 })

@@ -1,8 +1,5 @@
 import * as S from "@effect/schema/Schema"
-import {
-  NetworkResponse,
-  networkResponse,
-} from "../../../network/NetworkResponse"
+import { NetworkResponse } from "../../../network/NetworkResponse"
 import { Category } from "../../categories/domain"
 import { PaginationResponse as PaginationResponseType } from "../../../globalDomain"
 import { ListTransactionsInput, TransactionWithCategories } from "../domain"
@@ -43,9 +40,9 @@ interface Props {
 }
 
 export default function TransactionFiltersDialogContent(props: Props) {
-  const { inputProps, validated, submit, isValid } = useForm({
+  const { inputProps, validated, submit, isValid, formError } = useForm({
     initialValues: {
-      timeRange: "DateTimeRange",
+      timeRange: "RelativeTimeRange",
       dateSince: props.filters.date_since,
       dateUntil: props.filters.date_until,
       ...(() => {
@@ -147,52 +144,48 @@ export default function TransactionFiltersDialogContent(props: Props) {
   const debounceFetchCategories = useDebounce(fetchCategories, 500)
 
   function onDateSinceChange(value: Dayjs | null): void {
-    if (value !== null) {
-      try {
-        const dateSince = dateSinceProps.onChange(value.toISOString())
+    if (value !== null && value.isValid()) {
+      const dateSince = dateSinceProps.onChange(value.toISOString())
 
-        pipe(
-          dateSince,
-          Either.match({
-            onLeft: constVoid,
-            onRight: (dateSince) => {
-              const relativeTimeRange = RelativeTimeRange.fromDateRange(
-                new DateTimeRange(dateSince, validated.dateUntil),
-              )
+      pipe(
+        dateSince,
+        Either.match({
+          onLeft: constVoid,
+          onRight: (dateSince) => {
+            const relativeTimeRange = RelativeTimeRange.fromDateRange(
+              new DateTimeRange(dateSince, validated.dateUntil),
+            )
 
-              relativeLastProps.onChange(relativeTimeRange.last.toString(10))
-              relativeRangeProps.onChange(relativeTimeRange.range)
-            },
-          }),
-        )
-      } catch (e) {
-        dateSinceProps.onChange("")
-      }
+            relativeLastProps.onChange(relativeTimeRange.last.toString(10))
+            relativeRangeProps.onChange(relativeTimeRange.range)
+          },
+        }),
+      )
+    } else {
+      dateSinceProps.onChange("")
     }
   }
 
   function onDateUntilChange(value: Dayjs | null): void {
-    if (value !== null) {
-      try {
-        const dateUntil = dateUntilProps.onChange(value.toISOString())
+    if (value !== null && value.isValid()) {
+      const dateUntil = dateUntilProps.onChange(value.toISOString())
 
-        pipe(
-          dateUntil,
-          Either.match({
-            onLeft: constVoid,
-            onRight: (dateUntil) => {
-              const relativeTimeRange = RelativeTimeRange.fromDateRange(
-                new DateTimeRange(validated.dateSince, dateUntil),
-              )
+      pipe(
+        dateUntil,
+        Either.match({
+          onLeft: constVoid,
+          onRight: (dateUntil) => {
+            const relativeTimeRange = RelativeTimeRange.fromDateRange(
+              new DateTimeRange(validated.dateSince, dateUntil),
+            )
 
-              relativeLastProps.onChange(relativeTimeRange.last.toString(10))
-              relativeRangeProps.onChange(relativeTimeRange.range)
-            },
-          }),
-        )
-      } catch (e) {
-        dateUntilProps.onChange("")
-      }
+            relativeLastProps.onChange(relativeTimeRange.last.toString(10))
+            relativeRangeProps.onChange(relativeTimeRange.range)
+          },
+        }),
+      )
+    } else {
+      dateUntilProps.onChange("")
     }
   }
 
@@ -264,8 +257,8 @@ export default function TransactionFiltersDialogContent(props: Props) {
       isValid={isValid}
       submitButtonLabel="Filter"
       cancelAction={props.onCancel}
-      // TODO:
-      networkResponse={networkResponse.make()}
+      networkResponse={props.listCategoriesResponse}
+      formError={formError}
     >
       <Paper sx={{ p: 1.5 }}>
         <Stack spacing={3}>

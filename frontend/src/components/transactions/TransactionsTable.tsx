@@ -11,12 +11,13 @@ import {
   Typography,
 } from "@mui/material"
 import { PaginationQuery, PaginationResponse } from "../../globalDomain"
-import { ChangeEvent } from "react"
+import { ChangeEvent, MouseEventHandler } from "react"
 import TransactionsTableRow from "./TransactonsTableRow"
-import { ListTransactionsInput } from "./api"
 import { usePagination } from "../../hooks/usePagination"
 import Pagination from "../Pagination"
 import { SelectableTransaction } from "./TransactionsPage"
+import { ListTransactionsInput, TransactionWithCategories } from "./domain"
+import { useConfirmation } from "../../hooks/useConfirmation"
 
 interface Props {
   selectableTransactions: PaginationResponse<SelectableTransaction>
@@ -24,8 +25,8 @@ interface Props {
   onFiltersChange(filters: ListTransactionsInput): void
   onTransactionSelectionChange(transactionId: string): void
   onAllTransactionsSelectionChange(selection: boolean): void
-  // onEditTransactionButtonClick(transaction: Transaction): void
-  // onDeleteTransactionButtonClick(transaction: Transaction): void
+  onEditTransactionButtonClick(transaction: TransactionWithCategories): void
+  onDeleteTransactionButtonClick(transaction: TransactionWithCategories): void
 }
 
 export default function TransactionsTable(props: Props) {
@@ -51,21 +52,13 @@ export default function TransactionsTable(props: Props) {
     .reduce((sum, transaction) => sum + transaction.node.value, 0)
     .toFixed(2)
 
-  // const onRowsPerPageChange: ChangeEventHandler<HTMLInputElement> = (event) => {
-  //   const perPage = parseInt(event.target.value)
-
-  //   if (!Number.isNaN(perPage)) {
-  //     props.onParamsChange({ page: 0, perPage })
-  //   }
-  // }
-
-  // const [deleteTransaction, deleteTransactionConfirmationDialog] =
-  //   useConfirmation(props.onDeleteTransactionButtonClick, (transaction) => ({
-  //     title: "Do you really want to delete this transaction?",
-  //     message: `Deleting transaction "${transaction.description}" cannot be undone!`,
-  //     yesButtonLabel: "Yes",
-  //     noButtonLabel: "No",
-  //   }))
+  const [deleteTransaction, deleteTransactionConfirmationDialog] =
+    useConfirmation(props.onDeleteTransactionButtonClick, (transaction) => ({
+      title: "Do you really want to delete this transaction?",
+      message: `Deleting transaction "${transaction.description}" cannot be undone!`,
+      yesButtonLabel: "Yes",
+      noButtonLabel: "No",
+    }))
 
   function onPaginationFiltersChange(filters: PaginationQuery): void {
     props.onFiltersChange({
@@ -85,23 +78,23 @@ export default function TransactionsTable(props: Props) {
     props.onTransactionSelectionChange(id)
   }
 
-  // function onEditButtonClick(
-  //   transaction: Transaction,
-  // ): MouseEventHandler<HTMLButtonElement> {
-  //   return (event) => {
-  //     event.stopPropagation()
-  //     props.onEditTransactionButtonClick(transaction)
-  //   }
-  // }
+  function onEditButtonClick(
+    transaction: TransactionWithCategories,
+  ): MouseEventHandler<HTMLButtonElement> {
+    return (event) => {
+      event.stopPropagation()
+      props.onEditTransactionButtonClick(transaction)
+    }
+  }
 
-  // function onDeleteButtonClick(
-  //   transaction: Transaction,
-  // ): MouseEventHandler<HTMLButtonElement> {
-  //   return (event) => {
-  //     event.stopPropagation()
-  //     deleteTransaction(transaction)
-  //   }
-  // }
+  function onDeleteButtonClick(
+    transaction: TransactionWithCategories,
+  ): MouseEventHandler<HTMLButtonElement> {
+    return (event) => {
+      event.stopPropagation()
+      deleteTransaction(transaction)
+    }
+  }
 
   return (
     <>
@@ -142,8 +135,8 @@ export default function TransactionsTable(props: Props) {
                   key={edge.cursor}
                   selectableTransaction={edge.node}
                   onSelectClick={() => onSelectOneClick(edge.node.id)}
-                  // onEditButtonClick={onEditButtonClick(edge)}
-                  // onDeleteButtonClick={onDeleteButtonClick(edge)}
+                  onEditButtonClick={onEditButtonClick(edge.node)}
+                  onDeleteButtonClick={onDeleteButtonClick(edge.node)}
                 />
               ))}
             </TableBody>
@@ -154,7 +147,7 @@ export default function TransactionsTable(props: Props) {
           <Typography>Total: {total}</Typography>
         </Toolbar>
       </Paper>
-      {/* {deleteTransactionConfirmationDialog} */}
+      {deleteTransactionConfirmationDialog}
     </>
   )
 }
