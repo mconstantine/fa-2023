@@ -2,6 +2,6 @@
 - [x] Fix list transaction filter dates (default dates are off for sure)
 - [x] Ensure that the database is saving dates with no time attached
 - [x] Try to make `PaginationResponse` a Schema class with integrated methods
-- [ ] Save current transaction filters inside the local URL
+- [x] Save current transaction filters inside the local URL
 
 Next: import transactions

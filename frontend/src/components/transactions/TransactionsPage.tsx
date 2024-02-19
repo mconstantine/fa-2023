@@ -45,17 +45,20 @@ export default function TransactionsPage() {
     subject: Option.none(),
   })
 
-  const [filters, setFilters] = useRequestData<typeof listTransactionsRequest>({
-    query: {
-      direction: "forward",
-      count: 100,
-      subject: "description",
-      search_query: "",
-      categories: "all",
-      date_since: new Date(Date.UTC(new Date().getFullYear() - 1, 0, 1)),
-      date_until: new Date(Date.UTC(new Date().getFullYear(), 0, 0)),
+  const [filters, setFilters] = useRequestData<typeof listTransactionsRequest>(
+    listTransactionsRequest,
+    {
+      query: {
+        direction: "forward",
+        count: 100,
+        subject: "description",
+        search_query: "",
+        categories: "all",
+        date_since: new Date(Date.UTC(new Date().getFullYear() - 1, 0, 1)),
+        date_until: new Date(Date.UTC(new Date().getFullYear(), 0, 0)),
+      },
     },
-  })
+  )
 
   const [transactions, updateTransactions] = useQuery(
     listTransactionsRequest,

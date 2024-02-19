@@ -10,6 +10,7 @@ import { Cause, Effect, Either, Exit, Option, flow, pipe } from "effect"
 import { Dispatch, SetStateAction, useEffect, useState } from "react"
 import * as NetworkResponse from "../network/NetworkResponse"
 import { identity } from "effect/Function"
+import { useSearchParams } from "react-router-dom"
 
 const ApiError = S.struct({
   error: S.string,
@@ -77,6 +78,38 @@ export function populateUrlQuery<
         return url + "?" + query.toString()
       },
     }),
+  )
+}
+
+export function decodeUrlQuery<I, O>(
+  codec: S.Schema<O, I>,
+  query: URLSearchParams,
+): Effect.Effect<O, HttpError> {
+  const encoded: Record<string, unknown> = {}
+
+  for (const [key, value] of query.entries()) {
+    if (key.endsWith("[]")) {
+      const name = key.slice(0, key.length - 2)
+
+      if (name in encoded) {
+        const a = encoded[name] as unknown[]
+        a.push(value)
+      } else {
+        encoded[name] = [value]
+      }
+    } else {
+      encoded[key] = value
+    }
+  }
+
+  return pipe(
+    encoded,
+    S.decodeUnknown(codec),
+    Effect.mapError((error) => ({
+      code: 500,
+      message: "Unable to decode search params",
+      extras: { error },
+    })),
   )
 }
 
@@ -352,6 +385,7 @@ export function useRequestData<
   ResponseTo = S.Schema.To<Request["codecs"]["response"]>,
   ResponseFrom = S.Schema.From<Request["codecs"]["response"]>,
 >(
+  request: Request,
   data: HttpRequestData<
     ParamsTo,
     RouteParameters<Path>,
@@ -418,7 +452,114 @@ export function useRequestData<
     >
   >,
 ] {
-  return useState(data)
+  const [searchParams, setSearchParams] = useSearchParams(
+    (() => {
+      if ("query" in data && typeof request.codecs.query !== "undefined") {
+        return pipe(
+          populateUrlQuery("", request.codecs.query!, data.query),
+          Effect.runSyncExit,
+          Exit.match({
+            onFailure: () => "",
+            onSuccess: (query) => query.slice(1),
+          }),
+        )
+      } else {
+        return {}
+      }
+    })(),
+  )
+
+  const initialState = (() => {
+    if ("query" in data && typeof request.codecs.query !== "undefined") {
+      return pipe(
+        decodeUrlQuery(request.codecs.query, searchParams),
+        Effect.runSyncExit,
+        Exit.map((query) => ({ ...data, query })),
+        Exit.getOrElse(() => data),
+      )
+    } else {
+      return data
+    }
+  })()
+
+  const [state, setState] = useState(initialState)
+
+  const onStateChange: Dispatch<
+    SetStateAction<
+      HttpRequestData<
+        ParamsTo,
+        RouteParameters<Path>,
+        QueryTo,
+        QueryFrom,
+        BodyTo,
+        BodyFrom,
+        ResponseTo,
+        ResponseFrom,
+        HttpRequestCodecs<
+          ParamsTo,
+          RouteParameters<Path>,
+          QueryTo,
+          QueryFrom,
+          BodyTo,
+          BodyFrom,
+          ResponseTo,
+          ResponseFrom
+        >
+      >
+    >
+  > = (action) => {
+    let mutNewState: HttpRequestData<
+      ParamsTo,
+      RouteParameters<Path>,
+      QueryTo,
+      QueryFrom,
+      BodyTo,
+      BodyFrom,
+      ResponseTo,
+      ResponseFrom,
+      HttpRequestCodecs<
+        ParamsTo,
+        RouteParameters<Path>,
+        QueryTo,
+        QueryFrom,
+        BodyTo,
+        BodyFrom,
+        ResponseTo,
+        ResponseFrom
+      >
+    >
+
+    if (typeof action === "function") {
+      setState((state) => {
+        const r = action(state)
+        mutNewState = r
+        return r
+      })
+    } else {
+      setState(action)
+      mutNewState = action
+    }
+
+    setSearchParams(() => {
+      if (
+        "query" in mutNewState &&
+        typeof request.codecs.query !== "undefined"
+      ) {
+        return pipe(
+          populateUrlQuery("", request.codecs.query!, mutNewState.query),
+          Effect.runSyncExit,
+          Exit.match({
+            onFailure: () => "",
+            onSuccess: (query) => query.slice(1),
+          }),
+        )
+      } else {
+        return {}
+      }
+    })
+  }
+
+  return [state, onStateChange]
 }
 
 type UseLazyQueryOutput<
