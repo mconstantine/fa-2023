@@ -69,7 +69,9 @@ export default function TransactionsPage() {
     updateTransactionRequest,
   )
 
-  const [, deleteTransaction] = useCommand(deleteTransactionRequest)
+  const [deletedTransaction, deleteTransaction] = useCommand(
+    deleteTransactionRequest,
+  )
 
   function onFiltersChange(filters: ListTransactionsInput): void {
     setFilters({ query: filters })
@@ -174,7 +176,10 @@ export default function TransactionsPage() {
           </Stack>
         </Paper>
         <Query
-          response={transactions}
+          response={newTransaction
+            .andThen(() => updatedTransaction)
+            .andThen(() => deletedTransaction)
+            .andThen(() => transactions)}
           render={(transactions) => (
             <SelectableTransactionsPage
               transactions={transactions}

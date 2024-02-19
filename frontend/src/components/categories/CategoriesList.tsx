@@ -152,7 +152,7 @@ export default function CategoriesList(props: Props) {
             />
           </FormControl>
           <Query
-            response={props.categories}
+            response={props.deletionResponse.andThen(() => props.categories)}
             render={(categories) => (
               <List
                 categories={categories}

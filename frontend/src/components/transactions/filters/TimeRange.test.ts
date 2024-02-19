@@ -4,10 +4,7 @@ describe("TimeRange", () => {
   describe("Dates to relative", () => {
     it("should work with a day", () => {
       const result = RelativeTimeRange.fromDateRange(
-        new DateTimeRange({
-          dateSince: new Date(2020, 0, 1),
-          dateUntil: new Date(2020, 0, 2),
-        }),
+        new DateTimeRange(new Date(2020, 0, 1), new Date(2020, 0, 2)),
       )
 
       expect(result.last).toBe(1)
@@ -17,10 +14,7 @@ describe("TimeRange", () => {
 
     it("should work with two weeks", () => {
       const result = RelativeTimeRange.fromDateRange(
-        new DateTimeRange({
-          dateSince: new Date(2020, 0, 1),
-          dateUntil: new Date(2020, 0, 15),
-        }),
+        new DateTimeRange(new Date(2020, 0, 1), new Date(2020, 0, 15)),
       )
 
       expect(result.last).toBe(2)
@@ -30,10 +24,7 @@ describe("TimeRange", () => {
 
     it("should work with three months", () => {
       const result = RelativeTimeRange.fromDateRange(
-        new DateTimeRange({
-          dateSince: new Date(2020, 0, 1),
-          dateUntil: new Date(2020, 3, 1),
-        }),
+        new DateTimeRange(new Date(2020, 0, 1), new Date(2020, 3, 1)),
       )
 
       expect(result.last).toBe(3)
@@ -43,10 +34,7 @@ describe("TimeRange", () => {
 
     it("should work with four years", () => {
       const result = RelativeTimeRange.fromDateRange(
-        new DateTimeRange({
-          dateSince: new Date(2020, 0, 1),
-          dateUntil: new Date(2024, 0, 1),
-        }),
+        new DateTimeRange(new Date(2020, 0, 1), new Date(2024, 0, 1)),
       )
 
       expect(result.last).toBe(4)
@@ -56,10 +44,7 @@ describe("TimeRange", () => {
 
     it("should work with 117 days", () => {
       const result = RelativeTimeRange.fromDateRange(
-        new DateTimeRange({
-          dateSince: new Date(2020, 0, 1),
-          dateUntil: new Date(2020, 3, 27),
-        }),
+        new DateTimeRange(new Date(2020, 0, 1), new Date(2020, 3, 27)),
       )
 
       expect(result.last).toBe(117)
@@ -71,11 +56,7 @@ describe("TimeRange", () => {
   describe("Relative to dates", () => {
     it("should work with a day", () => {
       const result = DateTimeRange.fromRelativeTimeRange(
-        new RelativeTimeRange({
-          last: 1,
-          range: "days",
-          since: new Date(2020, 0, 2),
-        }),
+        new RelativeTimeRange(1, "days", new Date(2020, 0, 2)),
       )
 
       expect(result.dateSince).toEqual(new Date(2020, 0, 1))
@@ -84,11 +65,7 @@ describe("TimeRange", () => {
 
     it("should work with two weeks", () => {
       const result = DateTimeRange.fromRelativeTimeRange(
-        new RelativeTimeRange({
-          last: 2,
-          range: "weeks",
-          since: new Date(2020, 0, 15),
-        }),
+        new RelativeTimeRange(2, "weeks", new Date(2020, 0, 15)),
       )
 
       expect(result.dateSince).toEqual(new Date(2020, 0, 1))
@@ -97,11 +74,7 @@ describe("TimeRange", () => {
 
     it("should work with three months", () => {
       const result = DateTimeRange.fromRelativeTimeRange(
-        new RelativeTimeRange({
-          last: 3,
-          range: "months",
-          since: new Date(2020, 3, 1),
-        }),
+        new RelativeTimeRange(3, "months", new Date(2020, 3, 1)),
       )
 
       expect(result.dateSince).toEqual(new Date(2020, 0, 1))
@@ -110,11 +83,7 @@ describe("TimeRange", () => {
 
     it("should work with four years", () => {
       const result = DateTimeRange.fromRelativeTimeRange(
-        new RelativeTimeRange({
-          last: 4,
-          range: "years",
-          since: new Date(2024, 0, 1),
-        }),
+        new RelativeTimeRange(4, "years", new Date(2024, 0, 1)),
       )
 
       expect(result.dateSince).toEqual(new Date(2020, 0, 1))
@@ -123,11 +92,7 @@ describe("TimeRange", () => {
 
     it("should work with 117 days", () => {
       const result = DateTimeRange.fromRelativeTimeRange(
-        new RelativeTimeRange({
-          last: 117,
-          range: "days",
-          since: new Date(2020, 3, 27),
-        }),
+        new RelativeTimeRange(117, "days", new Date(2020, 3, 27)),
       )
 
       expect(result.dateSince).toEqual(new Date(2020, 0, 1))

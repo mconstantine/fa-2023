@@ -9,6 +9,7 @@ import {
 import {
   InsertTransactionInput,
   ListTransactionsInput,
+  Transaction,
   TransactionWithCategories,
   UpdateTransactionInput,
   UpdateTransactionsInput,
@@ -41,5 +42,5 @@ export const deleteTransactionRequest = makeDelete("/transactions/:id/", {
   params: S.struct({
     id: S.UUID,
   }),
-  response: TransactionWithCategories,
+  response: Transaction,
 })

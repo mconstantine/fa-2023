@@ -119,6 +119,16 @@ abstract class NetworkResponseC<O> {
     })
   }
 
+  public andThen<T>(fn: () => NetworkResponse<T>): NetworkResponse<T> {
+    return this.match({
+      onIdle: () => fn(),
+      onLoading: () => new LoadingResponse(),
+      onFailure: (response) =>
+        new FailedResponse<T>(response.status, response.message),
+      onSuccess: () => fn(),
+    })
+  }
+
   public map<T>(fn: (data: O) => T): NetworkResponse<T> {
     return this.flatMap((data) => new SuccessfulResponse(fn(data)))
   }

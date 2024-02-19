@@ -71,7 +71,7 @@ export class PaginationResponse<T extends { id: string }> {
     })
   }
 
-  public remove(node: T): PaginationResponse<T> {
+  public remove(node: { id: string }): PaginationResponse<T> {
     const startCursor = (() => {
       if (this.response.page_info.start_cursor === node.id) {
         return this.response.edges[1]?.cursor ?? null

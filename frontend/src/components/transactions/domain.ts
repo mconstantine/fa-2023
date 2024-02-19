@@ -1,6 +1,7 @@
 import * as S from "@effect/schema/Schema"
 import {
   InsertTransactionInput as ServerInsertTransactionInput,
+  Transaction as ServerTransaction,
   TransactionWithCategories as ServerTransactionWithCategories,
   UpdateTransactionsInput as ServerUpdateTransactionsInput,
   UpdateTransactionInput as ServerUpdateTransactionInput,
@@ -70,6 +71,14 @@ export const InsertTransactionInput = S.extend(
   }),
 )
 export type InsertTransactionInput = S.Schema.To<typeof InsertTransactionInput>
+
+export const Transaction = S.extend(
+  S.omit<ServerTransaction, ["value"]>("value")(ServerTransaction),
+  S.struct({
+    value: S.number,
+  }),
+)
+export interface Transaction extends S.Schema.To<typeof Transaction> {}
 
 export const TransactionWithCategories = S.extend(
   S.omit<ServerTransactionWithCategories, ["value"]>("value")(
