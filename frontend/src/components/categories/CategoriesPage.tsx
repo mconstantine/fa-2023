@@ -9,7 +9,7 @@ import {
 } from "./api"
 import { Category, InsertCategoryInput, ListCategoriesInput } from "./domain"
 import { constFalse } from "effect/Function"
-import { PaginationResponse } from "../../network/PaginationResponse"
+import * as paginationResponse from "../../network/PaginationResponse"
 
 export default function CategoriesPage() {
   const [filters, setFilters] = useRequestData<typeof listCategoriesRequest>({
@@ -40,11 +40,7 @@ export default function CategoriesPage() {
       Either.match({
         onLeft: constFalse,
         onRight: (newCategory) => {
-          updateCategories(
-            (categories) =>
-              PaginationResponse.of(categories).prepend(newCategory).response,
-          )
-
+          updateCategories(paginationResponse.prepend(newCategory))
           return true
         },
       }),
@@ -62,12 +58,7 @@ export default function CategoriesPage() {
       Either.match({
         onLeft: constFalse,
         onRight: (updatedCategory) => {
-          updateCategories(
-            (categories) =>
-              PaginationResponse.of(categories).replace(updatedCategory)
-                .response,
-          )
-
+          updateCategories(paginationResponse.replace(updatedCategory))
           return true
         },
       }),
@@ -84,12 +75,7 @@ export default function CategoriesPage() {
       Either.match({
         onLeft: constFalse,
         onRight: (deletedCategory) => {
-          updateCategories(
-            (categories) =>
-              PaginationResponse.of(categories).remove(deletedCategory)
-                .response,
-          )
-
+          updateCategories(paginationResponse.remove(deletedCategory))
           return true
         },
       }),

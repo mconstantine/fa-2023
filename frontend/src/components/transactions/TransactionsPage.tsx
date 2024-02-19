@@ -22,7 +22,7 @@ import {
 } from "./api"
 import { Either, Option, pipe } from "effect"
 import { constFalse, constVoid } from "effect/Function"
-import { PaginationResponse } from "../../network/PaginationResponse"
+import * as paginationResponse from "../../network/PaginationResponse"
 import {
   ListTransactionsInput,
   TransactionWithCategories,
@@ -95,11 +95,7 @@ export default function TransactionsPage() {
       Either.match({
         onLeft: constVoid,
         onRight: (deletedTransaction) =>
-          updateTransactions(
-            (transactions) =>
-              PaginationResponse.of(transactions).remove(deletedTransaction)
-                .response,
-          ),
+          updateTransactions(paginationResponse.remove(deletedTransaction)),
       }),
     )
   }
@@ -128,17 +124,9 @@ export default function TransactionsPage() {
             formState.subject,
             Option.match({
               onNone: () =>
-                updateTransactions(
-                  (transactions) =>
-                    PaginationResponse.of(transactions).prepend(result)
-                      .response,
-                ),
+                updateTransactions(paginationResponse.prepend(result)),
               onSome: () =>
-                updateTransactions(
-                  (transactions) =>
-                    PaginationResponse.of(transactions).replace(result)
-                      .response,
-                ),
+                updateTransactions(paginationResponse.replace(result)),
             }),
             () => {
               setFormState((state) => ({ ...state, open: false }))
@@ -235,10 +223,13 @@ function SelectableTransactionsPage(props: SelectableTransactionsPageProps) {
   const [selectableTransactions, setSelectableTransactions] = useState<
     PaginationResponseType<SelectableTransaction>
   >(
-    PaginationResponse.of(props.transactions).mapNodes((transaction) => ({
-      ...transaction,
-      isSelected: false,
-    })).response,
+    pipe(
+      props.transactions,
+      paginationResponse.mapNodes((transaction) => ({
+        ...transaction,
+        isSelected: false,
+      })),
+    ),
   )
 
   const [updatedTransactions, bulkUpdateTransactions] = useCommand(
@@ -247,24 +238,22 @@ function SelectableTransactionsPage(props: SelectableTransactionsPageProps) {
 
   function onTransactionSelectionChange(id: string): void {
     setSelectableTransactions(
-      (transactions) =>
-        PaginationResponse.of(transactions).mapNodes((transaction) => {
-          if (transaction.id === id) {
-            return { ...transaction, isSelected: !transaction.isSelected }
-          } else {
-            return transaction
-          }
-        }).response,
+      paginationResponse.mapNodes((transaction) => {
+        if (transaction.id === id) {
+          return { ...transaction, isSelected: !transaction.isSelected }
+        } else {
+          return transaction
+        }
+      }),
     )
   }
 
   function onAllTransactionsSelectionChange(selection: boolean) {
     setSelectableTransactions(
-      (transactions) =>
-        PaginationResponse.of(transactions).mapNodes((transaction) => ({
-          ...transaction,
-          isSelected: selection,
-        })).response,
+      paginationResponse.mapNodes((transaction) => ({
+        ...transaction,
+        isSelected: selection,
+      })),
     )
   }
 
@@ -283,13 +272,12 @@ function SelectableTransactionsPage(props: SelectableTransactionsPageProps) {
         onLeft: constFalse,
         onRight: (updatedTransactions) => {
           setSelectableTransactions(
-            (transactions) =>
-              PaginationResponse.of(transactions).replace(
-                updatedTransactions.map((transaction) => ({
-                  ...transaction,
-                  isSelected: true,
-                })),
-              ).response,
+            paginationResponse.replace(
+              updatedTransactions.map((transaction) => ({
+                ...transaction,
+                isSelected: true,
+              })),
+            ),
           )
 
           return true
