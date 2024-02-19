@@ -51,8 +51,8 @@ export default function TransactionsPage() {
       subject: "description",
       search_query: "",
       categories: "all",
-      date_since: new Date(new Date().getFullYear() - 1, 0, 1),
-      date_until: new Date(new Date().getFullYear(), 0, 0),
+      date_since: new Date(Date.UTC(new Date().getFullYear() - 1, 0, 1)),
+      date_until: new Date(Date.UTC(new Date().getFullYear(), 0, 0)),
     },
   })
 
