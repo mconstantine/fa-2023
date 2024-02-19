@@ -8,14 +8,14 @@ import {
 import { env } from "../env"
 import { Cause, Effect, Either, Exit, Option, flow, pipe } from "effect"
 import { Dispatch, SetStateAction, useEffect, useState } from "react"
-import { NetworkResponse, networkResponse } from "../network/NetworkResponse"
+import * as NetworkResponse from "../network/NetworkResponse"
 import { identity } from "effect/Function"
 
 const ApiError = S.struct({
   error: S.string,
 })
 
-interface HttpError {
+export interface HttpError {
   code: number
   message: string
   extras?: unknown
@@ -437,7 +437,7 @@ type UseLazyQueryOutput<
     ResponseFrom
   >,
 > = [
-  response: NetworkResponse<ResponseTo>,
+  response: NetworkResponse.NetworkResponse<HttpError, ResponseTo>,
   refresh: (
     data: HttpRequestData<
       ParamsTo,
@@ -481,9 +481,9 @@ export function useLazyQuery<
   ResponseFrom,
   HttpGetRequest<ParamsTo, Path, QueryTo, QueryFrom, ResponseTo, ResponseFrom>
 > {
-  const [response, setResponse] = useState<NetworkResponse<ResponseTo>>(
-    networkResponse.make(),
-  )
+  const [response, setResponse] = useState<
+    NetworkResponse.NetworkResponse<HttpError, ResponseTo>
+  >(NetworkResponse.idle())
 
   function sendQuery(
     data: HttpRequestData<
@@ -498,7 +498,14 @@ export function useLazyQuery<
       typeof request.codecs
     >,
   ): void {
-    setResponse((response) => response.load())
+    setResponse(
+      NetworkResponse.flatMatch({
+        onIdle: NetworkResponse.load(),
+        onLoading: identity,
+        onFailure: NetworkResponse.retry(),
+        onSuccess: NetworkResponse.refresh(),
+      }),
+    )
 
     Effect.runPromiseExit(sendHttpRequest(request, data)).then(
       flow(
@@ -506,25 +513,33 @@ export function useLazyQuery<
           onFailure(cause) {
             const error: HttpError = causeToHttpError(cause)
 
-            setResponse((response) =>
-              response.match({
+            setResponse(
+              NetworkResponse.flatMatch<
+                HttpError,
+                ResponseTo,
+                NetworkResponse.NetworkResponse<HttpError, ResponseTo>
+              >({
                 onIdle: identity,
                 onSuccess: identity,
                 onFailure: identity,
                 onLoading: (response) => {
                   console.log(error.extras)
-                  return response.fail(error.code, error.message)
+                  return NetworkResponse.fail(error)(response)
                 },
               }),
             )
           },
           onSuccess(data) {
-            setResponse((response) =>
-              response.match({
+            setResponse(
+              NetworkResponse.flatMatch<
+                HttpError,
+                ResponseTo,
+                NetworkResponse.NetworkResponse<HttpError, ResponseTo>
+              >({
                 onIdle: identity,
                 onSuccess: identity,
                 onFailure: identity,
-                onLoading: (response) => response.succeed(data),
+                onLoading: NetworkResponse.succeed(data),
               }),
             )
           },
@@ -537,13 +552,13 @@ export function useLazyQuery<
     update: ResponseTo | ((previousState: ResponseTo) => ResponseTo),
   ): void {
     if (typeof update === "function") {
-      setResponse((response) =>
-        response.map((previousState) =>
+      setResponse(
+        NetworkResponse.map((previousState) =>
           (update as (previousState: ResponseTo) => ResponseTo)(previousState),
         ),
       )
     } else {
-      setResponse((response) => response.map(() => update))
+      setResponse(NetworkResponse.map(() => update))
     }
   }
 
@@ -551,7 +566,7 @@ export function useLazyQuery<
 }
 
 type UseQueryOutput<Response> = [
-  response: NetworkResponse<Response>,
+  response: NetworkResponse.NetworkResponse<HttpError, Response>,
   optimisticUpdate: (
     data: Response | ((previousState: Response) => Response),
   ) => void,
@@ -585,12 +600,19 @@ export function useQuery<
     typeof request.codecs
   >,
 ): UseQueryOutput<ResponseTo> {
-  const [response, setResponse] = useState<NetworkResponse<ResponseTo>>(
-    networkResponse.make(),
-  )
+  const [response, setResponse] = useState<
+    NetworkResponse.NetworkResponse<HttpError, ResponseTo>
+  >(NetworkResponse.idle())
 
   useEffect(() => {
-    setResponse((response) => response.load())
+    setResponse(
+      NetworkResponse.flatMatch({
+        onIdle: NetworkResponse.load(),
+        onLoading: identity,
+        onFailure: NetworkResponse.retry(),
+        onSuccess: NetworkResponse.refresh(),
+      }),
+    )
 
     Effect.runPromiseExit(sendHttpRequest(request, data)).then(
       flow(
@@ -598,25 +620,33 @@ export function useQuery<
           onFailure(cause) {
             const error: HttpError = causeToHttpError(cause)
 
-            setResponse((response) =>
-              response.match({
+            setResponse(
+              NetworkResponse.flatMatch<
+                HttpError,
+                ResponseTo,
+                NetworkResponse.NetworkResponse<HttpError, ResponseTo>
+              >({
                 onIdle: identity,
                 onSuccess: identity,
                 onFailure: identity,
                 onLoading: (response) => {
                   console.log(error.extras)
-                  return response.fail(error.code, error.message)
+                  return NetworkResponse.fail(error)(response)
                 },
               }),
             )
           },
           onSuccess(data) {
-            setResponse((response) =>
-              response.match({
+            setResponse(
+              NetworkResponse.flatMatch<
+                HttpError,
+                ResponseTo,
+                NetworkResponse.NetworkResponse<HttpError, ResponseTo>
+              >({
                 onIdle: identity,
                 onSuccess: identity,
                 onFailure: identity,
-                onLoading: (response) => response.succeed(data),
+                onLoading: NetworkResponse.succeed(data),
               }),
             )
           },
@@ -629,13 +659,13 @@ export function useQuery<
     update: ResponseTo | ((previousState: ResponseTo) => ResponseTo),
   ): void {
     if (typeof update === "function") {
-      setResponse((response) =>
-        response.map((previousState) =>
+      setResponse(
+        NetworkResponse.map((previousState) =>
           (update as (previousState: ResponseTo) => ResponseTo)(previousState),
         ),
       )
     } else {
-      setResponse((response) => response.map(() => update))
+      setResponse(NetworkResponse.map(() => update))
     }
   }
 
@@ -652,7 +682,7 @@ type UseCommandOutput<
   ResponseTo,
   ResponseFrom,
 > = [
-  response: NetworkResponse<ResponseTo>,
+  response: NetworkResponse.NetworkResponse<HttpError, ResponseTo>,
   execute: (
     data: HttpRequestData<
       ParamsTo,
@@ -707,9 +737,9 @@ export function useCommand<
   ResponseTo,
   ResponseFrom
 > {
-  const [response, setResponse] = useState<NetworkResponse<ResponseTo>>(
-    networkResponse.make(),
-  )
+  const [response, setResponse] = useState<
+    NetworkResponse.NetworkResponse<HttpError, ResponseTo>
+  >(NetworkResponse.idle())
 
   function sendCommand(
     data: HttpRequestData<
@@ -724,7 +754,14 @@ export function useCommand<
       typeof request.codecs
     >,
   ): Promise<Either.Either<HttpError, ResponseTo>> {
-    setResponse((response) => response.load())
+    setResponse(
+      NetworkResponse.flatMatch({
+        onIdle: NetworkResponse.load(),
+        onLoading: identity,
+        onFailure: NetworkResponse.retry(),
+        onSuccess: NetworkResponse.refresh(),
+      }),
+    )
 
     return Effect.runPromiseExit(sendHttpRequest(request, data)).then(
       flow(
@@ -732,14 +769,18 @@ export function useCommand<
           onFailure(cause) {
             const error: HttpError = causeToHttpError(cause)
 
-            setResponse((response) =>
-              response.match({
+            setResponse(
+              NetworkResponse.flatMatch<
+                HttpError,
+                ResponseTo,
+                NetworkResponse.NetworkResponse<HttpError, ResponseTo>
+              >({
                 onIdle: identity,
                 onSuccess: identity,
                 onFailure: identity,
                 onLoading: (response) => {
                   console.log(error.extras)
-                  return response.fail(error.code, error.message)
+                  return NetworkResponse.fail(error)(response)
                 },
               }),
             )
@@ -747,12 +788,16 @@ export function useCommand<
             return Either.left(error)
           },
           onSuccess(data) {
-            setResponse((response) =>
-              response.match({
+            setResponse(
+              NetworkResponse.flatMatch<
+                HttpError,
+                ResponseTo,
+                NetworkResponse.NetworkResponse<HttpError, ResponseTo>
+              >({
                 onIdle: identity,
                 onSuccess: identity,
                 onFailure: identity,
-                onLoading: (response) => response.succeed(data),
+                onLoading: NetworkResponse.succeed(data),
               }),
             )
 

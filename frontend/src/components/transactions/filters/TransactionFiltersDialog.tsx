@@ -6,6 +6,7 @@ import TransactionFiltersDialogContent from "./TransactionFiltersDialogContent"
 import { PaginationResponse } from "../../../globalDomain"
 import { listCategoriesRequest } from "../../categories/api"
 import { ListTransactionsInput, TransactionWithCategories } from "../domain"
+import * as NetworkResponse from "../../../network/NetworkResponse"
 
 interface Props {
   isOpen: boolean
@@ -40,7 +41,7 @@ export default function TransactionFiltersDialog(props: Props) {
   }
 
   useEffect(() => {
-    if (props.isOpen && categories.isIdle()) {
+    if (props.isOpen && NetworkResponse.isIdle(categories)) {
       fetchCategories({
         query: {
           direction: "forward",

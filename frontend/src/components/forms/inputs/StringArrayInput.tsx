@@ -9,9 +9,9 @@ import { KeyboardEvent, useState } from "react"
 import { Add, Delete } from "@mui/icons-material"
 import { InputProps } from "../../../hooks/useForm"
 import TextInput from "./TextInput"
-import { Option, pipe } from "effect"
+import { Either, Option, pipe } from "effect"
 
-interface Props extends InputProps<readonly string[]> {
+interface Props extends InputProps<readonly string[], readonly string[]> {
   title: string
   label: string
 }
@@ -19,7 +19,10 @@ interface Props extends InputProps<readonly string[]> {
 export function StringArrayInput(props: Props) {
   const [insertingValue, setInsertingValue] = useState<string | null>(null)
 
-  function onChange(newValue: string, targetIndex: number): void {
+  function onChange(
+    newValue: string,
+    targetIndex: number,
+  ): Either.Either<string, readonly string[]> {
     return props.onChange(
       props.value.map((value, index) => {
         if (index === targetIndex) {
@@ -88,7 +91,10 @@ export function StringArrayInput(props: Props) {
         name={props.name}
         label={props.label}
         value={insertingValue ?? ""}
-        onChange={setInsertingValue}
+        onChange={(value) => {
+          setInsertingValue(value)
+          return Either.right(value)
+        }}
         error={Option.none()}
         fieldProps={{
           sx: { display: "block" },

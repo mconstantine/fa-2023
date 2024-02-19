@@ -12,14 +12,15 @@ import { StringArrayInput } from "../forms/inputs/StringArrayInput"
 import { Category } from "./domain"
 import { useForm } from "../../hooks/useForm"
 import Form from "../forms/Form"
-import { NetworkResponse } from "../../network/NetworkResponse"
+import * as NetworkResponse from "../../network/NetworkResponse"
 import TextInput from "../forms/inputs/TextInput"
 import { Either } from "effect"
+import { HttpError } from "../../hooks/network"
 
 interface Props {
   category: Category | null
   onSubmit(category: Category): void
-  networkResponse: NetworkResponse<Category>
+  networkResponse: NetworkResponse.NetworkResponse<HttpError, Category>
   cancelAction?: (() => void) | undefined
 }
 

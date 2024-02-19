@@ -12,7 +12,7 @@ import {
 } from "@mui/material"
 import CategoryCard from "./CategoryCard"
 import { Category, ListCategoriesInput } from "./domain"
-import { NetworkResponse, networkResponse } from "../../network/NetworkResponse"
+import * as NetworkResponse from "../../network/NetworkResponse"
 import Query from "../Query"
 import { PaginationResponse } from "../../globalDomain"
 import { useState } from "react"
@@ -22,6 +22,8 @@ import { Search } from "@mui/icons-material"
 import { useDebounce } from "../../hooks/useDebounce"
 import { usePagination } from "../../hooks/usePagination"
 import Pagination from "../Pagination"
+import { HttpError } from "../../hooks/network"
+import { pipe } from "effect"
 
 interface ListingMode {
   type: "listing"
@@ -40,10 +42,16 @@ type Mode = ListingMode | InsertingMode | UpdatingMode
 
 interface Props {
   filters: ListCategoriesInput
-  categories: NetworkResponse<PaginationResponse<Category>>
-  insertionResponse: NetworkResponse<Category>
-  updateResponse: NetworkResponse<Category>
-  deletionResponse: NetworkResponse<Omit<Category, "id">>
+  categories: NetworkResponse.NetworkResponse<
+    HttpError,
+    PaginationResponse<Category>
+  >
+  insertionResponse: NetworkResponse.NetworkResponse<HttpError, Category>
+  updateResponse: NetworkResponse.NetworkResponse<HttpError, Category>
+  deletionResponse: NetworkResponse.NetworkResponse<
+    HttpError,
+    Omit<Category, "id">
+  >
   onFiltersChange(filters: ListCategoriesInput): void
   onCategoryInsert(category: Category): Promise<boolean>
   onCategoryUpdate(category: Category): Promise<boolean>
@@ -152,7 +160,10 @@ export default function CategoriesList(props: Props) {
             />
           </FormControl>
           <Query
-            response={props.deletionResponse.andThen(() => props.categories)}
+            response={pipe(
+              props.deletionResponse,
+              NetworkResponse.andThen(() => props.categories),
+            )}
             render={(categories) => (
               <List
                 categories={categories}
@@ -185,7 +196,7 @@ export default function CategoriesList(props: Props) {
                   case "updating":
                     return props.updateResponse
                   case "listing":
-                    return networkResponse.make()
+                    return NetworkResponse.idle()
                 }
               })()}
               cancelAction={cancel}

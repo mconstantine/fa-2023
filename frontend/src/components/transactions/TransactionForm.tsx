@@ -1,13 +1,13 @@
 import * as S from "@effect/schema/Schema"
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers"
 import { useForm } from "../../hooks/useForm"
-import { NetworkResponse } from "../../network/NetworkResponse"
+import * as NetworkResponse from "../../network/NetworkResponse"
 import Form from "../forms/Form"
 import { TransactionWithCategories } from "./domain"
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
 import dayjs, { Dayjs } from "dayjs"
 import { FormControl, FormHelperText, Stack, Typography } from "@mui/material"
-import { useCommand, useLazyQuery } from "../../hooks/network"
+import { HttpError, useCommand, useLazyQuery } from "../../hooks/network"
 import CategorySelect, {
   MultipleCategoriesSelection,
 } from "../forms/inputs/CategorySelect"
@@ -22,7 +22,10 @@ import { useDebounce } from "../../hooks/useDebounce"
 interface Props {
   isVisible: boolean
   transaction: Option.Option<TransactionWithCategories>
-  networkResponse: NetworkResponse<TransactionWithCategories>
+  networkResponse: NetworkResponse.NetworkResponse<
+    HttpError,
+    TransactionWithCategories
+  >
   onSubmit(data: InsertTransactionInput): void
   onCancel(): void
 }
@@ -86,7 +89,10 @@ export default function TransactionForm(props: Props) {
     }),
   )
 
-  const formNetworkResponse = props.networkResponse.flatMap(() => newCategory)
+  const formNetworkResponse = pipe(
+    props.networkResponse,
+    NetworkResponse.flatMap(() => newCategory),
+  )
 
   function onDateChange(date: Dayjs | null): void {
     if (date !== null && date.isValid()) {

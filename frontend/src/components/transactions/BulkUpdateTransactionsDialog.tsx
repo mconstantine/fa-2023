@@ -1,12 +1,12 @@
 import * as S from "@effect/schema/Schema"
 import { Dialog, DialogContent, Stack, Typography } from "@mui/material"
-import { NetworkResponse } from "../../network/NetworkResponse"
+import * as NetworkResponse from "../../network/NetworkResponse"
 import { TransactionWithCategories, UpdateTransactionsInput } from "./domain"
 import { useForm } from "../../hooks/useForm"
 import Form from "../forms/Form"
 import ValidatedSelect from "../forms/inputs/ValidatedSelect"
 import TextInput from "../forms/inputs/TextInput"
-import { useCommand, useLazyQuery } from "../../hooks/network"
+import { HttpError, useCommand, useLazyQuery } from "../../hooks/network"
 import { insertCategoryRequest, listCategoriesRequest } from "../categories/api"
 import { useEffect, useState } from "react"
 import { useDebounce } from "../../hooks/useDebounce"
@@ -20,7 +20,10 @@ import { constVoid } from "effect/Function"
 interface Props {
   isOpen: boolean
   onClose(): void
-  updateNetworkResponse: NetworkResponse<readonly TransactionWithCategories[]>
+  updateNetworkResponse: NetworkResponse.NetworkResponse<
+    HttpError,
+    readonly TransactionWithCategories[]
+  >
   onUpdate(data: Omit<UpdateTransactionsInput, "ids">): Promise<boolean>
 }
 
@@ -105,7 +108,7 @@ export default function BulkUpdateTransactionsDialog(props: Props) {
   }
 
   useEffect(() => {
-    if (props.isOpen && categories.isIdle()) {
+    if (props.isOpen && NetworkResponse.isIdle(categories)) {
       fetchCategories({
         query: {
           direction: "forward",

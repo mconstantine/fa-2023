@@ -10,7 +10,7 @@ import {
 import { useState } from "react"
 import { useCommand, useQuery, useRequestData } from "../../hooks/network"
 import Query from "../Query"
-import { PaginationResponse as PaginationResponseType } from "../../globalDomain"
+import { PaginationResponse } from "../../globalDomain"
 import TransactionsTable from "./TransactionsTable"
 import TransactionFilters from "./filters/TransactionFilters"
 import {
@@ -30,6 +30,7 @@ import {
 } from "./domain"
 import TransactionForm from "./TransactionForm"
 import { InsertTransactionInput } from "../../../../backend/src/database/functions/transaction/domain"
+import * as NetworkResponse from "../../network/NetworkResponse"
 
 interface TransactionFormState {
   open: boolean
@@ -164,10 +165,12 @@ export default function TransactionsPage() {
           </Stack>
         </Paper>
         <Query
-          response={newTransaction
-            .andThen(() => updatedTransaction)
-            .andThen(() => deletedTransaction)
-            .andThen(() => transactions)}
+          response={pipe(
+            newTransaction,
+            NetworkResponse.andThen(() => updatedTransaction),
+            NetworkResponse.andThen(() => deletedTransaction),
+            NetworkResponse.andThen(() => transactions),
+          )}
           render={(transactions) => (
             <SelectableTransactionsPage
               transactions={transactions}
@@ -212,7 +215,7 @@ export interface SelectableTransaction extends TransactionWithCategories {
 }
 
 interface SelectableTransactionsPageProps {
-  transactions: PaginationResponseType<TransactionWithCategories>
+  transactions: PaginationResponse<TransactionWithCategories>
   filters: ListTransactionsInput
   onFiltersChange(filters: ListTransactionsInput): void
   onEditTransactionButtonClick(transaction: TransactionWithCategories): void
@@ -221,7 +224,7 @@ interface SelectableTransactionsPageProps {
 
 function SelectableTransactionsPage(props: SelectableTransactionsPageProps) {
   const [selectableTransactions, setSelectableTransactions] = useState<
-    PaginationResponseType<SelectableTransaction>
+    PaginationResponse<SelectableTransaction>
   >(
     pipe(
       props.transactions,

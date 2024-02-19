@@ -1,7 +1,7 @@
 import * as S from "@effect/schema/Schema"
 import { IconButton, Stack, Typography } from "@mui/material"
 import { useState } from "react"
-import { NetworkResponse } from "../../../network/NetworkResponse"
+import * as NetworkResponse from "../../../network/NetworkResponse"
 import SearchTransactionsInput from "./SearchTransactionsInput"
 import ValidatedSelect from "../../forms/inputs/ValidatedSelect"
 import { useDebounce } from "../../../hooks/useDebounce"
@@ -19,10 +19,14 @@ import { constVoid } from "effect/Function"
 import { Edit, Tune } from "@mui/icons-material"
 import BulkUpdateTransactionsDialog from "../BulkUpdateTransactionsDialog"
 import TransactionFiltersDialog from "./TransactionFiltersDialog"
+import { HttpError } from "../../../hooks/network"
 
 interface Props {
   selectableTransactions: PaginationResponse<SelectableTransaction>
-  updateNetworkResponse: NetworkResponse<readonly TransactionWithCategories[]>
+  updateNetworkResponse: NetworkResponse.NetworkResponse<
+    HttpError,
+    readonly TransactionWithCategories[]
+  >
   filters: ListTransactionsInput
   onFiltersChange(filters: ListTransactionsInput): void
   onUpdate(data: Omit<UpdateTransactionsInput, "ids">): Promise<boolean>

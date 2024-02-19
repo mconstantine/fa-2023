@@ -1,5 +1,5 @@
 import * as S from "@effect/schema/Schema"
-import { NetworkResponse } from "../../../network/NetworkResponse"
+import * as NetworkResponse from "../../../network/NetworkResponse"
 import { Category } from "../../categories/domain"
 import { PaginationResponse as PaginationResponseType } from "../../../globalDomain"
 import { ListTransactionsInput, TransactionWithCategories } from "../domain"
@@ -23,7 +23,7 @@ import { DateTimeRange, RelativeTimeRange } from "./TimeRange"
 import TextInput from "../../forms/inputs/TextInput"
 import ValidatedSelect from "../../forms/inputs/ValidatedSelect"
 import CategorySelect from "../../forms/inputs/CategorySelect"
-import { useLazyQuery } from "../../../hooks/network"
+import { HttpError, useLazyQuery } from "../../../hooks/network"
 import { listCategoriesRequest } from "../../categories/api"
 import { useState } from "react"
 import { useDebounce } from "../../../hooks/useDebounce"
@@ -33,7 +33,10 @@ interface Props {
   filters: ListTransactionsInput
   onFiltersChange(filters: ListTransactionsInput): void
   listTransactionsResponse: PaginationResponseType<TransactionWithCategories>
-  listCategoriesResponse: NetworkResponse<PaginationResponseType<Category>>
+  listCategoriesResponse: NetworkResponse.NetworkResponse<
+    HttpError,
+    PaginationResponseType<Category>
+  >
   categoriesSearchQuery: string
   onCategoriesSearchQueryChange(query: string): void
   onCancel(): void

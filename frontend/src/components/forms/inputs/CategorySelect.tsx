@@ -7,13 +7,16 @@ import {
   TextField,
   Theme,
 } from "@mui/material"
-import { NetworkResponse } from "../../../network/NetworkResponse"
+import * as NetworkResponse from "../../../network/NetworkResponse"
 import { Category, InsertCategoryInput } from "../../categories/domain"
 import { ChangeEventHandler, SyntheticEvent } from "react"
 import {
   PaginationResponse,
   emptyPaginationResponse,
 } from "../../../globalDomain"
+import { HttpError } from "../../../hooks/network"
+import { pipe } from "effect"
+import * as paginationResponse from "../../../network/PaginationResponse"
 
 export type CategorySelection = Category | InsertCategoryInput
 
@@ -23,7 +26,10 @@ export interface MultipleCategoriesSelection {
 }
 
 interface BaseProps {
-  categories: NetworkResponse<PaginationResponse<Category>>
+  categories: NetworkResponse.NetworkResponse<
+    HttpError,
+    PaginationResponse<Category>
+  >
   searchQuery: string
   onSearchQueryChange(searchQuery: string): void
   sx?: SxProps<Theme>
@@ -64,12 +70,14 @@ type Props =
   | MultipleSelectableProps
 
 export default function CategorySelect(props: Props) {
-  const isLoading = props.categories.isLoading()
+  const isLoading = NetworkResponse.isLoading(props.categories)
   const value = props.selection
 
-  const options: Array<Category | InsertCategoryInput> = props.categories
-    .getOrElse(emptyPaginationResponse<Category>())
-    .edges.map((e) => e.node)
+  const options: Array<Category | InsertCategoryInput> = pipe(
+    props.categories,
+    NetworkResponse.getOrElse(() => emptyPaginationResponse<Category>()),
+    paginationResponse.getNodes,
+  )
 
   const onQueryChange: ChangeEventHandler<HTMLInputElement> = (event) => {
     props.onSearchQueryChange(event.currentTarget.value)
@@ -123,7 +131,7 @@ export default function CategorySelect(props: Props) {
     if (
       props.creatable &&
       options.length === 0 &&
-      props.categories.isSuccessful() &&
+      NetworkResponse.isSuccessful(props.categories) &&
       props.searchQuery !== ""
     ) {
       return [
