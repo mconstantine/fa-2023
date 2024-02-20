@@ -1,5 +1,34 @@
-import { Option } from "effect"
+import { Option, pipe } from "effect"
 import { PaginationResponse } from "../globalDomain"
+
+export function fromNodes<T extends { id: string }>(
+  nodes: readonly T[],
+): PaginationResponse<T> {
+  const firstNode = Option.fromNullable(nodes[0])
+  const lastNode = Option.fromNullable(nodes[nodes.length - 1])
+
+  return {
+    page_info: {
+      total_count: nodes.length,
+      start_cursor: pipe(
+        firstNode,
+        Option.map((node) => node.id),
+        Option.getOrNull,
+      ),
+      end_cursor: pipe(
+        lastNode,
+        Option.map((node) => node.id),
+        Option.getOrNull,
+      ),
+      has_previous_page: false,
+      has_next_page: false,
+    },
+    edges: nodes.map((node) => ({
+      cursor: node.id,
+      node,
+    })),
+  }
+}
 
 export function prepend<T extends { id: string }>(
   node: T,

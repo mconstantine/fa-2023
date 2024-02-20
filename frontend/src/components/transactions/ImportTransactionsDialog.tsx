@@ -1,3 +1,4 @@
+import * as S from "@effect/schema/Schema"
 import {
   Dialog,
   DialogContent,
@@ -6,62 +7,40 @@ import {
   Stack,
 } from "@mui/material"
 import { useForm } from "../../hooks/useForm"
+import { FileFromSelf } from "../../globalDomain"
 import Form from "../forms/Form"
 import FileInput from "../forms/inputs/FileInput"
-import { useFilesUpload } from "../../hooks/network"
-import { networkResponse } from "../../network/NetworkResponse"
-
-export interface ImportFormData extends Record<string, unknown> {
-  bank: File
-  paypal: File
-}
+import { constTrue } from "effect/Function"
+import { Either } from "effect"
+import { UploadTransactionsInput } from "./domain"
+import * as NetworkResponse from "../../network/NetworkResponse"
+import { HttpError } from "../../hooks/network"
 
 interface Props {
   isOpen: boolean
+  networkResponse: NetworkResponse.NetworkResponse<HttpError, unknown>
   onClose(): void
-  onSubmit(): void
+  onSubmit(body: UploadTransactionsInput): void
 }
 
 export default function ImportTransactionsDialog(props: Props) {
-  const [uploadResponse, uploadFiles] = useFilesUpload<{ errors: string[] }>(
-    "/transactions/import",
-    "files",
-  )
-
-  const { inputProps, submit, isValid } = useForm<ImportFormData>(
-    {
+  const { inputProps, submit, isValid, formError } = useForm({
+    initialValues: {
       bank: null,
-      paypal: null,
     },
-    (data) => {
-      uploadFiles([data.bank, data.paypal]).then((result) => {
-        if (result?.errors.length === 0) {
-          props.onSubmit()
-        }
-      })
+    validators: {
+      bank: FileFromSelf.pipe(
+        S.filter(constTrue, { message: () => "Please choose a file" }),
+      ),
     },
-  )
-
-  function onFileSelect(
-    expectedFileName: keyof ImportFormData,
-  ): (file: File) => void {
-    return (file) => {
-      const isFileNameValid =
-        file.name.toLowerCase() === `${expectedFileName}.csv`
-
-      inputProps(expectedFileName, null).onChange(isFileNameValid ? file : null)
-    }
-  }
-
-  const parsedUploadResponse = uploadResponse.flatMap((data) => {
-    if (data.errors.length > 0) {
-      return networkResponse.fromFailure(
-        400,
-        `The server raised ${data.errors.length} errors. See the network response for details.`,
-      )
-    } else {
-      return networkResponse.fromSuccess()
-    }
+    formValidator: (data) => {
+      if (!data.bank.name.endsWith(".csv")) {
+        return Either.left("Please upload a CSV file")
+      } else {
+        return Either.right(data)
+      }
+    },
+    submit: props.onSubmit,
   })
 
   return (
@@ -70,41 +49,17 @@ export default function ImportTransactionsDialog(props: Props) {
       <DialogContent>
         <Stack spacing={1.5}>
           <DialogContentText>
-            You should upload two files, one named "bank.csv" containing bank
-            transactions, one named "paypal.csv" containing (guess what?) PayPal
-            transactions.
+            You should upload a CSV file containing bank transactions.
           </DialogContentText>
           <Form
             onSubmit={submit}
             isValid={isValid}
-            networkResponse={parsedUploadResponse}
+            networkResponse={props.networkResponse}
             submitButtonLabel="Import"
             cancelAction={props.onClose}
+            formError={formError}
           >
-            <Stack justifyContent="start" spacing={1.5}>
-              <FileInput
-                {...inputProps("bank", null)}
-                onChange={onFileSelect("bank")}
-                label="Bank transactions"
-                buttonProps={{
-                  color:
-                    inputProps("bank", null).value === null
-                      ? "primary"
-                      : "success",
-                }}
-              />
-              <FileInput
-                {...inputProps("paypal", null)}
-                onChange={onFileSelect("paypal")}
-                label="PayPal transactions"
-                buttonProps={{
-                  color:
-                    inputProps("paypal", null).value === null
-                      ? "primary"
-                      : "success",
-                }}
-              />
-            </Stack>
+            <FileInput {...inputProps("bank")} label="Bank transactions" />
           </Form>
         </Stack>
       </DialogContent>

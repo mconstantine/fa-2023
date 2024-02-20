@@ -13,6 +13,7 @@ import {
   TransactionWithCategories,
   UpdateTransactionInput,
   UpdateTransactionsInput,
+  UploadTransactionsInput,
 } from "./domain"
 
 export const listTransactionsRequest = makeGet("/transactions/", {
@@ -43,4 +44,9 @@ export const deleteTransactionRequest = makeDelete("/transactions/:id/", {
     id: S.UUID,
   }),
   response: Transaction,
+})
+
+export const uploadTransactionsRequest = makePatch("/transactions/import/", {
+  body: UploadTransactionsInput,
+  response: S.array(TransactionWithCategories),
 })

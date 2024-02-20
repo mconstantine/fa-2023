@@ -6,7 +6,7 @@ import {
   UpdateTransactionsInput as ServerUpdateTransactionsInput,
   UpdateTransactionInput as ServerUpdateTransactionInput,
 } from "../../../../backend/src/database/functions/transaction/domain"
-import { PaginationQuery } from "../../globalDomain"
+import { FileFromSelf, PaginationQuery } from "../../globalDomain"
 
 const ListTransactionsFiltersSubject = S.union(
   S.struct({
@@ -71,6 +71,13 @@ export const InsertTransactionInput = S.extend(
   }),
 )
 export type InsertTransactionInput = S.Schema.To<typeof InsertTransactionInput>
+
+export const UploadTransactionsInput = S.struct({
+  bank: FileFromSelf,
+})
+export type UploadTransactionsInput = S.Schema.To<
+  typeof UploadTransactionsInput
+>
 
 export const Transaction = S.extend(
   S.omit<ServerTransaction, ["value"]>("value")(ServerTransaction),

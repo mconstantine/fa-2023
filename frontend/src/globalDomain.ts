@@ -1,3 +1,4 @@
+import * as S from "@effect/schema/Schema"
 import {
   PaginationQuery as ServerPaginationQuery,
   PaginationResponse as ServerPaginationResponse,
@@ -21,3 +22,16 @@ export function emptyPaginationResponse<T>(): PaginationResponse<T> {
     edges: [],
   }
 }
+
+function isFile(input: unknown): input is File {
+  return input instanceof File
+}
+
+export const FileFromSelf = S.declare(isFile, {
+  identifier: "FileFromSelf",
+  arbitrary: () => (fc) =>
+    fc
+      .tuple(fc.string(), fc.string())
+      .map(([path, content]) => new File([content], path)),
+  pretty: () => (file) => `File(${file.name})`,
+})

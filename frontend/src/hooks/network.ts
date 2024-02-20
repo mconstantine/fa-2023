@@ -12,6 +12,8 @@ import * as NetworkResponse from "../network/NetworkResponse"
 import { identity } from "effect/Function"
 import { useSearchParams } from "react-router-dom"
 
+type HttpRequestType = "JSON" | "FormData"
+
 const ApiError = S.struct({
   error: S.string,
 })
@@ -113,7 +115,337 @@ export function decodeUrlQuery<I, O>(
   )
 }
 
-function sendHttpRequest<
+function encodeParams<
+  ParamsTo,
+  Path extends string,
+  QueryTo,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  BodyTo,
+  BodyFrom,
+  ResponseTo,
+  ResponseFrom,
+>(
+  urlTemplate: Path,
+  request: HttpRequest<
+    ParamsTo,
+    Path,
+    QueryTo,
+    QueryFrom,
+    BodyTo,
+    BodyFrom,
+    ResponseTo,
+    ResponseFrom
+  >,
+  data: HttpRequestData<
+    ParamsTo,
+    RouteParameters<Path>,
+    QueryTo,
+    QueryFrom,
+    BodyTo,
+    BodyFrom,
+    ResponseTo,
+    ResponseFrom,
+    typeof request.codecs
+  >,
+) {
+  if ("params" in data && typeof request.codecs.params !== "undefined") {
+    return populateUrlParams(urlTemplate, request.codecs.params, data.params)
+  } else {
+    return Effect.succeed(urlTemplate)
+  }
+}
+
+function encodeQuery<
+  ParamsTo,
+  Path extends string,
+  QueryTo,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  BodyTo,
+  BodyFrom,
+  ResponseTo,
+  ResponseFrom,
+>(
+  urlWithParams: string,
+  request: HttpRequest<
+    ParamsTo,
+    Path,
+    QueryTo,
+    QueryFrom,
+    BodyTo,
+    BodyFrom,
+    ResponseTo,
+    ResponseFrom
+  >,
+  data: HttpRequestData<
+    ParamsTo,
+    RouteParameters<Path>,
+    QueryTo,
+    QueryFrom,
+    BodyTo,
+    BodyFrom,
+    ResponseTo,
+    ResponseFrom,
+    typeof request.codecs
+  >,
+) {
+  if ("query" in data && typeof request.codecs.query !== "undefined") {
+    return populateUrlQuery(urlWithParams, request.codecs.query, data.query)
+  } else {
+    return Effect.succeed(urlWithParams)
+  }
+}
+
+function encodeJSONBody<
+  ParamsTo,
+  Path extends string,
+  QueryTo,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  BodyTo,
+  BodyFrom,
+  ResponseTo,
+  ResponseFrom,
+>(
+  request: HttpRequest<
+    ParamsTo,
+    Path,
+    QueryTo,
+    QueryFrom,
+    BodyTo,
+    BodyFrom,
+    ResponseTo,
+    ResponseFrom
+  >,
+  data: HttpRequestData<
+    ParamsTo,
+    RouteParameters<Path>,
+    QueryTo,
+    QueryFrom,
+    BodyTo,
+    BodyFrom,
+    ResponseTo,
+    ResponseFrom,
+    typeof request.codecs
+  >,
+): Effect.Effect<Option.Option<string>, HttpError> {
+  return pipe(
+    request.codecs.body,
+    Option.fromNullable,
+    Option.match({
+      onNone: () => Effect.succeed(Option.none()),
+      onSome: (codec) => {
+        if ("body" in data) {
+          return S.encode(codec)(data.body).pipe(
+            Effect.mapBoth({
+              onFailure: (error): HttpError => ({
+                code: 500,
+                message: "Invalid request body",
+                extras: { error },
+              }),
+              onSuccess: flow(JSON.stringify, Option.some),
+            }),
+          )
+        } else {
+          return Effect.succeed(Option.none())
+        }
+      },
+    }),
+  )
+}
+
+function encodeFormDataBody<
+  ParamsTo,
+  Path extends string,
+  QueryTo,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  BodyTo,
+  BodyFrom extends Record<string, string | Blob>,
+  ResponseTo,
+  ResponseFrom,
+>(
+  request: HttpRequest<
+    ParamsTo,
+    Path,
+    QueryTo,
+    QueryFrom,
+    BodyTo,
+    BodyFrom,
+    ResponseTo,
+    ResponseFrom
+  >,
+  data: HttpRequestData<
+    ParamsTo,
+    RouteParameters<Path>,
+    QueryTo,
+    QueryFrom,
+    BodyTo,
+    BodyFrom,
+    ResponseTo,
+    ResponseFrom,
+    typeof request.codecs
+  >,
+): Effect.Effect<Option.Option<FormData>, HttpError> {
+  return pipe(
+    request.codecs.body,
+    Option.fromNullable,
+    Option.match({
+      onNone: () => Effect.succeed(Option.none()),
+      onSome: (codec) => {
+        if ("body" in data) {
+          return S.encode(codec)(data.body).pipe(
+            Effect.mapBoth({
+              onFailure: (error): HttpError => ({
+                code: 500,
+                message: "Invalid request body",
+                extras: { error },
+              }),
+              onSuccess: (data) => {
+                const formData = new FormData()
+
+                Object.entries(data).forEach(([key, value]) => {
+                  formData.append(key, value)
+                })
+
+                return Option.some(formData)
+              },
+            }),
+          )
+        } else {
+          return Effect.succeed(Option.none())
+        }
+      },
+    }),
+  )
+}
+
+function sendRequest<
+  ParamsTo,
+  Path extends string,
+  QueryTo,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  BodyTo,
+  BodyFrom,
+  ResponseTo,
+  ResponseFrom,
+>(
+  type: HttpRequestType,
+  urlWithParamsAndQuery: string,
+  request: HttpRequest<
+    ParamsTo,
+    Path,
+    QueryTo,
+    QueryFrom,
+    BodyTo,
+    BodyFrom,
+    ResponseTo,
+    ResponseFrom
+  >,
+  body: Option.Option<string | FormData>,
+): Effect.Effect<Response, HttpError> {
+  return Effect.tryPromise({
+    try: () =>
+      window.fetch(urlWithParamsAndQuery, {
+        method: request.method,
+        ...pipe(
+          body,
+          Option.match({
+            onNone: () => ({}),
+            onSome: (body) => ({ body }),
+          }),
+        ),
+        ...pipe(
+          body,
+          Option.match({
+            onNone: () => ({}),
+            onSome: () => {
+              switch (type) {
+                case "JSON":
+                  return {
+                    headers: {
+                      "Content-Type": "application/json; charset=utf-8",
+                    },
+                  }
+                case "FormData":
+                  return {}
+              }
+            },
+          }),
+        ),
+      }),
+    catch: (error): HttpError => ({
+      code: 500,
+      message: "Unable to reach the server",
+      extras: { error },
+    }),
+  })
+}
+
+function parseResponse(response: Response): Effect.Effect<unknown, HttpError> {
+  return Effect.tryPromise({
+    try: () => response.json(),
+    catch: (error): HttpError => ({
+      code: 500,
+      message: "Unable to parse server response",
+      extras: { error },
+    }),
+  })
+}
+
+function decodeResponse<
+  ParamsTo,
+  Path extends string,
+  QueryTo,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  BodyTo,
+  BodyFrom,
+  ResponseTo,
+  ResponseFrom,
+>(
+  request: HttpRequest<
+    ParamsTo,
+    Path,
+    QueryTo,
+    QueryFrom,
+    BodyTo,
+    BodyFrom,
+    ResponseTo,
+    ResponseFrom
+  >,
+  response: Response,
+  content: unknown,
+): Effect.Effect<ResponseTo, HttpError> {
+  if (Math.floor(response.status / 100) !== 2) {
+    return S.decodeUnknown(ApiError)(content)
+      .pipe(
+        Effect.mapError(
+          (error): HttpError => ({
+            code: 500,
+            message: "Unable to decode server error",
+            extras: { error },
+          }),
+        ),
+      )
+      .pipe(
+        Effect.flatMap((error) =>
+          Effect.fail({
+            code: response.status,
+            message: error.error,
+          } satisfies HttpError),
+        ),
+      )
+  } else {
+    return S.decodeUnknown(request.codecs.response)(content).pipe(
+      Effect.mapError(
+        (error): HttpError => ({
+          code: 500,
+          message: "Unable to decode server response",
+          extras: { error },
+        }),
+      ),
+    )
+  }
+}
+
+function sendHttpJSONRequest<
   ParamsTo,
   Path extends string,
   QueryTo,
@@ -147,142 +479,76 @@ function sendHttpRequest<
 ): Effect.Effect<ResponseTo, HttpError> {
   const urlTemplate = (env.VITE_API_URL + request.path) as Path
 
-  const paramsEncoding = (() => {
-    if ("params" in data && typeof request.codecs.params !== "undefined") {
-      return populateUrlParams(urlTemplate, request.codecs.params, data.params)
-    } else {
-      return Effect.succeed(urlTemplate)
-    }
-  })()
-
-  const bodyEncoding: Effect.Effect<Option.Option<string>, HttpError> = pipe(
-    request.codecs.body,
-    Option.fromNullable,
-    Option.match({
-      onNone: () => Effect.succeed(Option.none()),
-      onSome: (codec) => {
-        if ("body" in data) {
-          return S.encode(codec)(data.body).pipe(
-            Effect.mapBoth({
-              onFailure: (error): HttpError => ({
-                code: 500,
-                message: "Invalid request body",
-                extras: { error },
-              }),
-              onSuccess: flow(JSON.stringify, Option.some),
-            }),
-          )
-        } else {
-          return Effect.succeed(Option.none())
-        }
-      },
-    }),
-  )
-
-  function encodeQuery(urlWithParams: string) {
-    if ("query" in data && typeof request.codecs.query !== "undefined") {
-      return populateUrlQuery(urlWithParams, request.codecs.query, data.query)
-    } else {
-      return Effect.succeed(urlWithParams)
-    }
-  }
-
-  function sendRequest(
-    urlWithParamsAndQuery: string,
-    body: Option.Option<string>,
-  ): Effect.Effect<Response, HttpError> {
-    return Effect.tryPromise({
-      try: () =>
-        window.fetch(urlWithParamsAndQuery, {
-          method: request.method,
-          ...pipe(
-            body,
-            Option.match({
-              onNone: () => ({}),
-              onSome: (body) => ({ body }),
-            }),
-          ),
-          ...pipe(
-            body,
-            Option.match({
-              onNone: () => ({}),
-              onSome: () => ({
-                headers: {
-                  "Content-Type": "application/json; charset=utf-8",
-                },
-              }),
-            }),
-          ),
-        }),
-      catch: (error): HttpError => ({
-        code: 500,
-        message: "Unable to reach the server",
-        extras: { error },
-      }),
-    })
-  }
-
-  function parseResponse(
-    response: Response,
-  ): Effect.Effect<unknown, HttpError> {
-    return Effect.tryPromise({
-      try: () => response.json(),
-      catch: (error): HttpError => ({
-        code: 500,
-        message: "Unable to parse server response",
-        extras: { error },
-      }),
-    })
-  }
-
-  function decodeResponseContent(
-    response: Response,
-    content: unknown,
-  ): Effect.Effect<ResponseTo, HttpError> {
-    if (Math.floor(response.status / 100) !== 2) {
-      return S.decodeUnknown(ApiError)(content)
-        .pipe(
-          Effect.mapError(
-            (error): HttpError => ({
-              code: 500,
-              message: "Unable to decode server error",
-              extras: { error },
-            }),
-          ),
-        )
-        .pipe(
-          Effect.flatMap((error) =>
-            Effect.fail({
-              code: response.status,
-              message: error.error,
-            } satisfies HttpError),
-          ),
-        )
-    } else {
-      return S.decodeUnknown(request.codecs.response)(content).pipe(
-        Effect.mapError(
-          (error): HttpError => ({
-            code: 500,
-            message: "Unable to decode server response",
-            extras: { error },
-          }),
-        ),
-      )
-    }
-  }
-
   return pipe(
-    paramsEncoding,
-    Effect.flatMap(encodeQuery),
+    encodeParams(urlTemplate, request, data),
+    Effect.flatMap((url) => encodeQuery(url, request, data)),
     Effect.flatMap((urlWithParamsAndQuery) =>
       pipe(
-        bodyEncoding,
-        Effect.flatMap((body) => sendRequest(urlWithParamsAndQuery, body)),
+        encodeJSONBody(request, data),
+        Effect.flatMap((body) =>
+          sendRequest("JSON", urlWithParamsAndQuery, request, body),
+        ),
         Effect.flatMap((response) =>
           pipe(
             parseResponse(response),
             Effect.flatMap((content) =>
-              decodeResponseContent(response, content),
+              decodeResponse(request, response, content),
+            ),
+          ),
+        ),
+      ),
+    ),
+  )
+}
+
+function sendHttpFormDataRequest<
+  ParamsTo,
+  Path extends string,
+  QueryTo,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  BodyTo,
+  BodyFrom extends Record<string, string | Blob>,
+  ResponseTo,
+  ResponseFrom,
+>(
+  request: HttpRequest<
+    ParamsTo,
+    Path,
+    QueryTo,
+    QueryFrom,
+    BodyTo,
+    BodyFrom,
+    ResponseTo,
+    ResponseFrom
+  >,
+  data: HttpRequestData<
+    ParamsTo,
+    RouteParameters<Path>,
+    QueryTo,
+    QueryFrom,
+    BodyTo,
+    BodyFrom,
+    ResponseTo,
+    ResponseFrom,
+    typeof request.codecs
+  >,
+): Effect.Effect<ResponseTo, HttpError> {
+  const urlTemplate = (env.VITE_API_URL + request.path) as Path
+
+  return pipe(
+    encodeParams(urlTemplate, request, data),
+    Effect.flatMap((url) => encodeQuery(url, request, data)),
+    Effect.flatMap((urlWithParamsAndQuery) =>
+      pipe(
+        encodeFormDataBody(request, data),
+        Effect.flatMap((body) =>
+          sendRequest("FormData", urlWithParamsAndQuery, request, body),
+        ),
+        Effect.flatMap((response) =>
+          pipe(
+            parseResponse(response),
+            Effect.flatMap((content) =>
+              decodeResponse(request, response, content),
             ),
           ),
         ),
@@ -648,7 +914,7 @@ export function useLazyQuery<
       }),
     )
 
-    Effect.runPromiseExit(sendHttpRequest(request, data)).then(
+    Effect.runPromiseExit(sendHttpJSONRequest(request, data)).then(
       flow(
         Exit.match({
           onFailure(cause) {
@@ -755,7 +1021,7 @@ export function useQuery<
       }),
     )
 
-    Effect.runPromiseExit(sendHttpRequest(request, data)).then(
+    Effect.runPromiseExit(sendHttpJSONRequest(request, data)).then(
       flow(
         Exit.match({
           onFailure(cause) {
@@ -904,7 +1170,146 @@ export function useCommand<
       }),
     )
 
-    return Effect.runPromiseExit(sendHttpRequest(request, data)).then(
+    return Effect.runPromiseExit(sendHttpJSONRequest(request, data)).then(
+      flow(
+        Exit.match({
+          onFailure(cause) {
+            const error: HttpError = causeToHttpError(cause)
+
+            setResponse(
+              NetworkResponse.flatMatch<
+                HttpError,
+                ResponseTo,
+                NetworkResponse.NetworkResponse<HttpError, ResponseTo>
+              >({
+                onIdle: identity,
+                onSuccess: identity,
+                onFailure: identity,
+                onLoading: (response) => {
+                  console.log(error.extras)
+                  return NetworkResponse.fail(error)(response)
+                },
+              }),
+            )
+
+            return Either.left(error)
+          },
+          onSuccess(data) {
+            setResponse(
+              NetworkResponse.flatMatch<
+                HttpError,
+                ResponseTo,
+                NetworkResponse.NetworkResponse<HttpError, ResponseTo>
+              >({
+                onIdle: identity,
+                onSuccess: identity,
+                onFailure: identity,
+                onLoading: NetworkResponse.succeed(data),
+              }),
+            )
+
+            return Either.right(data)
+          },
+        }),
+      ),
+    )
+  }
+
+  return [response, sendCommand]
+}
+
+type UseFormDataCommandOutput<
+  ParamsTo,
+  Path extends string,
+  QueryTo,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  BodyTo,
+  BodyFrom extends Record<string, string | Blob>,
+  ResponseTo,
+  ResponseFrom,
+> = [
+  response: NetworkResponse.NetworkResponse<HttpError, ResponseTo>,
+  execute: (
+    data: HttpRequestData<
+      ParamsTo,
+      RouteParameters<Path>,
+      QueryTo,
+      QueryFrom,
+      BodyTo,
+      BodyFrom,
+      ResponseTo,
+      ResponseFrom,
+      HttpRequestCodecs<
+        ParamsTo,
+        RouteParameters<Path>,
+        QueryTo,
+        QueryFrom,
+        BodyTo,
+        BodyFrom,
+        ResponseTo,
+        ResponseFrom
+      >
+    >,
+  ) => Promise<Either.Either<HttpError, ResponseTo>>,
+]
+
+export function useFormDataCommand<
+  ParamsTo,
+  Path extends string,
+  QueryTo,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  BodyTo,
+  BodyFrom extends Record<string, string | Blob>,
+  ResponseTo,
+  ResponseFrom,
+>(
+  request: HttpRequest<
+    ParamsTo,
+    Path,
+    QueryTo,
+    QueryFrom,
+    BodyTo,
+    BodyFrom,
+    ResponseTo,
+    ResponseFrom
+  >,
+): UseFormDataCommandOutput<
+  ParamsTo,
+  Path,
+  QueryTo,
+  QueryFrom,
+  BodyTo,
+  BodyFrom,
+  ResponseTo,
+  ResponseFrom
+> {
+  const [response, setResponse] = useState<
+    NetworkResponse.NetworkResponse<HttpError, ResponseTo>
+  >(NetworkResponse.idle())
+
+  function sendCommand(
+    data: HttpRequestData<
+      ParamsTo,
+      RouteParameters<Path>,
+      QueryTo,
+      QueryFrom,
+      BodyTo,
+      BodyFrom,
+      ResponseTo,
+      ResponseFrom,
+      typeof request.codecs
+    >,
+  ): Promise<Either.Either<HttpError, ResponseTo>> {
+    setResponse(
+      NetworkResponse.flatMatch({
+        onIdle: NetworkResponse.load(),
+        onLoading: identity,
+        onFailure: NetworkResponse.retry(),
+        onSuccess: NetworkResponse.refresh(),
+      }),
+    )
+
+    return Effect.runPromiseExit(sendHttpFormDataRequest(request, data)).then(
       flow(
         Exit.match({
           onFailure(cause) {

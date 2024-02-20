@@ -8,7 +8,12 @@ import {
   Typography,
 } from "@mui/material"
 import { useState } from "react"
-import { useCommand, useQuery, useRequestData } from "../../hooks/network"
+import {
+  useCommand,
+  useFormDataCommand,
+  useQuery,
+  useRequestData,
+} from "../../hooks/network"
 import Query from "../Query"
 import { PaginationResponse } from "../../globalDomain"
 import TransactionsTable from "./TransactionsTable"
@@ -19,6 +24,7 @@ import {
   listTransactionsRequest,
   updateTransactionRequest,
   updateTransactionsRequest,
+  uploadTransactionsRequest,
 } from "./api"
 import { Either, Option, pipe } from "effect"
 import { constFalse, constVoid } from "effect/Function"
@@ -27,10 +33,12 @@ import {
   ListTransactionsInput,
   TransactionWithCategories,
   UpdateTransactionsInput,
+  UploadTransactionsInput,
 } from "./domain"
 import TransactionForm from "./TransactionForm"
 import { InsertTransactionInput } from "../../../../backend/src/database/functions/transaction/domain"
 import * as NetworkResponse from "../../network/NetworkResponse"
+import ImportTransactionsDialog from "./ImportTransactionsDialog"
 
 interface TransactionFormState {
   open: boolean
@@ -38,7 +46,7 @@ interface TransactionFormState {
 }
 
 export default function TransactionsPage() {
-  // const [importDialogIsOpen, setImportDialogOpen] = useState(false)
+  const [importDialogIsOpen, setImportDialogOpen] = useState(false)
 
   const [formState, setFormState] = useState<TransactionFormState>({
     open: false,
@@ -54,8 +62,8 @@ export default function TransactionsPage() {
         subject: "description",
         search_query: "",
         categories: "all",
-        date_since: new Date(Date.UTC(new Date().getFullYear() - 1, 0, 1)),
-        date_until: new Date(Date.UTC(new Date().getFullYear(), 0, 0)),
+        date_since: new Date(Date.UTC(new Date().getFullYear(), 0, 1)),
+        date_until: new Date(Date.UTC(new Date().getFullYear() + 1, 0, 0)),
       },
     },
   )
@@ -75,6 +83,10 @@ export default function TransactionsPage() {
 
   const [deletedTransaction, deleteTransaction] = useCommand(
     deleteTransactionRequest,
+  )
+
+  const [uploadedTransactions, uploadTransactions] = useFormDataCommand(
+    uploadTransactionsRequest,
   )
 
   function onFiltersChange(filters: ListTransactionsInput): void {
@@ -141,6 +153,21 @@ export default function TransactionsPage() {
     )
   }
 
+  async function onImportTransactionsFormSubmit(body: UploadTransactionsInput) {
+    const transactions = await uploadTransactions({ body })
+
+    pipe(
+      transactions,
+      Either.match({
+        onLeft: constVoid,
+        onRight: (transactions) => {
+          updateTransactions(paginationResponse.fromNodes(transactions))
+          setImportDialogOpen(false)
+        },
+      }),
+    )
+  }
+
   return (
     <Container>
       <Stack spacing={1.5} sx={{ mt: 1.5 }}>
@@ -162,9 +189,9 @@ export default function TransactionsPage() {
             >
               Add transaction
             </Button>
-            {/* <Button onClick={() => setImportDialogOpen(true)}>
+            <Button onClick={() => setImportDialogOpen(true)}>
               Import transactions
-            </Button> */}
+            </Button>
           </Stack>
         </Paper>
         <Query
@@ -172,6 +199,7 @@ export default function TransactionsPage() {
             newTransaction,
             NetworkResponse.andThen(() => updatedTransaction),
             NetworkResponse.andThen(() => deletedTransaction),
+            NetworkResponse.andThen(() => uploadedTransactions),
             NetworkResponse.andThen(() => transactions),
           )}
           render={(transactions) => (
@@ -203,12 +231,12 @@ export default function TransactionsPage() {
           />
         </DialogContent>
       </Dialog>
-      {/* <ImportTransactionsDialog
+      <ImportTransactionsDialog
         isOpen={importDialogIsOpen}
+        networkResponse={uploadedTransactions}
         onClose={() => setImportDialogOpen(false)}
-        onSubmit={onImportSubmit}
+        onSubmit={onImportTransactionsFormSubmit}
       />
-      */}
     </Container>
   )
 }

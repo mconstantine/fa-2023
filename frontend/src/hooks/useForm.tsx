@@ -8,6 +8,13 @@ type Validators<Values extends Record<string, unknown>> = {
   [K in keyof Values]?: S.Schema<any, any>
 }
 
+type InitialValues<
+  R extends Record<string, unknown>,
+  V extends Validators<R>,
+> = {
+  [K in keyof R]: V[K] extends S.Schema<infer A, any> ? A | null : R[K] | null
+}
+
 type Validated<R extends Record<string, unknown>, V extends Validators<R>> = {
   [K in keyof R]: V[K] extends S.Schema<infer A, any> ? A : R[K]
 }
@@ -33,7 +40,7 @@ interface UseFormInput<
   F extends FormValidator<R, V, T>,
   T extends Record<keyof R, unknown>,
 > {
-  initialValues: Validated<R, V>
+  initialValues: InitialValues<R, V>
   validators: V
   formValidator: F
   submit(data: FormValidated<R, V, F, T>): void
@@ -43,7 +50,7 @@ interface UseFormInputNoFormValidator<
   R extends Record<string, unknown>,
   V extends Validators<R>,
 > {
-  initialValues: Validated<R, V>
+  initialValues: InitialValues<R, V>
   validators: V
   submit(data: Validated<R, V>): void
 }
@@ -97,6 +104,15 @@ type FormState<R extends Record<string, unknown>, V extends Validators<R>> = {
   validated: Validated<R, V>
 }
 
+/*
+There's a little trick here: initial values are not validated, so error messages don't appear as soon as
+the form is rendered. They are still validated before submit, specifically:
+
+- Every time any field changes, it's validated
+- When the submit button is clicked (on submit), all fields are validated
+
+More about that later.
+*/
 export function useForm<
   R extends Record<string, unknown>,
   V extends Validators<R>,
@@ -123,7 +139,8 @@ export function useForm<
         initialValueToFormDataEntry(value, input.validators[key]),
       ),
     ) as FormState<R, V>["props"],
-    validated: input.initialValues,
+    // This is NOT true, some values could be null here
+    validated: input.initialValues as Validated<R, V>,
   })
 
   function inputProps<K extends keyof R>(
@@ -184,7 +201,7 @@ export function useForm<
   }
 
   function submit(): void {
-    const validated = pipe(
+    const validatedProps = pipe(
       state.props as Record<string, FormState<R, V>["props"][keyof R]>,
       ReadonlyRecord.map((entry, key) => {
         if (typeof input.validators[key] === "undefined") {
@@ -197,24 +214,57 @@ export function useForm<
           )
         }
       }),
-      Either.all,
-    ) as Either.Either<string, Validated<R, V>>
-
-    const formValidated = (
-      "formValidator" in input
-        ? pipe(validated, Either.flatMap(input.formValidator))
-        : validated
-    ) as Either.Either<string, FormValidated<R, V, F, T>>
-
-    return pipe(
-      formValidated,
-      Either.match({
-        onLeft: (error) =>
-          setState((state) => ({ ...state, formError: Option.some(error) })),
-        onRight: (data) =>
-          input.submit(data as FormValidated<R, V, F, T> & Validated<R, V>),
-      }),
     )
+
+    if (Object.values(validatedProps).some(Either.isLeft)) {
+      // All fields are validated again here, so the initial lack of validation is ok
+      const errors = Object.fromEntries(
+        Object.entries(validatedProps)
+          .filter(([, e]) => Either.isLeft(e))
+          .map(([key, value]) => [
+            key,
+            (value as Either.Left<string, unknown>).left,
+          ]),
+      ) as Record<keyof R, string>
+
+      setState((state) => ({
+        ...state,
+        props: pipe(
+          state.props as Record<string, FormState<R, V>["props"][keyof R]>,
+          ReadonlyRecord.map((value, key) => {
+            if (key in errors) {
+              return {
+                ...value,
+                validation: Either.left(errors[key]),
+              }
+            } else {
+              return value
+            }
+          }),
+        ) as FormState<R, V>["props"],
+      }))
+    } else {
+      const validated = Either.all(validatedProps) as Either.Either<
+        string,
+        Validated<R, V>
+      >
+
+      const formValidated = (
+        "formValidator" in input
+          ? pipe(validated, Either.flatMap(input.formValidator))
+          : validated
+      ) as Either.Either<string, FormValidated<R, V, F, T>>
+
+      return pipe(
+        formValidated,
+        Either.match({
+          onLeft: (error) =>
+            setState((state) => ({ ...state, formError: Option.some(error) })),
+          onRight: (data) =>
+            input.submit(data as FormValidated<R, V, F, T> & Validated<R, V>),
+        }),
+      )
+    }
   }
 
   function isValid(): boolean {
@@ -232,6 +282,10 @@ export function useForm<
   }
 }
 
+// Use this only for the initial values of the state, as this is all a lie.
+// All validations are initialized as valid and some initial values could be
+// null. This is ok as all fields are validated on submit, so they can't
+// escape validation even if they are never touched.
 function initialValueToFormDataEntry<
   K extends keyof R,
   R extends Record<string, unknown>,
@@ -246,11 +300,13 @@ function initialValueToFormDataEntry<
           Either.mapLeft((error) => error.message),
         )
 
-  return {
-    value: pipe(
-      validation,
-      Either.getOrElse(() => value),
-    ),
+  const encoded = pipe(
     validation,
+    Either.getOrElse(() => value),
+  )
+
+  return {
+    value: encoded,
+    validation: Either.right(value),
   } as Validated<R, V>[K]
 }
