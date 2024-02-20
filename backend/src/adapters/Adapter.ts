@@ -1,4 +1,4 @@
-import { type Result } from "../Result"
+import { type Either } from "effect"
 import { type Transaction } from "../database/functions/transaction/domain"
 import { type Source } from "./Source"
 
@@ -23,5 +23,5 @@ export abstract class Adapter {
   public readonly name!: Source
   public static fromString: (
     input: string,
-  ) => Result<ImportError, Omit<Transaction, "id">>
+  ) => Either.Either<ImportError, Omit<Transaction, "id">>
 }

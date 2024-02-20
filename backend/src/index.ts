@@ -20,9 +20,9 @@ const app = express()
   app.use(
     "/api",
     Router()
-      .use("/categories", categoryRouter.toExpressRouter())
-      .use("/transactions", transactionRouter.toExpressRouter())
-      .use("/budgets", budgetRouter.toExpressRouter()),
+      .use("/categories", categoryRouter)
+      .use("/transactions", transactionRouter)
+      .use("/budgets", budgetRouter),
   )
 
   app.listen(env.SERVER_PORT, () => {

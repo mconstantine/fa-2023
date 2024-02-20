@@ -129,7 +129,7 @@ function encodeInput(input: Arg): string {
     case "boolean":
       return input ? "true" : "false"
     case "string":
-      return `'${input}'`
+      return `'${input.replace("'", "''")}'`
     case "function":
     case "symbol":
     case "undefined":
@@ -138,7 +138,7 @@ function encodeInput(input: Arg): string {
       if (input === null) {
         return "null"
       } else {
-        return `'${JSON.stringify(input)}'`
+        return `'${JSON.stringify(input).replaceAll("'", "''")}'`
       }
   }
 }
@@ -148,7 +148,6 @@ export async function callFunction<O, OO>(
   outputCodec: S.Schema<O, OO>,
   ...input: Arg[]
 ): Promise<O> {
-  // eslint-disable-next-line array-callback-return
   const encodedInput: string[] = input.map(encodeInput)
 
   const queryText = `select * from ${name}(${encodedInput.join(

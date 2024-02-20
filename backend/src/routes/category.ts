@@ -54,3 +54,4 @@ export const categoryRouter = Router.get("/", {
       }
     },
   })
+  .toExpressRouter()

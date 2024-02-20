@@ -74,3 +74,4 @@ export const budgetRouter = Router.get("/", {
     },
     handler: async ({ params }) => await deleteBudget(params.id),
   })
+  .toExpressRouter()

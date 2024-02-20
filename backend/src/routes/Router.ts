@@ -4,6 +4,7 @@ import express, { type Request } from "express"
 import { type RouteParameters } from "express-serve-static-core"
 import { HttpError } from "./HttpError"
 import { handleError } from "./handleError"
+import { constVoid } from "effect/Function"
 
 interface RouteCodecs<
   ParamsTo,
@@ -430,6 +431,10 @@ export class Router {
     )
   }
 
+  public tap(fn: (router: express.Router) => express.Router): Router {
+    return new Router(fn(this.router))
+  }
+
   private handle<
     ParamsTo,
     Path extends string,
@@ -509,10 +514,7 @@ export class Router {
         } catch (e) {
           handleError(e, res)
         }
-      })().then(
-        () => {},
-        () => {},
-      )
+      })().then(constVoid, constVoid)
     }
   }
 }
