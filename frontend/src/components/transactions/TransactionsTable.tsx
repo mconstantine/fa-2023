@@ -134,6 +134,7 @@ export default function TransactionsTable(props: Props) {
                 <TransactionsTableRow
                   key={edge.cursor}
                   selectableTransaction={edge.node}
+                  isSelectingTransactions={selectedRowsCount > 0}
                   onSelectClick={() => onSelectOneClick(edge.node.id)}
                   onEditButtonClick={onEditButtonClick(edge.node)}
                   onDeleteButtonClick={onDeleteButtonClick(edge.node)}

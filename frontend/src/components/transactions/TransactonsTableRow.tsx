@@ -13,6 +13,7 @@ import { SelectableTransaction } from "./TransactionsPage"
 
 interface Props {
   selectableTransaction: SelectableTransaction
+  isSelectingTransactions: boolean
   onSelectClick: MouseEventHandler<HTMLTableRowElement>
   onEditButtonClick: MouseEventHandler<HTMLButtonElement>
   onDeleteButtonClick: MouseEventHandler<HTMLButtonElement>
@@ -78,10 +79,18 @@ export default function TransactionsTableRow(props: Props) {
       </TableCell>
       <TableCell sx={{ minWidth: 116, maxWidth: 116, width: 116 }}>
         <Stack direction="row" spacing={0.5}>
-          <IconButton aria-label="Edit" onClick={props.onEditButtonClick}>
+          <IconButton
+            aria-label="Edit"
+            onClick={props.onEditButtonClick}
+            disabled={props.isSelectingTransactions}
+          >
             <Edit />
           </IconButton>
-          <IconButton aria-label="Delete" onClick={props.onDeleteButtonClick}>
+          <IconButton
+            aria-label="Delete"
+            onClick={props.onDeleteButtonClick}
+            disabled={props.isSelectingTransactions}
+          >
             <Delete />
           </IconButton>
         </Stack>

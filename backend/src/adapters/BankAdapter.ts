@@ -10,7 +10,7 @@ export class BankAdapter extends Adapter {
   public static override fromString(
     input: string,
   ): Either.Either<ImportError, Omit<Transaction, "id">> {
-    const [, dateString, description, inbound, outbound] = input.split(";")
+    const [dateString, , description, inbound, outbound] = input.split(";")
 
     if (
       typeof dateString === "undefined" ||

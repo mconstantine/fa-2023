@@ -46,12 +46,7 @@ export const ListTransactionsInput = S.extend(
 
 export type ListTransactionsInput = S.Schema.To<typeof ListTransactionsInput>
 
-export const UpdateTransactionsInput = S.extend(
-  ServerUpdateTransactionsInput.pipe(S.omit("value")),
-  S.struct({
-    value: S.optional(S.number),
-  }),
-)
+export const UpdateTransactionsInput = ServerUpdateTransactionsInput
 export type UpdateTransactionsInput = S.Schema.To<
   typeof UpdateTransactionsInput
 >

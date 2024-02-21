@@ -12,12 +12,15 @@ import { constFalse } from "effect/Function"
 import * as paginationResponse from "../../network/PaginationResponse"
 
 export default function CategoriesPage() {
-  const [filters, setFilters] = useRequestData<typeof listCategoriesRequest>({
-    query: {
-      direction: "forward",
-      count: 20,
+  const [filters, setFilters] = useRequestData<typeof listCategoriesRequest>(
+    listCategoriesRequest,
+    {
+      query: {
+        direction: "forward",
+        count: 20,
+      },
     },
-  })
+  )
 
   const [categories, updateCategories] = useQuery(
     listCategoriesRequest,
