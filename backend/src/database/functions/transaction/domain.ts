@@ -107,3 +107,19 @@ export const UpdateTransactionsInput = S.union(
 export type UpdateTransactionsInput = S.Schema.To<
   typeof UpdateTransactionsInput
 >
+
+export const AggregateTransactionsByCategoryInput = S.struct({
+  year: S.number.pipe(S.int()).pipe(S.positive()),
+})
+
+export type AggregateTransactionsByCategoryInput = S.Schema.To<
+  typeof AggregateTransactionsByCategoryInput
+>
+
+export const TransactionByCategory = S.struct({
+  category_id: S.nullable(S.UUID),
+  category_name: S.nullable(S.Trim.pipe(S.nonEmpty())),
+  transactions_total: CurrencyFromValue,
+})
+
+export type TransactionByCategory = S.Schema.To<typeof TransactionByCategory>

@@ -14,6 +14,7 @@ import { deleteTransaction } from "../functions/transaction/delete_transaction"
 import { insertCategory } from "../functions/category/insert_category"
 import { type Category } from "../functions/category/domain"
 import { listTransactions } from "../functions/transaction/list_transactions"
+import { aggregateTransactionsByCategory } from "../functions/transaction/aggregate_transactions_by_category"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
@@ -844,6 +845,69 @@ describe("database transaction functions", () => {
           })
         })
       })
+    })
+  })
+
+  describe("aggregate transactions by category", () => {
+    beforeAll(async () => {
+      await db.query("delete from transaction")
+    })
+
+    it("should work", async () => {
+      await insertTransactions([
+        {
+          description: "Aggregate transactions by category test 1",
+          value: 200,
+          date: new Date(2020, 0, 1),
+          categories_ids: [categories[0]!.id],
+        },
+        {
+          description: "Aggregate transactions by category test 2",
+          value: 300,
+          date: new Date(2020, 11, 31),
+          categories_ids: [categories[1]!.id],
+        },
+        {
+          description: "Aggregate transactions by category test 3",
+          value: 450,
+          date: new Date(2020, 0, 1),
+          categories_ids: [categories[0]!.id, categories[1]!.id],
+        },
+        {
+          description: "Aggregate transactions by category test 4",
+          value: 500,
+          date: new Date(2020, 0, 1),
+          categories_ids: [],
+        },
+        {
+          description: "Aggregate transactions by category test 4",
+          value: 1000,
+          date: new Date(2021, 0, 1),
+          categories_ids: [categories[0]!.id, categories[1]!.id],
+        },
+      ])
+
+      const result = await aggregateTransactionsByCategory({
+        year: 2020,
+      })
+
+      expect(result).toEqual([
+        {
+          category_id: categories[0]?.id,
+          category_name: categories[0]?.name,
+          transactions_total: 6.5,
+        },
+        {
+          category_id: categories[1]?.id,
+          category_name: categories[1]?.name,
+          transactions_total: 7.5,
+        },
+        {
+          category_id: null,
+          category_name: null,
+          transactions_total: 5,
+        },
+      ])
     })
   })
 })

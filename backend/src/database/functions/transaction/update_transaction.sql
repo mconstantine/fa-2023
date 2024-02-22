@@ -13,7 +13,7 @@ set
 where id = target_id
 returning id into updated_id;
 
-if jsonb_array_length(body->'categories_ids') > 0 then
+if body ? 'categories_ids' then
 	delete from transactions_categories where transaction_id = updated_id;
 
 	insert into transactions_categories (transaction_id, category_id)

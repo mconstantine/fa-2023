@@ -4,7 +4,7 @@ import { BankAdapter } from "./BankAdapter"
 describe("BankAdapter", () => {
   describe("parsing a row", () => {
     it("should work for inbound money", () => {
-      const row = "15/01/2020;16/01/2020;Inbound money test;42,50;;EUR"
+      const row = "16/01/2020;17/01/2020;Inbound money test;42,50;;EUR"
       const result = pipe(BankAdapter.fromString(row), Either.getOrThrow)
 
       expect(result.description).toBe("Inbound money test")
@@ -13,7 +13,7 @@ describe("BankAdapter", () => {
     })
 
     it("should work for outbound money", () => {
-      const row = "16/01/2020;17/01/2020;Outbound money test;;-42,50;EUR"
+      const row = "17/01/2020;18/01/2020;Outbound money test;;-42,50;EUR"
       const result = pipe(BankAdapter.fromString(row), Either.getOrThrow)
 
       expect(result.description).toBe("Outbound money test")
@@ -22,7 +22,7 @@ describe("BankAdapter", () => {
     })
 
     it("should work with no accounting date", () => {
-      const row = ";18/01/2020;No accounting date test;;-42,50;EUR"
+      const row = "18/01/2020;;No accounting date test;;-42,50;EUR"
       const result = pipe(BankAdapter.fromString(row), Either.getOrThrow)
 
       expect(result.description).toBe("No accounting date test")
@@ -31,7 +31,7 @@ describe("BankAdapter", () => {
     })
 
     it("should work with thousands", () => {
-      const row = "15/01/2020;16/01/2020;Thousands test;6.666,42;;EUR"
+      const row = "16/01/2020;17/01/2020;Thousands test;6.666,42;;EUR"
       const result = pipe(BankAdapter.fromString(row), Either.getOrThrow)
 
       expect(result.description).toBe("Thousands test")
