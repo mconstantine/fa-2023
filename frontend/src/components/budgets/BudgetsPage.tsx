@@ -1,19 +1,34 @@
 import * as NetworkResponse from "../../network/NetworkResponse"
 import * as S from "@effect/schema/Schema"
 import BudgetsTable from "./BudgetsTable"
-import { Container, Paper, Stack, Typography } from "@mui/material"
-import { useQuery, useRequestData } from "../../hooks/network"
+import {
+  Button,
+  Container,
+  Dialog,
+  DialogContent,
+  Paper,
+  Stack,
+  Typography,
+} from "@mui/material"
+import { useCommand, useQuery, useRequestData } from "../../hooks/network"
 import {
   aggregateTransactionsByCategoryRequest,
+  deleteBudgetRequest,
+  insertBudgetRequest,
   listBudgetsRequest,
 } from "./api"
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import ValidatedSelect from "../forms/inputs/ValidatedSelect"
 import { Either, Option, pipe } from "effect"
 import { constVoid } from "effect/Function"
 import Query from "../Query"
+import { BudgetWithCategory, InsertBudgetInput } from "./domain"
+import { useConfirmation } from "../../hooks/useConfirmation"
+import InsertBudgetForm from "./InsertBudgetForm"
 
 export default function BudgetsPage() {
+  const [creationDialogIsOpen, setCreationDialogOpen] = useState(false)
+
   const [filters, setFilters] = useRequestData<typeof listBudgetsRequest>(
     listBudgetsRequest,
     {
@@ -32,29 +47,14 @@ export default function BudgetsPage() {
     [filters],
   )
 
-  // const [creationDialogIsOpen, setCreationDialogOpen] = useState(false)
-
-  // const [categoriesAggregation] = useQuery<
-  //   CategoriesAggregationParams,
-  //   CategoriesAggregation[]
-  // >("/transactions/categories/", params)
-
-  const [budgets] = useQuery(listBudgetsRequest, filters)
+  const [budgets, updateBudgets] = useQuery(listBudgetsRequest, filters)
 
   const [transactionsByCategory] = useQuery(
     aggregateTransactionsByCategoryRequest,
     yearBeforeFilters,
   )
 
-  // const [createPredictionResponse, createPrediction] = useCommand<
-  //   PredictionCreationBody,
-  //   Prediction
-  // >("POST", "/predictions/")
-
-  // const [createPredictionsResponse, createPredictions] = useCommand<
-  //   PredictionBulkCreationBody,
-  //   Prediction[]
-  // >("POST", "/predictions/bulk/")
+  const [newBudget, insertBudget] = useCommand(insertBudgetRequest)
 
   // const [updatePredictionResponse, updatePrediction] = useCommand<
   //   PredictionUpdateBody,
@@ -66,10 +66,17 @@ export default function BudgetsPage() {
   //   Prediction[]
   // >("PATCH", "/predictions/bulk/")
 
-  // const [deletePredictionResponse, deletePrediction] = useCommand<
-  //   Prediction,
-  //   Omit<Prediction, "id">
-  // >("DELETE", "/predictions/")
+  const [deletedBudget, deleteBudget] = useCommand(deleteBudgetRequest)
+
+  const [onDeleteBudgetButtonClick, deleteBudgetConfirmationDialog] =
+    useConfirmation(onBudgetDelete, (budget) => ({
+      title: "Are you sure?",
+      message: `Are you sure you want to delete the budget for ${pipe(
+        budget.category,
+        Option.map((category) => `the "${category.name}" category`),
+        Option.getOrElse(() => "uncategorized transactions"),
+      )}? This cannot be undone!`,
+    }))
 
   const yearOptions: Record<string, string> = useMemo(() => {
     const min = 2023
@@ -110,14 +117,18 @@ export default function BudgetsPage() {
     return Either.right(year)
   }
 
-  // async function onPredictionCreate(data: Prediction): Promise<void> {
-  //   const result = await createPrediction(data)
+  async function onBudgetInsert(body: InsertBudgetInput): Promise<void> {
+    const result = await insertBudget({ body })
 
-  //   if (result !== null) {
-  //     updatePredictionsList((predictions) => [result, ...predictions])
-  //     setCreationDialogOpen(false)
-  //   }
-  // }
+    pipe(
+      result,
+      Either.match({
+        onLeft: constVoid,
+        onRight: (newBudget) =>
+          updateBudgets((budgets) => [newBudget, ...budgets]),
+      }),
+    )
+  }
 
   // async function onPredictionUpdate(
   //   data: Prediction | PredictionCreationBody,
@@ -204,84 +215,90 @@ export default function BudgetsPage() {
   //   ])
   // }
 
-  // async function onPredictionDelete(deleted: Prediction): Promise<void> {
-  //   const result = await deletePrediction(deleted)
+  async function onBudgetDelete(deleted: BudgetWithCategory): Promise<void> {
+    const result = await deleteBudget({
+      params: { id: deleted.id },
+    })
 
-  //   if (result !== null) {
-  //     updatePredictionsList((predictions) =>
-  //       predictions.filter((prediction) => prediction.id !== deleted.id),
-  //     )
-  //   }
-  // }
-
-  // const isTableLoading =
-  //   createPredictionsResponse.isLoading() ||
-  //   updatePredictionResponse.isLoading() ||
-  //   updatePredictionsResponse.isLoading() ||
-  //   deletePredictionResponse.isLoading()
+    pipe(
+      result,
+      Either.match({
+        onLeft: constVoid,
+        onRight: (deleted) =>
+          updateBudgets((budgets) =>
+            budgets.filter((budget) => budget.id !== deleted.id),
+          ),
+      }),
+    )
+  }
 
   return (
-    <Container>
-      <Stack spacing={1.5} sx={{ mt: 1.5 }}>
-        <Paper
-          sx={{
-            mt: 1.5,
-            p: 1.5,
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Typography variant="h5">Budgets</Typography>
-          <Stack direction="row" spacing={1.5}>
-            {/* <Button onClick={() => setCreationDialogOpen(true)}>
-              Create prediction
-            </Button> */}
-            <ValidatedSelect
-              name="year"
-              value={filters.query.year.toString()}
-              options={yearOptions}
-              onChange={onYearChange}
-              error={Option.none()}
-            />
-          </Stack>
-        </Paper>
-        <Query
-          response={pipe(
-            { budgets, transactionsByCategory },
-            NetworkResponse.all,
-          )}
-          render={({ budgets, transactionsByCategory }) => (
-            <BudgetsTable
-              year={filters.query.year}
-              budgets={budgets}
-              transactionsByCategory={transactionsByCategory}
-              // onPredictionUpdate={onPredictionUpdate}
-              // onPredictionsUpdate={onPredictionsUpdate}
-              // onPredictionDelete={onPredictionDelete}
-            />
-          )}
-        />
-      </Stack>
-      {/* <Dialog
-        open={creationDialogIsOpen}
-        onClose={() => setCreationDialogOpen(false)}
-      >
-        <DialogContent>
-          <PredictionCreationForm
-            year={params.year + 1}
-            isVisible={creationDialogIsOpen}
-            networkResponse={createPredictionResponse}
-            onSubmit={onPredictionCreate}
-            onCancel={() => setCreationDialogOpen(false)}
-            excludedCategoriesIds={predictionsList
-              .map((predictions) =>
-                predictions.map((prediction) => prediction.categoryId),
-              )
-              .getOrElse([])}
+    <>
+      <Container>
+        <Stack spacing={1.5} sx={{ mt: 1.5 }}>
+          <Paper
+            sx={{
+              mt: 1.5,
+              p: 1.5,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Typography variant="h5">Budgets</Typography>
+            <Stack direction="row" spacing={1.5}>
+              <Button onClick={() => setCreationDialogOpen(true)}>
+                Create budget
+              </Button>
+              <ValidatedSelect
+                name="year"
+                value={filters.query.year.toString()}
+                options={yearOptions}
+                onChange={onYearChange}
+                error={Option.none()}
+              />
+            </Stack>
+          </Paper>
+          <Query
+            response={pipe(
+              { budgets, transactionsByCategory },
+              NetworkResponse.all,
+              NetworkResponse.withErrorFrom(deletedBudget),
+            )}
+            render={({ budgets, transactionsByCategory }) => (
+              <BudgetsTable
+                year={filters.query.year}
+                budgets={budgets}
+                transactionsByCategory={transactionsByCategory}
+                // onPredictionUpdate={onPredictionUpdate}
+                // onPredictionsUpdate={onPredictionsUpdate}
+                onBudgetDelete={onDeleteBudgetButtonClick}
+              />
+            )}
           />
-        </DialogContent>
-      </Dialog> */}
-    </Container>
+        </Stack>
+        <Dialog
+          open={creationDialogIsOpen}
+          onClose={() => setCreationDialogOpen(false)}
+        >
+          <DialogContent>
+            <InsertBudgetForm
+              year={filters.query.year}
+              networkResponse={newBudget}
+              onSubmit={onBudgetInsert}
+              onCancel={() => setCreationDialogOpen(false)}
+              excludedCategoriesIds={pipe(
+                budgets,
+                NetworkResponse.map((budgets) =>
+                  budgets.map((budget) => Option.getOrNull(budget.category_id)),
+                ),
+                NetworkResponse.getOrElse(() => []),
+              )}
+            />
+          </DialogContent>
+        </Dialog>
+      </Container>
+      {deleteBudgetConfirmationDialog}
+    </>
   )
 }

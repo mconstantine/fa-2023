@@ -1,7 +1,9 @@
 import * as S from "@effect/schema/Schema"
-import { makeGet } from "../../network/HttpRequest"
+import { makeDelete, makeGet, makePost } from "../../network/HttpRequest"
 import {
+  Budget,
   BudgetWithCategory,
+  InsertBudgetInput,
   ListBudgetsFilters,
   TransactionByCategory,
 } from "./domain"
@@ -18,3 +20,15 @@ export const aggregateTransactionsByCategoryRequest = makeGet(
     response: S.array(TransactionByCategory),
   },
 )
+
+export const deleteBudgetRequest = makeDelete("/budgets/:id/", {
+  params: S.struct({
+    id: S.UUID,
+  }),
+  response: Budget,
+})
+
+export const insertBudgetRequest = makePost("/budgets/", {
+  body: InsertBudgetInput,
+  response: BudgetWithCategory,
+})

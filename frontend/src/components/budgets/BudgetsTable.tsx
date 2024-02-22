@@ -1,3 +1,4 @@
+import * as S from "effect/String"
 import {
   Paper,
   Table,
@@ -7,12 +8,14 @@ import {
   TableRow,
   useTheme,
 } from "@mui/material"
-import { TransactionByCategory } from "../../../../backend/src/database/functions/transaction/domain"
-import { BudgetWithCategory } from "../../../../backend/src/database/functions/budget/domain"
 import BudgetsTableHead from "./BudgetsTableHead"
 import BudgetsTableRow from "./BudgetsTableRow"
-import { Option } from "effect"
-import { InsertBudgetInput } from "./domain"
+import { Option, pipe } from "effect"
+import {
+  BudgetWithCategory,
+  InsertBudgetInput,
+  TransactionByCategory,
+} from "./domain"
 import { useState } from "react"
 
 interface Props {
@@ -23,7 +26,7 @@ interface Props {
   // onPredictionsUpdate(
   //   predictions: Array<Prediction | PredictionCreationBody>,
   // ): void
-  // onPredictionDelete(prediction: Prediction): void
+  onBudgetDelete(budget: BudgetWithCategory): void
 }
 
 interface IdleTableFormState {
@@ -60,13 +63,21 @@ export default function BudgetsTable(props: Props) {
   const rogue = props.budgets
     .filter(
       (budget) =>
-        !props.transactionsByCategory.find(
-          (entry) => entry.category_id === budget.category_id,
+        !props.transactionsByCategory.find((entry) =>
+          pipe(Option.getEquivalence(S.Equivalence), (eq) =>
+            eq(budget.category_id, entry.category_id),
+          ),
         ),
     )
     .map<TransactionByCategory>((budget) => ({
-      category_id: budget.category?.id ?? null,
-      category_name: budget.category?.name ?? null,
+      category_id: pipe(
+        budget.category,
+        Option.map((category) => category.id),
+      ),
+      category_name: pipe(
+        budget.category,
+        Option.map((category) => category.name),
+      ),
       transactions_total: 0,
     }))
 
@@ -76,15 +87,21 @@ export default function BudgetsTable(props: Props) {
   )
 
   const budgetsTotal = props.transactionsByCategory.reduce((sum, entry) => {
-    const budget = props.budgets.find(
-      (budget) => budget.category_id === entry.category_id,
+    const budget = Option.fromNullable(
+      props.budgets.find((budget) =>
+        pipe(Option.getEquivalence(S.Equivalence), (eq) =>
+          eq(budget.category_id, entry.category_id),
+        ),
+      ),
     )
 
-    if (typeof budget !== "undefined") {
-      return sum + budget.value
-    } else {
-      return sum + entry.transactions_total
-    }
+    return pipe(
+      budget,
+      Option.match({
+        onNone: () => sum + entry.transactions_total,
+        onSome: (budget) => sum + budget.value,
+      }),
+    )
   }, 0)
 
   const sorted = [...incomes, ...outcomes, ...rogue]
@@ -185,15 +202,13 @@ export default function BudgetsTable(props: Props) {
   //   }
   // }
 
-  // function onDeletePredictionButtonClick(categoryId: string | null) {
-  //   const prediction = props.predictions.find(
-  //     (prediction) => prediction.categoryId === categoryId,
-  //   )
-
-  //   if (typeof prediction !== "undefined") {
-  //     props.onPredictionDelete(prediction)
-  //   }
-  // }
+  function onDeleteBudgetButtonClick(
+    budget: Option.Option<BudgetWithCategory>,
+  ): void {
+    if (Option.isSome(budget)) {
+      props.onBudgetDelete(budget.value)
+    }
+  }
 
   return (
     <Paper>
@@ -201,42 +216,44 @@ export default function BudgetsTable(props: Props) {
         <Table stickyHeader>
           <BudgetsTableHead
             year={props.year}
-            // formState={formState}
+            formState={formState}
             // onEditButtonClick={onBulkEditButtonClick}
             // onSaveButtonClick={onBulkSaveButtonClick}
             // onCancel={onCancelEditing}
             // isLoading={props.isLoading}
           />
           <TableBody>
-            {sorted.map((entry) => (
-              <BudgetsTableRow
-                key={entry.category_id}
-                transactionByCategory={entry}
-                budget={Option.fromNullable(
-                  props.budgets.find(
-                    (budget) => budget.category_id === entry.category_id,
+            {sorted.map((entry) => {
+              const budget = Option.fromNullable(
+                props.budgets.find((budget) =>
+                  pipe(Option.getEquivalence(S.Equivalence), (eq) =>
+                    eq(entry.category_id, budget.category_id),
                   ),
-                )}
-                formState={formState}
-                // onValueChange={(value) =>
-                //   onPredictionValueChange(
-                //     entry.categoryId,
-                //     value,
-                //   )
-                // }
-                // onEditButtonClick={() =>
-                //   onEditPredictionButtonClick(entry.categoryId)
-                // }
-                // onSaveButtonClick={onSavePredictionButtonClick}
-                // onDeleteButtonClick={() =>
-                //   onDeletePredictionButtonClick(
-                //     entry.categoryId,
-                //   )
-                // }
-                // onCancel={onCancelEditing}
-                // isLoading={props.isLoading}
-              />
-            ))}
+                ),
+              )
+
+              return (
+                <BudgetsTableRow
+                  key={Option.getOrNull(entry.category_id)}
+                  transactionByCategory={entry}
+                  budget={budget}
+                  formState={formState}
+                  // onValueChange={(value) =>
+                  //   onPredictionValueChange(
+                  //     entry.categoryId,
+                  //     value,
+                  //   )
+                  // }
+                  // onEditButtonClick={() =>
+                  //   onEditPredictionButtonClick(entry.categoryId)
+                  // }
+                  // onSaveButtonClick={onSavePredictionButtonClick}
+                  onDeleteButtonClick={() => onDeleteBudgetButtonClick(budget)}
+                  // onCancel={onCancelEditing}
+                  // isLoading={props.isLoading}
+                />
+              )
+            })}
             <TableRow
               sx={{
                 position: "sticky",

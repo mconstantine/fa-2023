@@ -1,8 +1,9 @@
-import { TableCell, TableRow } from "@mui/material"
-import { TransactionByCategory } from "../../../../backend/src/database/functions/transaction/domain"
-import { BudgetWithCategory } from "../../../../backend/src/database/functions/budget/domain"
+import { Box, IconButton, Stack, TableCell, TableRow } from "@mui/material"
 import { Option, pipe } from "effect"
 import { TableFormState } from "./BudgetsTable"
+import { BudgetWithCategory, TransactionByCategory } from "./domain"
+import { constNull } from "effect/Function"
+import { Delete } from "@mui/icons-material"
 
 interface Props {
   transactionByCategory: TransactionByCategory
@@ -11,7 +12,7 @@ interface Props {
   // onValueChange(value: number): void
   // onEditButtonClick(): void
   // onSaveButtonClick(): void
-  // onDeleteButtonClick(): void
+  onDeleteButtonClick(): void
   // onCancel(): void
 }
 
@@ -19,7 +20,10 @@ export default function BudgetsTableRow(props: Props) {
   return (
     <TableRow>
       <TableCell>
-        {props.transactionByCategory.category_name ?? "Uncategorized"}
+        {pipe(
+          props.transactionByCategory.category_name,
+          Option.getOrElse(() => "Uncategorized"),
+        )}
       </TableCell>
       <TableCell align="right">
         {props.transactionByCategory.transactions_total.toFixed(2)}
@@ -92,60 +96,66 @@ export default function BudgetsTableRow(props: Props) {
         )}
       </TableCell>
       <TableCell sx={{ minWidth: 116, maxWidth: 116, width: 116 }}>
-        {/* {(() => {
+        {(() => {
           switch (props.formState.type) {
-            case "idle":
+            case "Idle":
               return (
                 <Stack direction="row" spacing={0.5}>
-                  <IconButton
+                  {/* <IconButton
                     aria-label="Edit"
                     onClick={() => props.onEditButtonClick()}
                     disabled={props.isLoading}
                   >
                     <Edit />
-                  </IconButton>
-                  {props.prediction !== null ? (
-                    <IconButton
-                      aria-label="Delete"
-                      onClick={() => props.onDeleteButtonClick()}
-                      disabled={props.isLoading}
-                    >
-                      <Delete />
-                    </IconButton>
-                  ) : null}
+                  </IconButton> */}
+                  {pipe(
+                    props.budget,
+                    Option.match({
+                      onNone: constNull,
+                      onSome: () => (
+                        <IconButton
+                          aria-label="Delete"
+                          onClick={props.onDeleteButtonClick}
+                        >
+                          <Delete />
+                        </IconButton>
+                      ),
+                    }),
+                  )}
                 </Stack>
               )
-            case "bulkEditing":
+            case "BulkEditing":
               return <Box height={40} />
-            case "editing": {
-              if (
-                props.categoriesAggregation.categoryId ===
-                props.formState.subject.categoryId
-              ) {
-                return (
-                  <Stack direction="row" spacing={0.5}>
-                    <IconButton
-                      aria-label="Save"
-                      onClick={() => props.onSaveButtonClick()}
-                      disabled={props.isLoading}
-                    >
-                      <Check color="primary" />
-                    </IconButton>
-                    <IconButton
-                      aria-label="Cancel"
-                      onClick={() => props.onCancel()}
-                      disabled={props.isLoading}
-                    >
-                      <Close />
-                    </IconButton>
-                  </Stack>
-                )
-              } else {
-                return <Box height={40} />
-              }
+            case "Editing": {
+              // if (
+              //   props.categoriesAggregation.categoryId ===
+              //   props.formState.subject.categoryId
+              // ) {
+              //   return (
+              //     <Stack direction="row" spacing={0.5}>
+              //       <IconButton
+              //         aria-label="Save"
+              //         onClick={() => props.onSaveButtonClick()}
+              //         disabled={props.isLoading}
+              //       >
+              //         <Check color="primary" />
+              //       </IconButton>
+              //       <IconButton
+              //         aria-label="Cancel"
+              //         onClick={() => props.onCancel()}
+              //         disabled={props.isLoading}
+              //       >
+              //         <Close />
+              //       </IconButton>
+              //     </Stack>
+              //   )
+              // } else {
+              //   return <Box height={40} />
+              // }
+              return null
             }
           }
-        })()} */}
+        })()}
       </TableCell>
     </TableRow>
   )
