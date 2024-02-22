@@ -12,6 +12,7 @@ import { updateTransactions } from "../database/functions/transaction/update_tra
 import { deleteTransaction } from "../database/functions/transaction/delete_transaction"
 import { HttpError } from "./HttpError"
 import {
+  AggregateTransactionsByCategoryInput,
   InsertTransactionInput,
   ListTransactionsInput,
   UpdateTransactionInput,
@@ -24,6 +25,7 @@ import { BankAdapter } from "../adapters/BankAdapter"
 import { Cause, Effect, Either, Exit, pipe } from "effect"
 import { ImportErrorType } from "../adapters/Adapter"
 import { constVoid, flow, identity } from "effect/Function"
+import { aggregateTransactionsByCategory } from "../database/functions/transaction/aggregate_transactions_by_category"
 
 export const transactionRouter = Router.get("/", {
   codecs: {
@@ -31,6 +33,12 @@ export const transactionRouter = Router.get("/", {
   },
   handler: async ({ query }) => await listTransactions(query),
 })
+  .get("/by-category", {
+    codecs: {
+      query: AggregateTransactionsByCategoryInput,
+    },
+    handler: async ({ query }) => await aggregateTransactionsByCategory(query),
+  })
   .post("/", {
     codecs: {
       body: InsertTransactionInput,

@@ -161,8 +161,8 @@ export default function CategoriesList(props: Props) {
           </FormControl>
           <Query
             response={pipe(
-              props.deletionResponse,
-              NetworkResponse.andThen(() => props.categories),
+              props.categories,
+              NetworkResponse.withErrorFrom(props.deletionResponse),
             )}
             render={(categories) => (
               <List

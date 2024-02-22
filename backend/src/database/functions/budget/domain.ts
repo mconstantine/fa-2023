@@ -21,6 +21,15 @@ export const BudgetWithCategory = S.extend(
 export interface BudgetWithCategory
   extends S.Schema.To<typeof BudgetWithCategory> {}
 
+const Year = S.number.pipe(S.int()).pipe(S.positive())
+
+export const ListBudgetsInput = S.struct({
+  year: Year,
+})
+
+export interface ListBudgetsInput
+  extends S.Schema.To<typeof ListBudgetsInput> {}
+
 export const InsertBudgetInput = S.struct({
   year: S.number.pipe(S.int()).pipe(S.positive()),
   value: ValueFromCurrency,

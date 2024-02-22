@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { flow } from "effect"
+
 interface IdleNetworkResponse {
   readonly tag: "Idle"
 }
@@ -156,7 +158,7 @@ export const all: <
       if (isIdle(value) || isLoading(value) || isFailure(value)) {
         return value
       } else {
-        result[key] = value
+        result[key] = value.data
       }
     }
 
@@ -236,4 +238,27 @@ export function map<E, A, R>(
   fn: (data: A) => R,
 ): (self: NetworkResponse<E, A>) => NetworkResponse<E, R> {
   return flatMap((data) => successful(fn(data)))
+}
+
+export function mapError<E1, A, E2>(
+  fn: (data: E1) => E2,
+): (self: NetworkResponse<E1, A>) => NetworkResponse<E2, A> {
+  return match<E1, A, NetworkResponse<E2, A>>({
+    onIdle: idle,
+    onLoading: loading,
+    onFailure: flow(fn, failure),
+    onSuccess: successful,
+  })
+}
+
+export function withErrorFrom<E, A, B>(
+  that: NetworkResponse<E, B>,
+): (self: NetworkResponse<E, A>) => NetworkResponse<E, A> {
+  return (self) => {
+    if (isFailure(that)) {
+      return failure(that.error)
+    } else {
+      return self
+    }
+  }
 }

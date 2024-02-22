@@ -1,15 +1,15 @@
 import { RouteObject } from "react-router-dom"
 import CategoriesPage from "./components/categories/CategoriesPage"
 import TransactionsPage from "./components/transactions/TransactionsPage"
-// import PredictionsPage from "./components/predictions/PredictionsPage"
 import { PageWithHeader } from "./components/PageWithHeader"
+import BudgetsPage from "./components/budgets/BudgetsPage"
 // import MonthlyPage from "./components/monthly/MonthlyPage"
 // import CategoryTimePage from "./components/category-time/CategoryTimePage"
 
 enum Routes {
   HOME = "/",
   CATEGORIES = "/categories",
-  // PREDICTIONS = "/predictions",
+  BUDGETS = "/budgets",
   // MONTHLY = "/monthly",
   // CATEGORY_TIME = "/category-time",
 }
@@ -38,24 +38,15 @@ export const routes: Route[] = [
     ),
     label: "Transactions",
   },
-  // {
-  //   path: Routes.CATEGORIES,
-  //   element: (
-  //     <PageWithHeader>
-  //       <CategoriesPage />
-  //     </PageWithHeader>
-  //   ),
-  //   label: "Categories",
-  // },
-  // {
-  //   path: Routes.PREDICTIONS,
-  //   element: (
-  //     <PageWithHeader>
-  //       <PredictionsPage />
-  //     </PageWithHeader>
-  //   ),
-  //   label: "Predictions",
-  // },
+  {
+    path: Routes.BUDGETS,
+    element: (
+      <PageWithHeader>
+        <BudgetsPage />
+      </PageWithHeader>
+    ),
+    label: "Budgets",
+  },
   // {
   //   path: Routes.MONTHLY,
   //   element: (

@@ -11,8 +11,14 @@ import {
 import { MouseEventHandler } from "react"
 import { SelectableTransaction } from "./TransactionsPage"
 
+export interface SelectableTransactionWithWarnings
+  extends SelectableTransaction {
+  hasOnlyMetaCategories: boolean
+  hasMultipleNonMetaCategories: boolean
+}
+
 interface Props {
-  selectableTransaction: SelectableTransaction
+  selectableTransaction: SelectableTransactionWithWarnings
   isSelectingTransactions: boolean
   onSelectClick: MouseEventHandler<HTMLTableRowElement>
   onEditButtonClick: MouseEventHandler<HTMLButtonElement>
@@ -20,11 +26,6 @@ interface Props {
 }
 
 export default function TransactionsTableRow(props: Props) {
-  const hasMultipleNonMetaCategories =
-    props.selectableTransaction.categories.filter(
-      (category) => !category.is_meta,
-    ).length > 1
-
   return (
     <TableRow
       key={props.selectableTransaction.id}
@@ -67,8 +68,13 @@ export default function TransactionsTableRow(props: Props) {
                 .join(", ")}
             </Typography>
           </Stack>
-          {hasMultipleNonMetaCategories ? (
-            <Tooltip title="Multiple non meta categories. This duplicates transactions in predictions.">
+          {props.selectableTransaction.hasMultipleNonMetaCategories ? (
+            <Tooltip title="Multiple non meta categories. This duplicates transactions in budgets.">
+              <Warning color="warning" />
+            </Tooltip>
+          ) : null}
+          {props.selectableTransaction.hasOnlyMetaCategories ? (
+            <Tooltip title="Meta categories only. This removes transactions from budgets.">
               <Warning color="warning" />
             </Tooltip>
           ) : null}

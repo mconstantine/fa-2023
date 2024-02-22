@@ -15,6 +15,8 @@ import { updateBudgets } from "../functions/budget/update_budgets"
 import { deleteBudget } from "../functions/budget/delete_budget"
 import { listBudgets } from "../functions/budget/list_budgets"
 
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+
 describe("database budget functions", () => {
   let categories: Category[]
 
@@ -60,7 +62,6 @@ describe("database budget functions", () => {
       const result = await insertBudget({
         year: 2020,
         value: 10000,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         category_id: categories[0]!.id,
       })
 
@@ -79,7 +80,6 @@ describe("database budget functions", () => {
         {
           year: 2020,
           value: 5000,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           category_id: categories[0]!.id,
         },
       ])
@@ -113,7 +113,6 @@ describe("database budget functions", () => {
       const budget = await insertBudget({
         year: 2020,
         value: 10000,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         category_id: categories[0]!.id,
       })
 
@@ -122,7 +121,6 @@ describe("database budget functions", () => {
         S.decodeSync(UpdateBudgetInput)({
           year: 2021,
           value: 1.5,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           category_id: categories[1]!.id,
         }),
       )
@@ -136,7 +134,6 @@ describe("database budget functions", () => {
       const budget = await insertBudget({
         year: 2020,
         value: 10000,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         category_id: categories[0]!.id,
       })
 
@@ -154,13 +151,11 @@ describe("database budget functions", () => {
         {
           year: 2020,
           value: 4200,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           category_id: categories[0]!.id,
         },
         {
           year: 2020,
           value: 6900,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           category_id: categories[1]!.id,
         },
       ])
@@ -168,12 +163,10 @@ describe("database budget functions", () => {
       const result = await updateBudgets(
         S.decodeSync(UpdateBudgetsInput)([
           {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             id: budgets[0]!.id,
             value: 6.9,
           },
           {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             id: budgets[1]!.id,
             value: 4.2,
           },
@@ -189,24 +182,20 @@ describe("database budget functions", () => {
         {
           year: 2020,
           value: 4200,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           category_id: categories[0]!.id,
         },
         {
           year: 2020,
           value: 6900,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           category_id: categories[1]!.id,
         },
       ])
 
       const result = await updateBudgets([
         {
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           id: budgets[0]!.id,
         },
         {
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           id: budgets[1]!.id,
         },
       ])
@@ -239,7 +228,7 @@ describe("database budget functions", () => {
   describe("list budgets", () => {
     it("should work with empty table", async () => {
       await db.query("delete from budget")
-      const result = await listBudgets(2020)
+      const result = await listBudgets({ year: 2020 })
       expect(result).toEqual([])
     })
 
@@ -248,30 +237,26 @@ describe("database budget functions", () => {
         {
           year: 2020,
           value: 4200,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           category_id: categories[0]!.id,
         },
         {
           year: 2020,
           value: 6900,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           category_id: categories[1]!.id,
         },
         {
           year: 2021,
           value: 4200,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           category_id: categories[0]!.id,
         },
         {
           year: 2021,
           value: 6900,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           category_id: categories[1]!.id,
         },
       ])
 
-      const result = await listBudgets(2021)
+      const result = await listBudgets({ year: 2021 })
       expect(result).toEqual(budgets.slice(2))
     })
   })

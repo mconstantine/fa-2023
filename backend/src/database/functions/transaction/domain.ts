@@ -109,7 +109,7 @@ export type UpdateTransactionsInput = S.Schema.To<
 >
 
 export const AggregateTransactionsByCategoryInput = S.struct({
-  year: S.number.pipe(S.int()).pipe(S.positive()),
+  year: S.NumberFromString.pipe(S.int()).pipe(S.positive()),
 })
 
 export type AggregateTransactionsByCategoryInput = S.Schema.To<

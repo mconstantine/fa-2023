@@ -7,8 +7,9 @@ import {
   Stack,
   Typography,
 } from "@mui/material"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
+  HttpError,
   useCommand,
   useFormDataCommand,
   useQuery,
@@ -27,7 +28,7 @@ import {
   uploadTransactionsRequest,
 } from "./api"
 import { Either, Option, pipe } from "effect"
-import { constFalse, constVoid } from "effect/Function"
+import { constVoid } from "effect/Function"
 import * as paginationResponse from "../../network/PaginationResponse"
 import {
   ListTransactionsInput,
@@ -79,6 +80,10 @@ export default function TransactionsPage() {
 
   const [updatedTransaction, updateTransaction] = useCommand(
     updateTransactionRequest,
+  )
+
+  const [updatedTransactions, bulkUpdateTransactions] = useCommand(
+    updateTransactionsRequest,
   )
 
   const [deletedTransaction, deleteTransaction] = useCommand(
@@ -153,6 +158,23 @@ export default function TransactionsPage() {
     )
   }
 
+  async function onTransactionsUpdate(
+    body: UpdateTransactionsInput,
+  ): Promise<boolean> {
+    const response = await bulkUpdateTransactions({ body })
+
+    pipe(
+      response,
+      Either.match({
+        onLeft: constVoid,
+        onRight: (updatedTransactions) =>
+          updateTransactions(paginationResponse.replace(updatedTransactions)),
+      }),
+    )
+
+    return Either.isRight(response)
+  }
+
   async function onImportTransactionsFormSubmit(body: UploadTransactionsInput) {
     const transactions = await uploadTransactions({ body })
 
@@ -196,19 +218,18 @@ export default function TransactionsPage() {
         </Paper>
         <Query
           response={pipe(
-            newTransaction,
-            NetworkResponse.andThen(() => updatedTransaction),
-            NetworkResponse.andThen(() => deletedTransaction),
-            NetworkResponse.andThen(() => uploadedTransactions),
-            NetworkResponse.andThen(() => transactions),
+            transactions,
+            NetworkResponse.withErrorFrom(deletedTransaction),
           )}
           render={(transactions) => (
             <SelectableTransactionsPage
               transactions={transactions}
               filters={filters.query}
+              updatedTransactionsResponse={updatedTransactions}
               onFiltersChange={onFiltersChange}
               onEditTransactionButtonClick={onEditTransactionButtonClick}
               onDeleteTransactionButtonClick={onDeleteTransactionButtonClick}
+              onTransactionsUpdate={onTransactionsUpdate}
             />
           )}
         />
@@ -248,9 +269,14 @@ export interface SelectableTransaction extends TransactionWithCategories {
 interface SelectableTransactionsPageProps {
   transactions: PaginationResponse<TransactionWithCategories>
   filters: ListTransactionsInput
+  updatedTransactionsResponse: NetworkResponse.NetworkResponse<
+    HttpError,
+    readonly TransactionWithCategories[]
+  >
   onFiltersChange(filters: ListTransactionsInput): void
   onEditTransactionButtonClick(transaction: TransactionWithCategories): void
   onDeleteTransactionButtonClick(transaction: TransactionWithCategories): void
+  onTransactionsUpdate(data: UpdateTransactionsInput): Promise<boolean>
 }
 
 function SelectableTransactionsPage(props: SelectableTransactionsPageProps) {
@@ -264,10 +290,6 @@ function SelectableTransactionsPage(props: SelectableTransactionsPageProps) {
         isSelected: false,
       })),
     ),
-  )
-
-  const [updatedTransactions, bulkUpdateTransactions] = useCommand(
-    updateTransactionsRequest,
   )
 
   function onTransactionSelectionChange(id: string): void {
@@ -298,33 +320,24 @@ function SelectableTransactionsPage(props: SelectableTransactionsPageProps) {
       .filter((edge) => edge.node.isSelected)
       .map((edge) => edge.node.id)
 
-    const response = await bulkUpdateTransactions({ body: { ids, ...data } })
-
-    return pipe(
-      response,
-      Either.match({
-        onLeft: constFalse,
-        onRight: (updatedTransactions) => {
-          setSelectableTransactions(
-            paginationResponse.replace(
-              updatedTransactions.map((transaction) => ({
-                ...transaction,
-                isSelected: true,
-              })),
-            ),
-          )
-
-          return true
-        },
-      }),
-    )
+    return props.onTransactionsUpdate({ ids, ...data })
   }
+  useEffect(() => {
+    pipe(
+      props.transactions,
+      paginationResponse.mapNodes((transaction) => ({
+        ...transaction,
+        isSelected: false,
+      })),
+      setSelectableTransactions,
+    )
+  }, [props.transactions])
 
   return (
     <Stack spacing={1.5}>
       <TransactionFilters
         selectableTransactions={selectableTransactions}
-        updateNetworkResponse={updatedTransactions}
+        updateNetworkResponse={props.updatedTransactionsResponse}
         filters={props.filters}
         onFiltersChange={props.onFiltersChange}
         onUpdate={onTransactionsUpdate}

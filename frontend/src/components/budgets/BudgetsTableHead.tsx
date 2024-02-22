@@ -1,32 +1,23 @@
-import { Check, Close, Edit } from "@mui/icons-material"
-import {
-  Box,
-  IconButton,
-  Stack,
-  TableCell,
-  TableHead,
-  TableRow,
-} from "@mui/material"
-import { TableFormState } from "./PredictionsTable"
+import { TableCell, TableHead, TableRow } from "@mui/material"
 
 interface Props {
   year: number
-  formState: TableFormState
-  isLoading: boolean
-  onEditButtonClick(): void
-  onSaveButtonClick(): void
-  onCancel(): void
+  // formState: TableFormState
+  // isLoading: boolean
+  // onEditButtonClick(): void
+  // onSaveButtonClick(): void
+  // onCancel(): void
 }
 
-export default function PredictionsTableHead(props: Props) {
+export default function BudgetsTableHead(props: Props) {
   return (
     <TableHead>
       <TableRow>
         <TableCell>Category</TableCell>
         <TableCell align="right">Value of {props.year - 1} (€)</TableCell>
-        <TableCell align="right">Prediction for {props.year} (€)</TableCell>
+        <TableCell align="right">Budget for {props.year} (€)</TableCell>
         <TableCell align="right">Delta (€)</TableCell>
-        <TableCell sx={{ minWidth: 116, maxWidth: 116, width: 116 }}>
+        {/* <TableCell sx={{ minWidth: 116, maxWidth: 116, width: 116 }}>
           {(() => {
             switch (props.formState.type) {
               case "idle":
@@ -62,7 +53,7 @@ export default function PredictionsTableHead(props: Props) {
                 return <Box height={40} />
             }
           })()}
-        </TableCell>
+        </TableCell> */}
       </TableRow>
     </TableHead>
   )

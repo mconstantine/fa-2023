@@ -19,7 +19,7 @@ export const budgetRouter = Router.get("/", {
       year: S.NumberFromString.pipe(S.int()),
     }),
   },
-  handler: async ({ query }) => await listBudgets(query.year),
+  handler: async ({ query }) => await listBudgets(query),
 })
   .post("/", {
     codecs: {

@@ -1,7 +1,7 @@
 import * as S from "@effect/schema/Schema"
 import * as db from "../../db"
 import { type FunctionTemplate } from "../template"
-import { BudgetWithCategory } from "./domain"
+import { BudgetWithCategory, type ListBudgetsInput } from "./domain"
 
 export default {
   name: "list_budgets",
@@ -20,14 +20,12 @@ export default {
   cost: null,
 } satisfies FunctionTemplate
 
-const Year = S.number.pipe(S.int()).pipe(S.positive())
-
 export async function listBudgets(
-  year: S.Schema.To<typeof Year>,
+  input: ListBudgetsInput,
 ): Promise<readonly BudgetWithCategory[]> {
   return await db.callFunction(
     "list_budgets",
     S.array(BudgetWithCategory),
-    year,
+    input.year,
   )
 }
