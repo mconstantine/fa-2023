@@ -89,11 +89,6 @@ export default function TransactionForm(props: Props) {
     }),
   )
 
-  const formNetworkResponse = pipe(
-    props.networkResponse,
-    NetworkResponse.flatMap(() => newCategory),
-  )
-
   function onDateChange(date: Dayjs | null): void {
     if (date !== null && date.isValid()) {
       inputProps("date").onChange(date.toISOString())
@@ -140,7 +135,10 @@ export default function TransactionForm(props: Props) {
       <Typography variant="h6">{title}</Typography>
 
       <Form
-        networkResponse={formNetworkResponse}
+        networkResponse={pipe(
+          props.networkResponse,
+          NetworkResponse.withErrorFrom(newCategory),
+        )}
         onSubmit={submit}
         isValid={isValid}
         cancelAction={props.onCancel}

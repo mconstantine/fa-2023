@@ -358,11 +358,6 @@ export default function TransactionFiltersDialogContent(props: Props) {
                   }),
                 )}
               </FormControl>
-              {/* {props.isValid ? null : (
-              <Typography variant="caption" color="error">
-                End date should come after start date
-              </Typography>
-            )} */}
             </Stack>
           </LocalizationProvider>
         </Stack>

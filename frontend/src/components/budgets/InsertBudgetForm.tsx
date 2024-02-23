@@ -41,11 +41,10 @@ export default function InsertBudgetForm(props: Props) {
       value: S.NumberFromString.pipe(
         S.filter(constTrue, { message: () => "The value should be a number" }),
       ),
-      selection: Category,
+      selection: S.nullable(Category),
     },
     submit: (data) => {
-      console.log("TODO:", { data })
-      // props.onSubmit({ ...data, category_id: data.selection[0]?.id ?? null })
+      props.onSubmit({ ...data, category_id: data.selection?.id ?? null })
     },
   })
 
@@ -98,7 +97,7 @@ export default function InsertBudgetForm(props: Props) {
 
   return (
     <Stack spacing={3}>
-      <Typography variant="h5">Create prediction</Typography>
+      <Typography variant="h5">Create budget</Typography>
       <Form
         onSubmit={submit}
         isValid={isValid}

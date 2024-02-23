@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { flow } from "effect"
+import { Option, flow } from "effect"
 
 interface IdleNetworkResponse {
   readonly tag: "Idle"
@@ -99,6 +99,22 @@ export function isSuccessful<E, A>(
   self: NetworkResponse<E, A>,
 ): self is SuccessfulNetworkResponse<A> {
   return self.tag === "Success"
+}
+
+export function getData<E, A>(self: NetworkResponse<E, A>): Option.Option<A> {
+  if (isSuccessful(self)) {
+    return Option.some(self.data)
+  } else {
+    return Option.none()
+  }
+}
+
+export function getError<E, A>(self: NetworkResponse<E, A>): Option.Option<E> {
+  if (isFailure(self)) {
+    return Option.some(self.error)
+  } else {
+    return Option.none()
+  }
 }
 
 // @ts-expect-error this is too much

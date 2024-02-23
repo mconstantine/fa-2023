@@ -27,7 +27,7 @@ import { useConfirmation } from "../../hooks/useConfirmation"
 import InsertBudgetForm from "./InsertBudgetForm"
 
 export default function BudgetsPage() {
-  const [creationDialogIsOpen, setCreationDialogOpen] = useState(false)
+  const [insertDialogIsOpen, setInsertDialogOpen] = useState(false)
 
   const [filters, setFilters] = useRequestData<typeof listBudgetsRequest>(
     listBudgetsRequest,
@@ -124,8 +124,10 @@ export default function BudgetsPage() {
       result,
       Either.match({
         onLeft: constVoid,
-        onRight: (newBudget) =>
-          updateBudgets((budgets) => [newBudget, ...budgets]),
+        onRight: (newBudget) => {
+          updateBudgets((budgets) => [newBudget, ...budgets])
+          setInsertDialogOpen(false)
+        },
       }),
     )
   }
@@ -247,7 +249,7 @@ export default function BudgetsPage() {
           >
             <Typography variant="h5">Budgets</Typography>
             <Stack direction="row" spacing={1.5}>
-              <Button onClick={() => setCreationDialogOpen(true)}>
+              <Button onClick={() => setInsertDialogOpen(true)}>
                 Create budget
               </Button>
               <ValidatedSelect
@@ -278,15 +280,15 @@ export default function BudgetsPage() {
           />
         </Stack>
         <Dialog
-          open={creationDialogIsOpen}
-          onClose={() => setCreationDialogOpen(false)}
+          open={insertDialogIsOpen}
+          onClose={() => setInsertDialogOpen(false)}
         >
           <DialogContent>
             <InsertBudgetForm
               year={filters.query.year}
               networkResponse={newBudget}
               onSubmit={onBudgetInsert}
-              onCancel={() => setCreationDialogOpen(false)}
+              onCancel={() => setInsertDialogOpen(false)}
               excludedCategoriesIds={pipe(
                 budgets,
                 NetworkResponse.map((budgets) =>

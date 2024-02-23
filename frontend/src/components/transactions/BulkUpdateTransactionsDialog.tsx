@@ -30,7 +30,7 @@ interface Props {
 export default function BulkUpdateTransactionsDialog(props: Props) {
   const [categoriesSearchQuery, setCategoriesSearchQuery] = useState("")
   const [categories, fetchCategories] = useLazyQuery(listCategoriesRequest)
-  const [, insertCategory] = useCommand(insertCategoryRequest)
+  const [newCategory, insertCategory] = useCommand(insertCategoryRequest)
   const debounceFetchCategories = useDebounce(fetchCategories, 500)
 
   const { inputProps, submit, isValid } = useForm({
@@ -125,7 +125,10 @@ export default function BulkUpdateTransactionsDialog(props: Props) {
           <Typography variant="h5">Update transactions</Typography>
           <Form
             onSubmit={submit}
-            networkResponse={props.updateNetworkResponse}
+            networkResponse={pipe(
+              props.updateNetworkResponse,
+              NetworkResponse.withErrorFrom(newCategory),
+            )}
             submitButtonLabel="Save"
             cancelAction={props.onClose}
             isValid={isValid}
