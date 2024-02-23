@@ -3,6 +3,7 @@ import {
   PaginationQuery as ServerPaginationQuery,
   PaginationResponse as ServerPaginationResponse,
 } from "../../backend/src/database/domain"
+import { Option, String } from "effect"
 
 export const PaginationQuery = ServerPaginationQuery
 export type PaginationQuery = ServerPaginationQuery
@@ -35,3 +36,12 @@ export const FileFromSelf = S.declare(isFile, {
       .map(([path, content]) => new File([content], path)),
   pretty: () => (file) => `File(${file.name})`,
 })
+
+const StringOptionEquivalence = Option.getEquivalence(String.Equivalence)
+
+export function optionStringEq(
+  a: Option.Option<string>,
+  b: Option.Option<string>,
+): boolean {
+  return StringOptionEquivalence(a, b)
+}

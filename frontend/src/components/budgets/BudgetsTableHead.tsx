@@ -1,13 +1,21 @@
-import { TableCell, TableHead, TableRow } from "@mui/material"
+import {
+  Box,
+  IconButton,
+  Stack,
+  TableCell,
+  TableHead,
+  TableRow,
+} from "@mui/material"
 import { TableFormState } from "./BudgetsTable"
+import { Check, Close, Edit } from "@mui/icons-material"
 
 interface Props {
   year: number
   formState: TableFormState
-  // isLoading: boolean
-  // onEditButtonClick(): void
-  // onSaveButtonClick(): void
-  // onCancel(): void
+  onEditButtonClick(): void
+  onSaveButtonClick(): void
+  onCancel(): void
+  isLoading: boolean
 }
 
 export default function BudgetsTableHead(props: Props) {
@@ -22,39 +30,36 @@ export default function BudgetsTableHead(props: Props) {
           {(() => {
             switch (props.formState.type) {
               case "Idle":
-                return null
-              // return (
-              //   <IconButton
-              //     aria-label="Edit all"
-              //     onClick={() => props.onEditButtonClick()}
-              //     disabled={props.isLoading}
-              //   >
-              //     <Edit />
-              //   </IconButton>
-              // )
+                return (
+                  <IconButton
+                    aria-label="Edit all"
+                    onClick={props.onEditButtonClick}
+                    disabled={props.isLoading}
+                  >
+                    <Edit />
+                  </IconButton>
+                )
               case "BulkEditing":
-                return null
-              // return (
-              //   <Stack direction="row" spacing={0.5}>
-              //     <IconButton
-              //       aria-label="Save all"
-              //       onClick={() => props.onSaveButtonClick()}
-              //       disabled={props.isLoading}
-              //     >
-              //       <Check color="primary" />
-              //     </IconButton>
-              //     <IconButton
-              //       aria-label="Cancel"
-              //       onClick={() => props.onCancel()}
-              //       disabled={props.isLoading}
-              //     >
-              //       <Close />
-              //     </IconButton>
-              //   </Stack>
-              // )
+                return (
+                  <Stack direction="row" spacing={0.5}>
+                    <IconButton
+                      aria-label="Save all"
+                      onClick={props.onSaveButtonClick}
+                      disabled={props.isLoading}
+                    >
+                      <Check color="primary" />
+                    </IconButton>
+                    <IconButton
+                      aria-label="Cancel"
+                      onClick={props.onCancel}
+                      disabled={props.isLoading}
+                    >
+                      <Close />
+                    </IconButton>
+                  </Stack>
+                )
               case "Editing":
-                return null
-              // return <Box height={40} />
+                return <Box height={40} />
             }
           })()}
         </TableCell>

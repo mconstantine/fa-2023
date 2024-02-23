@@ -12,6 +12,7 @@ import {
   ListBudgetsFilters,
   TransactionByCategory,
   UpdateBudgetInput,
+  UpdateBudgetsInput,
 } from "./domain"
 
 export const listBudgetsRequest = makeGet("/budgets/", {
@@ -39,10 +40,20 @@ export const insertBudgetRequest = makePost("/budgets/", {
   response: BudgetWithCategory,
 })
 
+export const insertBudgetsRequest = makePost("/budgets/bulk/", {
+  body: S.array(InsertBudgetInput),
+  response: S.array(BudgetWithCategory),
+})
+
 export const updateBudgetRequest = makePatch("/budgets/:id/", {
   params: S.struct({
     id: S.UUID,
   }),
   body: UpdateBudgetInput,
   response: BudgetWithCategory,
+})
+
+export const updateBudgetsRequest = makePatch("/budgets/bulk/", {
+  body: UpdateBudgetsInput,
+  response: S.array(BudgetWithCategory),
 })

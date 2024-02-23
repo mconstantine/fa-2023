@@ -1,4 +1,3 @@
-import * as Str from "effect/String"
 import * as S from "@effect/schema/Schema"
 import { Box, IconButton, Stack, TableCell, TableRow } from "@mui/material"
 import { Either, Option, pipe } from "effect"
@@ -8,6 +7,7 @@ import { constNull, constTrue, constVoid } from "effect/Function"
 import { Check, Close, Delete, Edit } from "@mui/icons-material"
 import { useForm } from "../../hooks/useForm"
 import TextInput from "../forms/inputs/TextInput"
+import { optionStringEq } from "../../globalDomain"
 
 interface Props {
   transactionByCategory: TransactionByCategory
@@ -28,15 +28,12 @@ export default function BudgetsTableRow(props: Props) {
     Option.getOrElse(() => props.transactionByCategory.transactions_total),
   )
 
-  const isFormStateSubject = pipe(
-    Option.getEquivalence(Str.Equivalence),
-    (eq) =>
-      props.formState.type === "Editing" &&
-      eq(
-        props.transactionByCategory.category_id,
-        props.formState.subject.category_id,
-      ),
-  )
+  const isFormStateSubject =
+    props.formState.type === "Editing" &&
+    optionStringEq(
+      props.transactionByCategory.category_id,
+      props.formState.subject.category_id,
+    )
 
   return (
     <TableRow>
@@ -55,21 +52,14 @@ export default function BudgetsTableRow(props: Props) {
             case "Idle":
               return budgetValue.toFixed(2)
             case "BulkEditing":
-              return null
-            // return (
-            //   <NumberInput
-            //     name={
-            //       props.categoriesAggregation.categoryId ?? "uncategorized"
-            //     }
-            //     value={props.prediction?.value ?? 0}
-            //     onChange={props.onValueChange}
-            //     errorMessage="Should be a number"
-            //     fieldProps={{
-            //       sx: { maxWidth: "5em" },
-            //       disabled: props.isLoading,
-            //     }}
-            //   />
-            // )
+              return (
+                <BudgetsTableRowForm
+                  type="Bulk"
+                  value={budgetValue}
+                  onValueChange={props.onValueChange}
+                  isLoading={props.isLoading}
+                />
+              )
             case "Editing": {
               if (isFormStateSubject) {
                 return (

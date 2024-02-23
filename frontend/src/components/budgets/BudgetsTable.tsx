@@ -1,4 +1,3 @@
-import * as S from "effect/String"
 import {
   Paper,
   Table,
@@ -17,6 +16,7 @@ import {
   TransactionByCategory,
 } from "./domain"
 import { useState } from "react"
+import { optionStringEq } from "../../globalDomain"
 
 interface Props {
   year: number
@@ -24,9 +24,7 @@ interface Props {
   budgets: readonly BudgetWithCategory[]
   isLoading: boolean
   onBudgetUpdate(data: BudgetWithCategory | InsertBudgetInput): void
-  // onPredictionsUpdate(
-  //   predictions: Array<Prediction | PredictionCreationBody>,
-  // ): void
+  onBudgetsUpdate(data: Array<BudgetWithCategory | InsertBudgetInput>): void
   onBudgetDelete(budget: BudgetWithCategory): void
 }
 
@@ -65,9 +63,7 @@ export default function BudgetsTable(props: Props) {
     .filter(
       (budget) =>
         !props.transactionsByCategory.find((entry) =>
-          pipe(Option.getEquivalence(S.Equivalence), (eq) =>
-            eq(budget.category_id, entry.category_id),
-          ),
+          optionStringEq(budget.category_id, entry.category_id),
         ),
     )
     .map<TransactionByCategory>((budget) => ({
@@ -90,9 +86,7 @@ export default function BudgetsTable(props: Props) {
   const budgetsTotal = props.transactionsByCategory.reduce((sum, entry) => {
     const budget = Option.fromNullable(
       props.budgets.find((budget) =>
-        pipe(Option.getEquivalence(S.Equivalence), (eq) =>
-          eq(budget.category_id, entry.category_id),
-        ),
+        optionStringEq(budget.category_id, entry.category_id),
       ),
     )
 
@@ -111,18 +105,14 @@ export default function BudgetsTable(props: Props) {
     const subject = pipe(
       Option.fromNullable(
         props.budgets.find((budget) =>
-          pipe(Option.getEquivalence(S.Equivalence), (eq) =>
-            eq(budget.category_id, categoryId),
-          ),
+          optionStringEq(budget.category_id, categoryId),
         ),
       ),
       Option.getOrElse(() => {
         const value = pipe(
           Option.fromNullable(
             props.transactionsByCategory.find((entry) =>
-              pipe(Option.getEquivalence(S.Equivalence), (eq) =>
-                eq(categoryId, entry.category_id),
-              ),
+              optionStringEq(categoryId, entry.category_id),
             ),
           ),
           Option.map(
@@ -142,43 +132,39 @@ export default function BudgetsTable(props: Props) {
     setFormState({ type: "Editing", subject })
   }
 
-  // function onBulkEditButtonClick() {
-  //   const predictions = props.categoriesAggregation.map<
-  //     Prediction | PredictionCreationBody
-  //   >((entry) => {
-  //     const existingPrediction = props.predictions.find(
-  //       (prediction) => prediction.categoryId === entry.categoryId,
-  //     )
+  function onBulkEditButtonClick() {
+    const budgets = props.transactionsByCategory.map<
+      BudgetWithCategory | InsertBudgetInput
+    >((entry) =>
+      pipe(
+        props.budgets.find((budget) =>
+          optionStringEq(budget.category_id, entry.category_id),
+        ),
+        Option.fromNullable,
+        Option.getOrElse(() => ({
+          year: props.year,
+          value: entry.transactions_total,
+          category_id: entry.category_id,
+        })),
+      ),
+    )
 
-  //     if (typeof existingPrediction === "undefined") {
-  //       return {
-  //         year: props.year,
-  //         value: 0,
-  //         ...(entry.categoryId === null
-  //           ? {}
-  //           : { categoryId: entry.categoryId }),
-  //       }
-  //     } else {
-  //       return existingPrediction
-  //     }
-  //   })
-
-  //   setFormState({
-  //     type: "bulkEditing",
-  //     subject: predictions,
-  //   })
-  // }
+    setFormState({
+      type: "BulkEditing",
+      subject: budgets,
+    })
+  }
 
   function onCancelEditing(): void {
     setFormState({ type: "Idle" })
   }
 
-  // async function onBulkSaveButtonClick(): Promise<void> {
-  //   if (formState.type === "bulkEditing") {
-  //     props.onPredictionsUpdate(formState.subject)
-  //     setFormState({ type: "idle" })
-  //   }
-  // }
+  async function onBulkSaveButtonClick(): Promise<void> {
+    if (formState.type === "BulkEditing") {
+      props.onBudgetsUpdate(formState.subject)
+      setFormState({ type: "Idle" })
+    }
+  }
 
   function onBudgetValueChange(
     categoryId: Option.Option<string>,
@@ -194,18 +180,16 @@ export default function BudgetsTable(props: Props) {
             subject: { ...formState.subject, value },
           }
         case "BulkEditing": {
-          // TODO:
-          return formState
-          // return {
-          //   ...formState,
-          //   subject: formState.subject.map((subject) => {
-          //     if (subject.categoryId === categoryId) {
-          //       return { ...subject, value }
-          //     } else {
-          //       return subject
-          //     }
-          //   }),
-          // }
+          return {
+            ...formState,
+            subject: formState.subject.map((subject) => {
+              if (optionStringEq(subject.category_id, categoryId)) {
+                return { ...subject, value }
+              } else {
+                return subject
+              }
+            }),
+          }
         }
       }
     })
@@ -233,18 +217,16 @@ export default function BudgetsTable(props: Props) {
           <BudgetsTableHead
             year={props.year}
             formState={formState}
-            // onEditButtonClick={onBulkEditButtonClick}
-            // onSaveButtonClick={onBulkSaveButtonClick}
-            // onCancel={onCancelEditing}
-            // isLoading={props.isLoading}
+            onEditButtonClick={onBulkEditButtonClick}
+            onSaveButtonClick={onBulkSaveButtonClick}
+            onCancel={onCancelEditing}
+            isLoading={props.isLoading}
           />
           <TableBody>
             {sorted.map((entry) => {
               const budget = Option.fromNullable(
                 props.budgets.find((budget) =>
-                  pipe(Option.getEquivalence(S.Equivalence), (eq) =>
-                    eq(entry.category_id, budget.category_id),
-                  ),
+                  optionStringEq(entry.category_id, budget.category_id),
                 ),
               )
 

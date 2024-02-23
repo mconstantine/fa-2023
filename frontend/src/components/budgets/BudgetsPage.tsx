@@ -10,18 +10,25 @@ import {
   Stack,
   Typography,
 } from "@mui/material"
-import { useCommand, useQuery, useRequestData } from "../../hooks/network"
+import {
+  HttpError,
+  useCommand,
+  useQuery,
+  useRequestData,
+} from "../../hooks/network"
 import {
   aggregateTransactionsByCategoryRequest,
   deleteBudgetRequest,
   insertBudgetRequest,
+  insertBudgetsRequest,
   listBudgetsRequest,
   updateBudgetRequest,
+  updateBudgetsRequest,
 } from "./api"
 import { useMemo, useState } from "react"
 import ValidatedSelect from "../forms/inputs/ValidatedSelect"
-import { Either, Option, pipe } from "effect"
-import { constVoid } from "effect/Function"
+import { Boolean, Either, Option, pipe } from "effect"
+import { constVoid, identity } from "effect/Function"
 import Query from "../Query"
 import { BudgetWithCategory, InsertBudgetInput } from "./domain"
 import { useConfirmation } from "../../hooks/useConfirmation"
@@ -48,7 +55,7 @@ export default function BudgetsPage() {
     [filters],
   )
 
-  const [budgets, updateBudgets] = useQuery(listBudgetsRequest, filters)
+  const [budgets, updateLocalBudgets] = useQuery(listBudgetsRequest, filters)
 
   const [transactionsByCategory] = useQuery(
     aggregateTransactionsByCategoryRequest,
@@ -56,13 +63,9 @@ export default function BudgetsPage() {
   )
 
   const [newBudget, insertBudget] = useCommand(insertBudgetRequest)
+  const [newBudgets, insertBudgets] = useCommand(insertBudgetsRequest)
   const [updatedBudget, updateBudget] = useCommand(updateBudgetRequest)
-
-  // const [updatePredictionsResponse, updatePredictions] = useCommand<
-  //   PredictionBulkUpdateBody,
-  //   Prediction[]
-  // >("PATCH", "/predictions/bulk/")
-
+  const [updatedBudgets, updateBudgets] = useCommand(updateBudgetsRequest)
   const [deletedBudget, deleteBudget] = useCommand(deleteBudgetRequest)
 
   const [onDeleteBudgetButtonClick, deleteBudgetConfirmationDialog] =
@@ -122,7 +125,7 @@ export default function BudgetsPage() {
       Either.match({
         onLeft: constVoid,
         onRight: (newBudget) => {
-          updateBudgets((budgets) => [newBudget, ...budgets])
+          updateLocalBudgets((budgets) => [newBudget, ...budgets])
           setInsertDialogOpen(false)
         },
       }),
@@ -139,10 +142,9 @@ export default function BudgetsPage() {
       pipe(
         result,
         Either.match({
-          // TODO: where is error handling for this?
           onLeft: constVoid,
           onRight: (updated) => {
-            updateBudgets((budgets) =>
+            updateLocalBudgets((budgets) =>
               budgets.map((budget) => {
                 if (budget.id === updated.id) {
                   return updated
@@ -159,64 +161,66 @@ export default function BudgetsPage() {
     }
   }
 
-  // async function onPredictionsUpdate(
-  //   data: Array<Prediction | PredictionCreationBody>,
-  // ): Promise<void> {
-  //   const created: Prediction[] = await (async () => {
-  //     const newPredictions = data.filter(
-  //       (subject) => !isPrediction(subject),
-  //     ) as PredictionCreationBody[]
+  async function onBudgetsUpdate(
+    data: Array<BudgetWithCategory | InsertBudgetInput>,
+  ): Promise<void> {
+    const created = data.filter(
+      (entry) => !("id" in entry),
+    ) as InsertBudgetInput[]
 
-  //     if (newPredictions.length > 0) {
-  //       const result = await createPredictions({
-  //         predictions: newPredictions,
-  //       })
+    const updated = data.filter(
+      (entry) => "id" in entry,
+    ) as BudgetWithCategory[]
 
-  //       if (result !== null) {
-  //         return result
-  //       } else {
-  //         return []
-  //       }
-  //     } else {
-  //       return []
-  //     }
-  //   })()
+    const insertionResult: Either.Either<
+      HttpError,
+      readonly BudgetWithCategory[]
+    > = await pipe(
+      created.length > 0,
+      Boolean.match({
+        onFalse: () => Promise.resolve(Either.right([])),
+        onTrue: async () => await insertBudgets({ body: created }),
+      }),
+    )
 
-  //   const updated: Prediction[] = await (async () => {
-  //     const existingPredictions = data.filter((subject) =>
-  //       isPrediction(subject),
-  //     ) as Prediction[]
+    if (Either.isLeft(insertionResult)) {
+      return
+    }
 
-  //     if (existingPredictions.length > 0) {
-  //       const result = await updatePredictions({
-  //         predictions: existingPredictions,
-  //       })
+    const updateResult: Either.Either<
+      HttpError,
+      readonly BudgetWithCategory[]
+    > = await pipe(
+      updated.length > 0,
+      Boolean.match({
+        onFalse: () => Promise.resolve(Either.right([])),
+        onTrue: async () => await updateBudgets({ body: updated }),
+      }),
+    )
 
-  //       if (result !== null) {
-  //         return result
-  //       } else {
-  //         return []
-  //       }
-  //     } else {
-  //       return []
-  //     }
-  //   })()
-
-  //   updatePredictionsList((predictions) => [
-  //     ...created,
-  //     ...predictions.map((prediction) => {
-  //       const match = updated.find(
-  //         (updatedPrediction) => updatedPrediction.id === prediction.id,
-  //       )
-
-  //       if (typeof match === "undefined") {
-  //         return prediction
-  //       } else {
-  //         return match
-  //       }
-  //     }),
-  //   ])
-  // }
+    return pipe(
+      { insertionResult, updateResult },
+      Either.all,
+      Either.match({
+        onLeft: constVoid,
+        onRight: ({ insertionResult, updateResult }) => {
+          updateLocalBudgets((budgets) => [
+            ...insertionResult,
+            ...budgets.map((budget) =>
+              pipe(
+                updateResult.find((updated) => updated.id === budget.id),
+                Option.fromNullable,
+                Option.match({
+                  onNone: () => budget,
+                  onSome: identity,
+                }),
+              ),
+            ),
+          ])
+        },
+      }),
+    )
+  }
 
   async function onBudgetDelete(deleted: BudgetWithCategory): Promise<void> {
     const result = await deleteBudget({
@@ -228,7 +232,7 @@ export default function BudgetsPage() {
       Either.match({
         onLeft: constVoid,
         onRight: (deleted) =>
-          updateBudgets((budgets) =>
+          updateLocalBudgets((budgets) =>
             budgets.filter((budget) => budget.id !== deleted.id),
           ),
       }),
@@ -268,6 +272,8 @@ export default function BudgetsPage() {
               NetworkResponse.all,
               NetworkResponse.withErrorFrom(deletedBudget),
               NetworkResponse.withErrorFrom(updatedBudget),
+              NetworkResponse.withErrorFrom(newBudgets),
+              NetworkResponse.withErrorFrom(updatedBudgets),
             )}
             render={({ budgets, transactionsByCategory }) => (
               <BudgetsTable
@@ -275,7 +281,7 @@ export default function BudgetsPage() {
                 budgets={budgets}
                 transactionsByCategory={transactionsByCategory}
                 onBudgetUpdate={onBudgetUpdate}
-                // onPredictionsUpdate={onPredictionsUpdate}
+                onBudgetsUpdate={onBudgetsUpdate}
                 onBudgetDelete={onDeleteBudgetButtonClick}
                 isLoading={
                   NetworkResponse.isLoading(newBudget) ||

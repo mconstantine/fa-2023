@@ -69,7 +69,7 @@ export default function TransactionsPage() {
     },
   )
 
-  const [transactions, updateTransactions] = useQuery(
+  const [transactions, updateLocalTransactions] = useQuery(
     listTransactionsRequest,
     filters,
   )
@@ -82,7 +82,7 @@ export default function TransactionsPage() {
     updateTransactionRequest,
   )
 
-  const [updatedTransactions, bulkUpdateTransactions] = useCommand(
+  const [updatedTransactions, updateTransactions] = useCommand(
     updateTransactionsRequest,
   )
 
@@ -116,7 +116,9 @@ export default function TransactionsPage() {
       Either.match({
         onLeft: constVoid,
         onRight: (deletedTransaction) =>
-          updateTransactions(paginationResponse.remove(deletedTransaction)),
+          updateLocalTransactions(
+            paginationResponse.remove(deletedTransaction),
+          ),
       }),
     )
   }
@@ -145,9 +147,9 @@ export default function TransactionsPage() {
             formState.subject,
             Option.match({
               onNone: () =>
-                updateTransactions(paginationResponse.prepend(result)),
+                updateLocalTransactions(paginationResponse.prepend(result)),
               onSome: () =>
-                updateTransactions(paginationResponse.replace(result)),
+                updateLocalTransactions(paginationResponse.replace(result)),
             }),
             () => {
               setFormState((state) => ({ ...state, open: false }))
@@ -161,14 +163,16 @@ export default function TransactionsPage() {
   async function onTransactionsUpdate(
     body: UpdateTransactionsInput,
   ): Promise<boolean> {
-    const response = await bulkUpdateTransactions({ body })
+    const response = await updateTransactions({ body })
 
     pipe(
       response,
       Either.match({
         onLeft: constVoid,
         onRight: (updatedTransactions) =>
-          updateTransactions(paginationResponse.replace(updatedTransactions)),
+          updateLocalTransactions(
+            paginationResponse.replace(updatedTransactions),
+          ),
       }),
     )
 
@@ -183,7 +187,7 @@ export default function TransactionsPage() {
       Either.match({
         onLeft: constVoid,
         onRight: (transactions) => {
-          updateTransactions(paginationResponse.fromNodes(transactions))
+          updateLocalTransactions(paginationResponse.fromNodes(transactions))
           setImportDialogOpen(false)
         },
       }),

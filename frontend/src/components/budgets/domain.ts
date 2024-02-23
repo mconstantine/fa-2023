@@ -87,3 +87,13 @@ export const UpdateBudgetInput = S.extend(
 
 export interface UpdateBudgetInput
   extends S.Schema.To<typeof UpdateBudgetInput> {}
+
+export const UpdateBudgetsInput = S.array(
+  S.struct({
+    id: S.UUID,
+    value: S.number,
+  }),
+)
+
+export interface UpdateBudgetsInput
+  extends S.Schema.To<typeof UpdateBudgetsInput> {}
