@@ -853,7 +853,7 @@ describe("database transaction functions", () => {
       await db.query("delete from transaction")
     })
 
-    it("should work", async () => {
+    it("should work and order by category name", async () => {
       await insertTransactions([
         {
           description: "Aggregate transactions by category test 1",

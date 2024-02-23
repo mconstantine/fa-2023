@@ -2,16 +2,15 @@ import * as S from "@effect/schema/Schema"
 import { Box, IconButton, Stack, TableCell, TableRow } from "@mui/material"
 import { Either, Option, pipe } from "effect"
 import { TableFormState } from "./BudgetsTable"
-import { BudgetWithCategory, TransactionByCategory } from "./domain"
 import { constNull, constTrue, constVoid } from "effect/Function"
 import { Check, Close, Delete, Edit } from "@mui/icons-material"
 import { useForm } from "../../hooks/useForm"
 import TextInput from "../forms/inputs/TextInput"
 import { optionStringEq } from "../../globalDomain"
+import { CategoryData } from "./mergeTransactionsAndBudgetsByCategory"
 
 interface Props {
-  transactionByCategory: TransactionByCategory
-  budget: Option.Option<BudgetWithCategory>
+  categoryData: CategoryData
   formState: TableFormState
   isLoading: boolean
   onValueChange(value: number): void
@@ -23,15 +22,15 @@ interface Props {
 
 export default function BudgetsTableRow(props: Props) {
   const budgetValue = pipe(
-    props.budget,
+    props.categoryData.budget,
     Option.map((budget) => budget.value),
-    Option.getOrElse(() => props.transactionByCategory.transactions_total),
+    Option.getOrElse(() => props.categoryData.totalTransactionsYearBefore),
   )
 
   const isFormStateSubject =
     props.formState.type === "Editing" &&
     optionStringEq(
-      props.transactionByCategory.category_id,
+      props.categoryData.categoryId,
       props.formState.subject.category_id,
     )
 
@@ -39,12 +38,12 @@ export default function BudgetsTableRow(props: Props) {
     <TableRow>
       <TableCell>
         {pipe(
-          props.transactionByCategory.category_name,
+          props.categoryData.categoryName,
           Option.getOrElse(() => "Uncategorized"),
         )}
       </TableCell>
       <TableCell align="right">
-        {props.transactionByCategory.transactions_total.toFixed(2)}
+        {props.categoryData.totalTransactionsYearBefore.toFixed(2)}
       </TableCell>
       <TableCell align="right">
         {(() => {
@@ -79,14 +78,17 @@ export default function BudgetsTableRow(props: Props) {
       </TableCell>
       <TableCell align="right">
         {pipe(
-          props.budget,
+          props.categoryData.budget,
           Option.map(
             (budget) =>
-              budget.value - props.transactionByCategory.transactions_total,
+              budget.value - props.categoryData.totalTransactionsYearBefore,
           ),
           Option.getOrElse(() => 0),
           (n) => n.toFixed(2),
         )}
+      </TableCell>
+      <TableCell align="right">
+        {props.categoryData.totalTransactionsChosenYear.toFixed(2)}
       </TableCell>
       <TableCell sx={{ minWidth: 116, maxWidth: 116, width: 116 }}>
         {(() => {
@@ -102,7 +104,7 @@ export default function BudgetsTableRow(props: Props) {
                     <Edit />
                   </IconButton>
                   {pipe(
-                    props.budget,
+                    props.categoryData.budget,
                     Option.match({
                       onNone: constNull,
                       onSome: () => (

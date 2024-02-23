@@ -10,18 +10,14 @@ import {
 import BudgetsTableHead from "./BudgetsTableHead"
 import BudgetsTableRow from "./BudgetsTableRow"
 import { Option, pipe } from "effect"
-import {
-  BudgetWithCategory,
-  InsertBudgetInput,
-  TransactionByCategory,
-} from "./domain"
+import { BudgetWithCategory, InsertBudgetInput } from "./domain"
 import { useState } from "react"
 import { optionStringEq } from "../../globalDomain"
+import { CategoryData } from "./mergeTransactionsAndBudgetsByCategory"
 
 interface Props {
   year: number
-  transactionsByCategory: readonly TransactionByCategory[]
-  budgets: readonly BudgetWithCategory[]
+  categories: readonly CategoryData[]
   isLoading: boolean
   onBudgetUpdate(data: BudgetWithCategory | InsertBudgetInput): void
   onBudgetsUpdate(data: Array<BudgetWithCategory | InsertBudgetInput>): void
@@ -51,100 +47,65 @@ export default function BudgetsTable(props: Props) {
   const theme = useTheme()
   const [formState, setFormState] = useState<TableFormState>({ type: "Idle" })
 
-  const incomes = props.transactionsByCategory.filter(
-    (entry) => entry.transactions_total > 0,
+  const incomes = props.categories.filter(
+    (entry) =>
+      entry.totalTransactionsChosenYear > 0 &&
+      entry.totalTransactionsYearBefore > 0,
   )
 
-  const outcomes = props.transactionsByCategory.filter(
-    (entry) => entry.transactions_total <= 0,
+  const outcomes = props.categories.filter(
+    (entry) =>
+      entry.totalTransactionsChosenYear <= 0 ||
+      entry.totalTransactionsYearBefore <= 0,
   )
 
-  const rogue = props.budgets
-    .filter(
-      (budget) =>
-        !props.transactionsByCategory.find((entry) =>
-          optionStringEq(budget.category_id, entry.category_id),
-        ),
-    )
-    .map<TransactionByCategory>((budget) => ({
-      category_id: pipe(
-        budget.category,
-        Option.map((category) => category.id),
-      ),
-      category_name: pipe(
-        budget.category,
-        Option.map((category) => category.name),
-      ),
-      transactions_total: 0,
-    }))
-
-  const transactionsTotal = props.transactionsByCategory.reduce(
-    (sum, entry) => sum + entry.transactions_total,
+  const transactionsTotalYearBefore = props.categories.reduce(
+    (sum, entry) => sum + entry.totalTransactionsYearBefore,
     0,
   )
 
-  const budgetsTotal = props.transactionsByCategory.reduce((sum, entry) => {
-    const budget = Option.fromNullable(
-      props.budgets.find((budget) =>
-        optionStringEq(budget.category_id, entry.category_id),
+  const transactionsTotalChosenYear = props.categories.reduce(
+    (sum, entry) => sum + entry.totalTransactionsChosenYear,
+    0,
+  )
+
+  const budgetsTotal = props.categories.reduce(
+    (sum, entry) =>
+      sum +
+      pipe(
+        entry.budget,
+        Option.map((budget) => budget.value),
+        Option.getOrElse(() => entry.totalTransactionsYearBefore),
       ),
-    )
+    0,
+  )
 
-    return pipe(
-      budget,
-      Option.match({
-        onNone: () => sum + entry.transactions_total,
-        onSome: (budget) => sum + budget.value,
-      }),
-    )
-  }, 0)
+  const sorted = [...incomes, ...outcomes]
 
-  const sorted = [...incomes, ...outcomes, ...rogue]
-
-  function onEditBudgetButtonClick(categoryId: Option.Option<string>): void {
-    const subject = pipe(
-      Option.fromNullable(
-        props.budgets.find((budget) =>
-          optionStringEq(budget.category_id, categoryId),
-        ),
-      ),
-      Option.getOrElse(() => {
-        const value = pipe(
-          Option.fromNullable(
-            props.transactionsByCategory.find((entry) =>
-              optionStringEq(categoryId, entry.category_id),
-            ),
-          ),
-          Option.map(
-            (transactionByCategory) => transactionByCategory.transactions_total,
-          ),
-          Option.getOrElse(() => 0),
-        )
-
-        return {
+  function onEditBudgetButtonClick(categoryData: CategoryData): void {
+    setFormState({
+      type: "Editing",
+      subject: pipe(
+        categoryData.budget,
+        Option.getOrElse(() => ({
           year: props.year,
-          category_id: categoryId,
-          value,
-        }
-      }),
-    )
-
-    setFormState({ type: "Editing", subject })
+          category_id: categoryData.categoryId,
+          value: categoryData.totalTransactionsYearBefore,
+        })),
+      ),
+    })
   }
 
   function onBulkEditButtonClick() {
-    const budgets = props.transactionsByCategory.map<
+    const budgets = props.categories.map<
       BudgetWithCategory | InsertBudgetInput
     >((entry) =>
       pipe(
-        props.budgets.find((budget) =>
-          optionStringEq(budget.category_id, entry.category_id),
-        ),
-        Option.fromNullable,
+        entry.budget,
         Option.getOrElse(() => ({
           year: props.year,
-          value: entry.transactions_total,
-          category_id: entry.category_id,
+          value: entry.totalTransactionsYearBefore,
+          category_id: entry.categoryId,
         })),
       ),
     )
@@ -167,7 +128,7 @@ export default function BudgetsTable(props: Props) {
   }
 
   function onBudgetValueChange(
-    categoryId: Option.Option<string>,
+    categoryData: CategoryData,
     value: number,
   ): void {
     setFormState((formState) => {
@@ -183,7 +144,9 @@ export default function BudgetsTable(props: Props) {
           return {
             ...formState,
             subject: formState.subject.map((subject) => {
-              if (optionStringEq(subject.category_id, categoryId)) {
+              if (
+                optionStringEq(subject.category_id, categoryData.categoryId)
+              ) {
                 return { ...subject, value }
               } else {
                 return subject
@@ -202,11 +165,9 @@ export default function BudgetsTable(props: Props) {
     }
   }
 
-  function onDeleteBudgetButtonClick(
-    budget: Option.Option<BudgetWithCategory>,
-  ): void {
-    if (Option.isSome(budget)) {
-      props.onBudgetDelete(budget.value)
+  function onDeleteBudgetButtonClick(categoryData: CategoryData): void {
+    if (Option.isSome(categoryData.budget)) {
+      props.onBudgetDelete(categoryData.budget.value)
     }
   }
 
@@ -224,26 +185,15 @@ export default function BudgetsTable(props: Props) {
           />
           <TableBody>
             {sorted.map((entry) => {
-              const budget = Option.fromNullable(
-                props.budgets.find((budget) =>
-                  optionStringEq(entry.category_id, budget.category_id),
-                ),
-              )
-
               return (
                 <BudgetsTableRow
-                  key={Option.getOrNull(entry.category_id)}
-                  transactionByCategory={entry}
-                  budget={budget}
+                  key={Option.getOrNull(entry.categoryId)}
+                  categoryData={entry}
                   formState={formState}
-                  onValueChange={(value) =>
-                    onBudgetValueChange(entry.category_id, value)
-                  }
-                  onEditButtonClick={() =>
-                    onEditBudgetButtonClick(entry.category_id)
-                  }
+                  onValueChange={(value) => onBudgetValueChange(entry, value)}
+                  onEditButtonClick={() => onEditBudgetButtonClick(entry)}
                   onSaveButtonClick={onSaveBudgetButtonClick}
-                  onDeleteButtonClick={() => onDeleteBudgetButtonClick(budget)}
+                  onDeleteButtonClick={() => onDeleteBudgetButtonClick(entry)}
                   onCancel={onCancelEditing}
                   isLoading={props.isLoading}
                 />
@@ -258,11 +208,14 @@ export default function BudgetsTable(props: Props) {
             >
               <TableCell>Total</TableCell>
               <TableCell align="right">
-                {transactionsTotal.toFixed(2)}
+                {transactionsTotalYearBefore.toFixed(2)}
               </TableCell>
               <TableCell align="right">{budgetsTotal.toFixed(2)}</TableCell>
               <TableCell align="right">
-                {(budgetsTotal + transactionsTotal).toFixed(2)}
+                {(budgetsTotal + transactionsTotalYearBefore).toFixed(2)}
+              </TableCell>
+              <TableCell align="right">
+                {transactionsTotalChosenYear.toFixed(2)}
               </TableCell>
               <TableCell />
             </TableRow>

@@ -33,6 +33,10 @@ import Query from "../Query"
 import { BudgetWithCategory, InsertBudgetInput } from "./domain"
 import { useConfirmation } from "../../hooks/useConfirmation"
 import InsertBudgetForm from "./InsertBudgetForm"
+import {
+  CategoryData,
+  mergeTransactionsAndBudgetsByCategory,
+} from "./mergeTransactionsAndBudgetsByCategory"
 
 export default function BudgetsPage() {
   const [insertDialogIsOpen, setInsertDialogOpen] = useState(false)
@@ -57,9 +61,14 @@ export default function BudgetsPage() {
 
   const [budgets, updateLocalBudgets] = useQuery(listBudgetsRequest, filters)
 
-  const [transactionsByCategory] = useQuery(
+  const [transactionsByCategoryYearBefore] = useQuery(
     aggregateTransactionsByCategoryRequest,
     yearBeforeFilters,
+  )
+
+  const [transactionsByCategoryChosenYear] = useQuery(
+    aggregateTransactionsByCategoryRequest,
+    filters,
   )
 
   const [newBudget, insertBudget] = useCommand(insertBudgetRequest)
@@ -96,6 +105,19 @@ export default function BudgetsPage() {
 
     return labels
   }, [])
+
+  const categories: NetworkResponse.NetworkResponse<
+    HttpError,
+    readonly CategoryData[]
+  > = pipe(
+    {
+      budgets,
+      transactionsByCategoryYearBefore,
+      transactionsByCategoryChosenYear,
+    },
+    NetworkResponse.all,
+    NetworkResponse.map(mergeTransactionsAndBudgetsByCategory),
+  )
 
   function onYearChange(year: string) {
     pipe(
@@ -268,18 +290,16 @@ export default function BudgetsPage() {
           </Paper>
           <Query
             response={pipe(
-              { budgets, transactionsByCategory },
-              NetworkResponse.all,
+              categories,
               NetworkResponse.withErrorFrom(deletedBudget),
               NetworkResponse.withErrorFrom(updatedBudget),
               NetworkResponse.withErrorFrom(newBudgets),
               NetworkResponse.withErrorFrom(updatedBudgets),
             )}
-            render={({ budgets, transactionsByCategory }) => (
+            render={(categories) => (
               <BudgetsTable
                 year={filters.query.year}
-                budgets={budgets}
-                transactionsByCategory={transactionsByCategory}
+                categories={categories}
                 onBudgetUpdate={onBudgetUpdate}
                 onBudgetsUpdate={onBudgetsUpdate}
                 onBudgetDelete={onDeleteBudgetButtonClick}
