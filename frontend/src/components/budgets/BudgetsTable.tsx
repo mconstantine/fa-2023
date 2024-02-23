@@ -22,7 +22,7 @@ interface Props {
   year: number
   transactionsByCategory: readonly TransactionByCategory[]
   budgets: readonly BudgetWithCategory[]
-  // onPredictionUpdate(prediction: Prediction | PredictionCreationBody): void
+  onBudgetUpdate(data: BudgetWithCategory | InsertBudgetInput): void
   // onPredictionsUpdate(
   //   predictions: Array<Prediction | PredictionCreationBody>,
   // ): void
@@ -50,7 +50,7 @@ export type TableFormState =
 
 export default function BudgetsTable(props: Props) {
   const theme = useTheme()
-  const [formState] = useState<TableFormState>({ type: "Idle" })
+  const [formState, setFormState] = useState<TableFormState>({ type: "Idle" })
 
   const incomes = props.transactionsByCategory.filter(
     (entry) => entry.transactions_total > 0,
@@ -106,27 +106,40 @@ export default function BudgetsTable(props: Props) {
 
   const sorted = [...incomes, ...outcomes, ...rogue]
 
-  // function onEditPredictionButtonClick(categoryId: string | null): void {
-  //   const existingPrediction = props.predictions.find(
-  //     (prediction) => prediction.categoryId === categoryId,
-  //   )
+  function onEditBudgetButtonClick(categoryId: Option.Option<string>): void {
+    const subject = pipe(
+      Option.fromNullable(
+        props.budgets.find((budget) =>
+          pipe(Option.getEquivalence(S.Equivalence), (eq) =>
+            eq(budget.category_id, categoryId),
+          ),
+        ),
+      ),
+      Option.getOrElse(() => {
+        const value = pipe(
+          Option.fromNullable(
+            props.transactionsByCategory.find((entry) =>
+              pipe(Option.getEquivalence(S.Equivalence), (eq) =>
+                eq(categoryId, entry.category_id),
+              ),
+            ),
+          ),
+          Option.map(
+            (transactionByCategory) => transactionByCategory.transactions_total,
+          ),
+          Option.getOrElse(() => 0),
+        )
 
-  //   if (typeof existingPrediction === "undefined") {
-  //     setFormState({
-  //       type: "editing",
-  //       subject: {
-  //         year: props.year,
-  //         value: 0,
-  //         categoryId,
-  //       } satisfies PredictionCreationBody,
-  //     })
-  //   } else {
-  //     setFormState({
-  //       type: "editing",
-  //       subject: existingPrediction,
-  //     })
-  //   }
-  // }
+        return {
+          year: props.year,
+          category_id: categoryId,
+          value,
+        }
+      }),
+    )
+
+    setFormState({ type: "Editing", subject })
+  }
 
   // function onBulkEditButtonClick() {
   //   const predictions = props.categoriesAggregation.map<
@@ -155,9 +168,9 @@ export default function BudgetsTable(props: Props) {
   //   })
   // }
 
-  // function onCancelEditing(): void {
-  //   setFormState({ type: "idle" })
-  // }
+  function onCancelEditing(): void {
+    setFormState({ type: "Idle" })
+  }
 
   // async function onBulkSaveButtonClick(): Promise<void> {
   //   if (formState.type === "bulkEditing") {
@@ -166,41 +179,43 @@ export default function BudgetsTable(props: Props) {
   //   }
   // }
 
-  // function onPredictionValueChange(
-  //   categoryId: string | null,
-  //   value: number,
-  // ): void {
-  //   setFormState((formState) => {
-  //     switch (formState.type) {
-  //       case "idle":
-  //         return formState
-  //       case "editing":
-  //         return {
-  //           ...formState,
-  //           subject: { ...formState.subject, value },
-  //         }
-  //       case "bulkEditing": {
-  //         return {
-  //           ...formState,
-  //           subject: formState.subject.map((subject) => {
-  //             if (subject.categoryId === categoryId) {
-  //               return { ...subject, value }
-  //             } else {
-  //               return subject
-  //             }
-  //           }),
-  //         }
-  //       }
-  //     }
-  //   })
-  // }
+  function onBudgetValueChange(
+    categoryId: Option.Option<string>,
+    value: number,
+  ): void {
+    setFormState((formState) => {
+      switch (formState.type) {
+        case "Idle":
+          return formState
+        case "Editing":
+          return {
+            ...formState,
+            subject: { ...formState.subject, value },
+          }
+        case "BulkEditing": {
+          // TODO:
+          return formState
+          // return {
+          //   ...formState,
+          //   subject: formState.subject.map((subject) => {
+          //     if (subject.categoryId === categoryId) {
+          //       return { ...subject, value }
+          //     } else {
+          //       return subject
+          //     }
+          //   }),
+          // }
+        }
+      }
+    })
+  }
 
-  // function onSavePredictionButtonClick(): void {
-  //   if (formState.type === "editing") {
-  //     props.onPredictionUpdate(formState.subject)
-  //     setFormState({ type: "idle" })
-  //   }
-  // }
+  function onSaveBudgetButtonClick(): void {
+    if (formState.type === "Editing") {
+      props.onBudgetUpdate(formState.subject)
+      setFormState({ type: "Idle" })
+    }
+  }
 
   function onDeleteBudgetButtonClick(
     budget: Option.Option<BudgetWithCategory>,
@@ -238,19 +253,15 @@ export default function BudgetsTable(props: Props) {
                   transactionByCategory={entry}
                   budget={budget}
                   formState={formState}
-                  // onValueChange={(value) =>
-                  //   onPredictionValueChange(
-                  //     entry.categoryId,
-                  //     value,
-                  //   )
-                  // }
-                  // onEditButtonClick={() =>
-                  //   onEditPredictionButtonClick(entry.categoryId)
-                  // }
-                  // onSaveButtonClick={onSavePredictionButtonClick}
+                  onValueChange={(value) =>
+                    onBudgetValueChange(entry.category_id, value)
+                  }
+                  onEditButtonClick={() =>
+                    onEditBudgetButtonClick(entry.category_id)
+                  }
+                  onSaveButtonClick={onSaveBudgetButtonClick}
                   onDeleteButtonClick={() => onDeleteBudgetButtonClick(budget)}
-                  // onCancel={onCancelEditing}
-                  // isLoading={props.isLoading}
+                  onCancel={onCancelEditing}
                 />
               )
             })}

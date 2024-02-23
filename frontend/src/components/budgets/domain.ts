@@ -61,9 +61,13 @@ export interface TransactionByCategory
   extends S.Schema.To<typeof TransactionByCategory> {}
 
 export const InsertBudgetInput = S.extend(
-  S.omit<ServerInsertBudgetInput, ["value"]>("value")(ServerInsertBudgetInput),
+  S.omit<ServerInsertBudgetInput, ["value", "category_id"]>(
+    "value",
+    "category_id",
+  )(ServerInsertBudgetInput),
   S.struct({
     value: S.number,
+    category_id: S.optionFromNullable(S.UUID),
   }),
 )
 
@@ -71,9 +75,13 @@ export interface InsertBudgetInput
   extends S.Schema.To<typeof InsertBudgetInput> {}
 
 export const UpdateBudgetInput = S.extend(
-  S.omit<ServerUpdateBudgetInput, ["value"]>("value")(ServerUpdateBudgetInput),
+  S.omit<ServerUpdateBudgetInput, ["value", "category_id"]>(
+    "value",
+    "category_id",
+  )(ServerUpdateBudgetInput),
   S.struct({
     value: S.number,
+    category_id: S.optionFromNullable(S.UUID),
   }),
 )
 

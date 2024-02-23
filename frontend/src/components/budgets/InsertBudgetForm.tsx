@@ -15,7 +15,7 @@ import { constTrue, constVoid, pipe } from "effect/Function"
 import { useState } from "react"
 import { useDebounce } from "../../hooks/useDebounce"
 import TextInput from "../forms/inputs/TextInput"
-import { Either } from "effect"
+import { Either, Option } from "effect"
 
 interface Props {
   year: number
@@ -44,7 +44,10 @@ export default function InsertBudgetForm(props: Props) {
       selection: S.nullable(Category),
     },
     submit: (data) => {
-      props.onSubmit({ ...data, category_id: data.selection?.id ?? null })
+      props.onSubmit({
+        ...data,
+        category_id: Option.fromNullable(data.selection?.id ?? null),
+      })
     },
   })
 

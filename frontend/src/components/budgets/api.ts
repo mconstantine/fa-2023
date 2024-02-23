@@ -1,11 +1,17 @@
 import * as S from "@effect/schema/Schema"
-import { makeDelete, makeGet, makePost } from "../../network/HttpRequest"
+import {
+  makeDelete,
+  makeGet,
+  makePatch,
+  makePost,
+} from "../../network/HttpRequest"
 import {
   Budget,
   BudgetWithCategory,
   InsertBudgetInput,
   ListBudgetsFilters,
   TransactionByCategory,
+  UpdateBudgetInput,
 } from "./domain"
 
 export const listBudgetsRequest = makeGet("/budgets/", {
@@ -30,5 +36,13 @@ export const deleteBudgetRequest = makeDelete("/budgets/:id/", {
 
 export const insertBudgetRequest = makePost("/budgets/", {
   body: InsertBudgetInput,
+  response: BudgetWithCategory,
+})
+
+export const updateBudgetRequest = makePatch("/budgets/:id/", {
+  params: S.struct({
+    id: S.UUID,
+  }),
+  body: UpdateBudgetInput,
   response: BudgetWithCategory,
 })

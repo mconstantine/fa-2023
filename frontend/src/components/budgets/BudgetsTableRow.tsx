@@ -1,22 +1,42 @@
+import * as Str from "effect/String"
+import * as S from "@effect/schema/Schema"
 import { Box, IconButton, Stack, TableCell, TableRow } from "@mui/material"
-import { Option, pipe } from "effect"
+import { Either, Option, pipe } from "effect"
 import { TableFormState } from "./BudgetsTable"
 import { BudgetWithCategory, TransactionByCategory } from "./domain"
-import { constNull } from "effect/Function"
-import { Delete } from "@mui/icons-material"
+import { constNull, constTrue, constVoid } from "effect/Function"
+import { Check, Close, Delete, Edit } from "@mui/icons-material"
+import { useForm } from "../../hooks/useForm"
+import TextInput from "../forms/inputs/TextInput"
 
 interface Props {
   transactionByCategory: TransactionByCategory
   budget: Option.Option<BudgetWithCategory>
   formState: TableFormState
-  // onValueChange(value: number): void
-  // onEditButtonClick(): void
-  // onSaveButtonClick(): void
+  onValueChange(value: number): void
+  onEditButtonClick(): void
+  onSaveButtonClick(): void
   onDeleteButtonClick(): void
-  // onCancel(): void
+  onCancel(): void
 }
 
 export default function BudgetsTableRow(props: Props) {
+  const budgetValue = pipe(
+    props.budget,
+    Option.map((budget) => budget.value),
+    Option.getOrElse(() => props.transactionByCategory.transactions_total),
+  )
+
+  const isFormStateSubject = pipe(
+    Option.getEquivalence(Str.Equivalence),
+    (eq) =>
+      props.formState.type === "Editing" &&
+      eq(
+        props.transactionByCategory.category_id,
+        props.formState.subject.category_id,
+      ),
+  )
+
   return (
     <TableRow>
       <TableCell>
@@ -32,14 +52,7 @@ export default function BudgetsTableRow(props: Props) {
         {(() => {
           switch (props.formState.type) {
             case "Idle":
-              return pipe(
-                props.budget,
-                Option.map((budget) => budget.value),
-                Option.getOrElse(
-                  () => props.transactionByCategory.transactions_total,
-                ),
-                (n) => n.toFixed(2),
-              )
+              return budgetValue.toFixed(2)
             case "BulkEditing":
               return null
             // return (
@@ -57,29 +70,17 @@ export default function BudgetsTableRow(props: Props) {
             //   />
             // )
             case "Editing": {
-              return null
-              // if (
-              //   props.categoriesAggregation.categoryId ===
-              //   props.formState.subject.categoryId
-              // ) {
-              //   return (
-              //     <NumberInput
-              //       name={
-              //         props.categoriesAggregation.categoryId ?? "uncategorized"
-              //       }
-              //       value={props.prediction?.value ?? 0}
-              //       onChange={props.onValueChange}
-              //       errorMessage="The value of a prediction should be a non negative number"
-              //       fieldProps={{
-              //         sx: { maxWidth: "5em" },
-              //         autoFocus: true,
-              //         disabled: props.isLoading,
-              //       }}
-              //     />
-              //   )
-              // } else {
-              //   return props.prediction?.value ?? 0
-              // }
+              if (isFormStateSubject) {
+                return (
+                  <BudgetsTableRowForm
+                    type="Single"
+                    value={budgetValue}
+                    onValueChange={props.onValueChange}
+                  />
+                )
+              } else {
+                return budgetValue.toFixed(2)
+              }
             }
           }
         })()}
@@ -101,13 +102,12 @@ export default function BudgetsTableRow(props: Props) {
             case "Idle":
               return (
                 <Stack direction="row" spacing={0.5}>
-                  {/* <IconButton
+                  <IconButton
                     aria-label="Edit"
-                    onClick={() => props.onEditButtonClick()}
-                    disabled={props.isLoading}
+                    onClick={props.onEditButtonClick}
                   >
                     <Edit />
-                  </IconButton> */}
+                  </IconButton>
                   {pipe(
                     props.budget,
                     Option.match({
@@ -127,36 +127,72 @@ export default function BudgetsTableRow(props: Props) {
             case "BulkEditing":
               return <Box height={40} />
             case "Editing": {
-              // if (
-              //   props.categoriesAggregation.categoryId ===
-              //   props.formState.subject.categoryId
-              // ) {
-              //   return (
-              //     <Stack direction="row" spacing={0.5}>
-              //       <IconButton
-              //         aria-label="Save"
-              //         onClick={() => props.onSaveButtonClick()}
-              //         disabled={props.isLoading}
-              //       >
-              //         <Check color="primary" />
-              //       </IconButton>
-              //       <IconButton
-              //         aria-label="Cancel"
-              //         onClick={() => props.onCancel()}
-              //         disabled={props.isLoading}
-              //       >
-              //         <Close />
-              //       </IconButton>
-              //     </Stack>
-              //   )
-              // } else {
-              //   return <Box height={40} />
-              // }
-              return null
+              if (isFormStateSubject) {
+                return (
+                  <Stack direction="row" spacing={0.5}>
+                    <IconButton
+                      aria-label="Save"
+                      onClick={props.onSaveButtonClick}
+                    >
+                      <Check color="primary" />
+                    </IconButton>
+                    <IconButton aria-label="Cancel" onClick={props.onCancel}>
+                      <Close />
+                    </IconButton>
+                  </Stack>
+                )
+              } else {
+                return <Box height={40} />
+              }
             }
           }
         })()}
       </TableCell>
     </TableRow>
+  )
+}
+
+interface BudgetsTableRowFormProps {
+  type: "Single" | "Bulk"
+  value: number
+  onValueChange(value: number): void
+}
+
+function BudgetsTableRowForm(props: BudgetsTableRowFormProps) {
+  const { inputProps } = useForm({
+    initialValues: {
+      value: props.value,
+    },
+    validators: {
+      value: S.NumberFromString.pipe(
+        S.filter(constTrue, { message: () => "Should be a number" }),
+      ),
+    },
+    submit: constVoid,
+  })
+
+  function onChange(value: string) {
+    const validation = inputProps("value").onChange(value)
+
+    pipe(
+      validation,
+      Either.match({
+        onLeft: constVoid,
+        onRight: props.onValueChange,
+      }),
+    )
+
+    return validation
+  }
+
+  return (
+    <TextInput
+      {...inputProps("value")}
+      onChange={onChange}
+      fieldProps={{
+        sx: { maxWidth: "5em" },
+        autoFocus: props.type === "Single",
+      }}
+    />
   )
 }

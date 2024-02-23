@@ -16,6 +16,7 @@ import {
   deleteBudgetRequest,
   insertBudgetRequest,
   listBudgetsRequest,
+  updateBudgetRequest,
 } from "./api"
 import { useMemo, useState } from "react"
 import ValidatedSelect from "../forms/inputs/ValidatedSelect"
@@ -55,11 +56,7 @@ export default function BudgetsPage() {
   )
 
   const [newBudget, insertBudget] = useCommand(insertBudgetRequest)
-
-  // const [updatePredictionResponse, updatePrediction] = useCommand<
-  //   PredictionUpdateBody,
-  //   Prediction
-  // >("PATCH", "/predictions/")
+  const [updatedBudget, updateBudget] = useCommand(updateBudgetRequest)
 
   // const [updatePredictionsResponse, updatePredictions] = useCommand<
   //   PredictionBulkUpdateBody,
@@ -132,31 +129,35 @@ export default function BudgetsPage() {
     )
   }
 
-  // async function onPredictionUpdate(
-  //   data: Prediction | PredictionCreationBody,
-  // ): Promise<void> {
-  //   if (isPrediction(data)) {
-  //     const result = await updatePrediction(data)
+  async function onBudgetUpdate(
+    data: BudgetWithCategory | InsertBudgetInput,
+  ): Promise<void> {
+    if ("id" in data) {
+      const { id, ...body } = data
+      const result = await updateBudget({ params: { id }, body })
 
-  //     if (result !== null) {
-  //       updatePredictionsList((predictions) => [result, ...predictions])
-  //     }
-  //   } else {
-  //     const result = await createPrediction(data)
-
-  //     if (result !== null) {
-  //       updatePredictionsList((predictions) =>
-  //         predictions.map((prediction) => {
-  //           if (prediction.id === result.id) {
-  //             return result
-  //           } else {
-  //             return prediction
-  //           }
-  //         }),
-  //       )
-  //     }
-  //   }
-  // }
+      pipe(
+        result,
+        Either.match({
+          // TODO: where is error handling for this?
+          onLeft: constVoid,
+          onRight: (updated) => {
+            updateBudgets((budgets) =>
+              budgets.map((budget) => {
+                if (budget.id === updated.id) {
+                  return updated
+                } else {
+                  return budget
+                }
+              }),
+            )
+          },
+        }),
+      )
+    } else {
+      return onBudgetInsert(data)
+    }
+  }
 
   // async function onPredictionsUpdate(
   //   data: Array<Prediction | PredictionCreationBody>,
@@ -266,13 +267,14 @@ export default function BudgetsPage() {
               { budgets, transactionsByCategory },
               NetworkResponse.all,
               NetworkResponse.withErrorFrom(deletedBudget),
+              NetworkResponse.withErrorFrom(updatedBudget),
             )}
             render={({ budgets, transactionsByCategory }) => (
               <BudgetsTable
                 year={filters.query.year}
                 budgets={budgets}
                 transactionsByCategory={transactionsByCategory}
-                // onPredictionUpdate={onPredictionUpdate}
+                onBudgetUpdate={onBudgetUpdate}
                 // onPredictionsUpdate={onPredictionsUpdate}
                 onBudgetDelete={onDeleteBudgetButtonClick}
               />
