@@ -22,6 +22,7 @@ interface Props {
   year: number
   transactionsByCategory: readonly TransactionByCategory[]
   budgets: readonly BudgetWithCategory[]
+  isLoading: boolean
   onBudgetUpdate(data: BudgetWithCategory | InsertBudgetInput): void
   // onPredictionsUpdate(
   //   predictions: Array<Prediction | PredictionCreationBody>,
@@ -262,6 +263,7 @@ export default function BudgetsTable(props: Props) {
                   onSaveButtonClick={onSaveBudgetButtonClick}
                   onDeleteButtonClick={() => onDeleteBudgetButtonClick(budget)}
                   onCancel={onCancelEditing}
+                  isLoading={props.isLoading}
                 />
               )
             })}

@@ -13,6 +13,7 @@ interface Props {
   transactionByCategory: TransactionByCategory
   budget: Option.Option<BudgetWithCategory>
   formState: TableFormState
+  isLoading: boolean
   onValueChange(value: number): void
   onEditButtonClick(): void
   onSaveButtonClick(): void
@@ -76,6 +77,7 @@ export default function BudgetsTableRow(props: Props) {
                     type="Single"
                     value={budgetValue}
                     onValueChange={props.onValueChange}
+                    isLoading={props.isLoading}
                   />
                 )
               } else {
@@ -105,6 +107,7 @@ export default function BudgetsTableRow(props: Props) {
                   <IconButton
                     aria-label="Edit"
                     onClick={props.onEditButtonClick}
+                    disabled={props.isLoading}
                   >
                     <Edit />
                   </IconButton>
@@ -116,6 +119,7 @@ export default function BudgetsTableRow(props: Props) {
                         <IconButton
                           aria-label="Delete"
                           onClick={props.onDeleteButtonClick}
+                          disabled={props.isLoading}
                         >
                           <Delete />
                         </IconButton>
@@ -133,10 +137,15 @@ export default function BudgetsTableRow(props: Props) {
                     <IconButton
                       aria-label="Save"
                       onClick={props.onSaveButtonClick}
+                      disabled={props.isLoading}
                     >
                       <Check color="primary" />
                     </IconButton>
-                    <IconButton aria-label="Cancel" onClick={props.onCancel}>
+                    <IconButton
+                      aria-label="Cancel"
+                      onClick={props.onCancel}
+                      disabled={props.isLoading}
+                    >
                       <Close />
                     </IconButton>
                   </Stack>
@@ -155,6 +164,7 @@ export default function BudgetsTableRow(props: Props) {
 interface BudgetsTableRowFormProps {
   type: "Single" | "Bulk"
   value: number
+  isLoading: boolean
   onValueChange(value: number): void
 }
 
@@ -192,6 +202,7 @@ function BudgetsTableRowForm(props: BudgetsTableRowFormProps) {
       fieldProps={{
         sx: { maxWidth: "5em" },
         autoFocus: props.type === "Single",
+        disabled: props.isLoading,
       }}
     />
   )

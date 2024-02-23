@@ -277,6 +277,11 @@ export default function BudgetsPage() {
                 onBudgetUpdate={onBudgetUpdate}
                 // onPredictionsUpdate={onPredictionsUpdate}
                 onBudgetDelete={onDeleteBudgetButtonClick}
+                isLoading={
+                  NetworkResponse.isLoading(newBudget) ||
+                  NetworkResponse.isLoading(deletedBudget) ||
+                  NetworkResponse.isLoading(updatedBudget)
+                }
               />
             )}
           />
