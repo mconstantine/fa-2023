@@ -1,27 +1,26 @@
+import * as NetworkResponse from "../../network/NetworkResponse"
+import * as S from "@effect/schema/Schema"
 import { Container, Paper, Stack, Typography, useTheme } from "@mui/material"
-import { useState } from "react"
 import ValidatedSelect from "../forms/inputs/ValidatedSelect"
-import { MonthlyAggregation, MonthlyAggregationParams } from "./domain"
-import { useQuery } from "../../hooks/network"
+import { useQuery, useRequestData } from "../../hooks/network"
 import { BarChart } from "@mui/x-charts/BarChart"
 import Query from "../Query"
-
-interface BarChartData extends Record<string, string | number> {
-  month: string
-  income: number
-  outcome: number
-  total: number
-}
+import { aggregateTransactionsByMonthRequest } from "./api"
+import { Either, Option, pipe } from "effect"
+import { constVoid } from "effect/Function"
 
 export default function MonthlyPage() {
-  const [year, setYear] = useState(new Date().getFullYear())
-  const [params, setParams] = useState<MonthlyAggregationParams>({ year })
+  const [filters, setFilters] = useRequestData<
+    typeof aggregateTransactionsByMonthRequest
+  >(aggregateTransactionsByMonthRequest, {
+    query: {
+      year: new Date().getUTCFullYear(),
+    },
+  })
 
   const theme = useTheme()
-  const [monthlyAggregationResponse] = useQuery<
-    MonthlyAggregationParams,
-    MonthlyAggregation[]
-  >("/transactions/monthly", params)
+
+  const [entries] = useQuery(aggregateTransactionsByMonthRequest, filters)
 
   const minYear = 2023
   const maxYear = new Date().getFullYear()
@@ -34,24 +33,39 @@ export default function MonthlyPage() {
       return result
     }, {})
 
-  const barChartResponse = monthlyAggregationResponse.map((data) =>
-    data.map<BarChartData>((entry) => ({
-      month: new Date(year, entry.month - 1, 1).toLocaleDateString(undefined, {
-        month: "short",
-      }),
-      income: entry.income,
-      outcome: entry.outcome,
-      total: entry.total,
-    })),
+  const barChartResponse = pipe(
+    entries,
+    NetworkResponse.map((data) => {
+      return new Array(12).fill(null).map((_, index) => {
+        const month = new Date(filters.query.year, index, 1).toLocaleDateString(
+          undefined,
+          {
+            month: "short",
+          },
+        )
+
+        const entry = data.find((entry) => entry.month === index + 1)
+
+        if (typeof entry === "undefined") {
+          return { month, income: 0, outcome: 0, total: 0 }
+        } else {
+          return { ...entry, month }
+        }
+      })
+    }),
   )
 
-  function onYearChange(yearString: string): void {
-    const year = parseInt(yearString)
+  function onYearChange(yearString: string): Either.Either<string, string> {
+    pipe(
+      yearString,
+      S.decodeOption(S.NumberFromString),
+      Option.match({
+        onNone: constVoid,
+        onSome: (year) => setFilters({ query: { year } }),
+      }),
+    )
 
-    if (!Number.isNaN(year)) {
-      setYear(year)
-      setParams({ year })
-    }
+    return Either.right(yearString)
   }
 
   return (
@@ -70,8 +84,9 @@ export default function MonthlyPage() {
           <ValidatedSelect
             name="year"
             label="Year"
-            value={year.toString(10)}
+            value={filters.query.year.toString(10)}
             options={yearOptions}
+            error={Option.none()}
             onChange={onYearChange}
           />
         </Paper>

@@ -3,14 +3,14 @@ import CategoriesPage from "./components/categories/CategoriesPage"
 import TransactionsPage from "./components/transactions/TransactionsPage"
 import { PageWithHeader } from "./components/PageWithHeader"
 import BudgetsPage from "./components/budgets/BudgetsPage"
-// import MonthlyPage from "./components/monthly/MonthlyPage"
+import MonthlyPage from "./components/monthly/MonthlyPage"
 // import CategoryTimePage from "./components/category-time/CategoryTimePage"
 
 enum Routes {
   HOME = "/",
   CATEGORIES = "/categories",
   BUDGETS = "/budgets",
-  // MONTHLY = "/monthly",
+  MONTHLY = "/monthly",
   // CATEGORY_TIME = "/category-time",
 }
 
@@ -47,15 +47,15 @@ export const routes: Route[] = [
     ),
     label: "Budgets",
   },
-  // {
-  //   path: Routes.MONTHLY,
-  //   element: (
-  //     <PageWithHeader>
-  //       <MonthlyPage />
-  //     </PageWithHeader>
-  //   ),
-  //   label: "Monthly aggregation",
-  // },
+  {
+    path: Routes.MONTHLY,
+    element: (
+      <PageWithHeader>
+        <MonthlyPage />
+      </PageWithHeader>
+    ),
+    label: "Monthly aggregation",
+  },
   // {
   //   path: Routes.CATEGORY_TIME,
   //   element: (

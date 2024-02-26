@@ -974,21 +974,21 @@ describe("database transaction functions", () => {
       expect(result).toEqual([
         {
           month: 1,
-          income: 200,
-          outcome: -450,
-          total: -250,
+          income: 2,
+          outcome: -4.5,
+          total: -2.5,
         },
         {
           month: 2,
-          income: 500,
+          income: 5,
           outcome: 0,
-          total: 500,
+          total: 5,
         },
         {
           month: 12,
           income: 0,
-          outcome: -300,
-          total: -300,
+          outcome: -3,
+          total: -3,
         },
       ])
     })

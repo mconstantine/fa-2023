@@ -134,9 +134,9 @@ export type AggregateTransactionsByMonthInput = S.Schema.To<
 
 export const TransactionByMonth = S.struct({
   month: S.number.pipe(S.greaterThanOrEqualTo(1)).pipe(S.lessThanOrEqualTo(12)),
-  income: S.number,
-  outcome: S.number,
-  total: S.number,
+  income: CurrencyFromValue,
+  outcome: CurrencyFromValue,
+  total: CurrencyFromValue,
 })
 
 export type TransactionByMonth = S.Schema.To<typeof TransactionByMonth>
