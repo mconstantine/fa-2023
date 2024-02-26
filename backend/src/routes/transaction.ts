@@ -13,6 +13,7 @@ import { deleteTransaction } from "../database/functions/transaction/delete_tran
 import { HttpError } from "./HttpError"
 import {
   AggregateTransactionsByCategoryInput,
+  AggregateTransactionsByMonthInput,
   InsertTransactionInput,
   ListTransactionsInput,
   UpdateTransactionInput,
@@ -26,6 +27,7 @@ import { Cause, Effect, Either, Exit, pipe } from "effect"
 import { ImportErrorType } from "../adapters/Adapter"
 import { constVoid, flow, identity } from "effect/Function"
 import { aggregateTransactionsByCategory } from "../database/functions/transaction/aggregate_transactions_by_category"
+import { aggregateTransactionsByMonth } from "../database/functions/transaction/aggregate_transactions_by_month"
 
 export const transactionRouter = Router.get("/", {
   codecs: {
@@ -38,6 +40,12 @@ export const transactionRouter = Router.get("/", {
       query: AggregateTransactionsByCategoryInput,
     },
     handler: async ({ query }) => await aggregateTransactionsByCategory(query),
+  })
+  .get("/by-month", {
+    codecs: {
+      query: AggregateTransactionsByMonthInput,
+    },
+    handler: async ({ query }) => await aggregateTransactionsByMonth(query),
   })
   .post("/", {
     codecs: {

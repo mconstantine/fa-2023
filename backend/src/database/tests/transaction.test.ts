@@ -15,6 +15,7 @@ import { insertCategory } from "../functions/category/insert_category"
 import { type Category } from "../functions/category/domain"
 import { listTransactions } from "../functions/transaction/list_transactions"
 import { aggregateTransactionsByCategory } from "../functions/transaction/aggregate_transactions_by_category"
+import { aggregateTransactionsByMonth } from "../functions/transaction/aggregate_transactions_by_month"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
@@ -849,8 +850,16 @@ describe("database transaction functions", () => {
   })
 
   describe("aggregate transactions by category", () => {
-    beforeAll(async () => {
+    beforeEach(async () => {
       await db.query("delete from transaction")
+    })
+
+    it("should work with no data", async () => {
+      const result = await aggregateTransactionsByCategory({
+        year: 2020,
+      })
+
+      expect(result).toEqual([])
     })
 
     it("should work and order by category name", async () => {
@@ -906,6 +915,80 @@ describe("database transaction functions", () => {
           category_id: null,
           category_name: null,
           transactions_total: 5,
+        },
+      ])
+    })
+  })
+
+  describe("aggregate transactions by month", () => {
+    beforeAll(async () => {
+      await db.query("delete from transaction")
+    })
+
+    it("should work with no data", async () => {
+      const result = await aggregateTransactionsByMonth({
+        year: 2020,
+      })
+
+      expect(result).toEqual([])
+    })
+
+    it("should work", async () => {
+      await insertTransactions([
+        {
+          description: "Aggregate transactions by month test 1",
+          value: 200,
+          date: new Date(2020, 0, 1),
+          categories_ids: [],
+        },
+        {
+          description: "Aggregate transactions by month test 2",
+          value: -300,
+          date: new Date(2020, 11, 31),
+          categories_ids: [],
+        },
+        {
+          description: "Aggregate transactions by month test 3",
+          value: -450,
+          date: new Date(2020, 0, 1),
+          categories_ids: [],
+        },
+        {
+          description: "Aggregate transactions by month test 4",
+          value: 500,
+          date: new Date(2020, 1, 1),
+          categories_ids: [],
+        },
+        {
+          description: "Aggregate transactions by month test 4",
+          value: 1000,
+          date: new Date(2021, 0, 1),
+          categories_ids: [],
+        },
+      ])
+
+      const result = await aggregateTransactionsByMonth({
+        year: 2020,
+      })
+
+      expect(result).toEqual([
+        {
+          month: 1,
+          income: 200,
+          outcome: -450,
+          total: -250,
+        },
+        {
+          month: 2,
+          income: 500,
+          outcome: 0,
+          total: 500,
+        },
+        {
+          month: 12,
+          income: 0,
+          outcome: -300,
+          total: -300,
         },
       ])
     })

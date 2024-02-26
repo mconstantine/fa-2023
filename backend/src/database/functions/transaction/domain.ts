@@ -123,3 +123,20 @@ export const TransactionByCategory = S.struct({
 })
 
 export type TransactionByCategory = S.Schema.To<typeof TransactionByCategory>
+
+export const AggregateTransactionsByMonthInput = S.struct({
+  year: S.NumberFromString.pipe(S.int()).pipe(S.positive()),
+})
+
+export type AggregateTransactionsByMonthInput = S.Schema.To<
+  typeof AggregateTransactionsByMonthInput
+>
+
+export const TransactionByMonth = S.struct({
+  month: S.number.pipe(S.greaterThanOrEqualTo(1)).pipe(S.lessThanOrEqualTo(12)),
+  income: S.number,
+  outcome: S.number,
+  total: S.number,
+})
+
+export type TransactionByMonth = S.Schema.To<typeof TransactionByMonth>
