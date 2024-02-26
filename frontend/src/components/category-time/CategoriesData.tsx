@@ -9,19 +9,19 @@ import {
   TableRow,
   Typography,
 } from "@mui/material"
-import { CategoryAggregation } from "./domain"
+import { TransactionsByTimeAndCategory } from "./domain"
 import { BarChart } from "@mui/x-charts"
 import { Category } from "../categories/domain"
 
 interface Props {
-  selection: Category[]
-  data: CategoryAggregation[]
+  selection: readonly Category[]
+  data: TransactionsByTimeAndCategory["categories"]
 }
 
 export default function CategoriesData(props: Props) {
   if (props.data.length > 0) {
     const nonMetaCategoriesTotalValue = props.data
-      .filter((category) => !category.isMeta)
+      .filter((category) => !category.is_meta)
       .reduce((sum, category) => sum + category.total, 0)
 
     const selectedCategoryIds = props.selection.map((category) => category.id)

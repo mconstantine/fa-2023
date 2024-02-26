@@ -14,6 +14,7 @@ import { HttpError } from "./HttpError"
 import {
   AggregateTransactionsByCategoryInput,
   AggregateTransactionsByMonthInput,
+  AggregateTransactionsByTimeAndCategoryInput,
   InsertTransactionInput,
   ListTransactionsInput,
   UpdateTransactionInput,
@@ -28,6 +29,7 @@ import { ImportErrorType } from "../adapters/Adapter"
 import { constVoid, flow, identity } from "effect/Function"
 import { aggregateTransactionsByCategory } from "../database/functions/transaction/aggregate_transactions_by_category"
 import { aggregateTransactionsByMonth } from "../database/functions/transaction/aggregate_transactions_by_month"
+import { aggregateTransactionsByTimeAndCategory } from "../database/functions/transaction/aggregate_transactions_by_time_and_category"
 
 export const transactionRouter = Router.get("/", {
   codecs: {
@@ -46,6 +48,13 @@ export const transactionRouter = Router.get("/", {
       query: AggregateTransactionsByMonthInput,
     },
     handler: async ({ query }) => await aggregateTransactionsByMonth(query),
+  })
+  .get("/by-time-and-category", {
+    codecs: {
+      query: AggregateTransactionsByTimeAndCategoryInput,
+    },
+    handler: async ({ query }) =>
+      await aggregateTransactionsByTimeAndCategory(query),
   })
   .post("/", {
     codecs: {

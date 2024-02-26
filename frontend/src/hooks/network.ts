@@ -808,6 +808,7 @@ export function useRequestData<
 
     setSearchParams(() => {
       if (
+        typeof mutNewState !== "undefined" &&
         "query" in mutNewState &&
         typeof request.codecs.query !== "undefined"
       ) {

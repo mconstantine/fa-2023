@@ -140,3 +140,36 @@ export const TransactionByMonth = S.struct({
 })
 
 export type TransactionByMonth = S.Schema.To<typeof TransactionByMonth>
+
+export const AggregateTransactionsByTimeAndCategoryInput = S.struct({
+  time_range: S.literal("monthly", "weekly", "daily"),
+  year: S.NumberFromString.pipe(S.int()).pipe(S.positive()),
+  categories_ids: S.optional(S.array(S.UUID)),
+})
+
+export type AggregateTransactionsByTimeAndCategoryInput = S.Schema.To<
+  typeof AggregateTransactionsByTimeAndCategoryInput
+>
+
+export const TransactionsByTimeAndCategory = S.struct({
+  time: S.array(
+    S.struct({
+      time: S.number,
+      total: CurrencyFromValue,
+    }),
+  ),
+  categories: S.array(
+    S.struct({
+      id: S.UUID,
+      name: S.string.pipe(S.nonEmpty()),
+      is_meta: S.boolean,
+      max_transaction_value: CurrencyFromValue,
+      min_transaction_value: CurrencyFromValue,
+      total: CurrencyFromValue,
+    }),
+  ),
+})
+
+export type TransactionsByTimeAndCategory = S.Schema.To<
+  typeof TransactionsByTimeAndCategory
+>

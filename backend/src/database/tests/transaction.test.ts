@@ -16,6 +16,7 @@ import { type Category } from "../functions/category/domain"
 import { listTransactions } from "../functions/transaction/list_transactions"
 import { aggregateTransactionsByCategory } from "../functions/transaction/aggregate_transactions_by_category"
 import { aggregateTransactionsByMonth } from "../functions/transaction/aggregate_transactions_by_month"
+import { aggregateTransactionsByTimeAndCategory } from "../functions/transaction/aggregate_transactions_by_time_and_category"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
@@ -991,6 +992,206 @@ describe("database transaction functions", () => {
           total: -3,
         },
       ])
+    })
+  })
+
+  describe("category-time aggregation", () => {
+    let categories: readonly Category[]
+
+    beforeAll(async () => {
+      await db.query("delete from transaction")
+
+      categories = [
+        await insertCategory({
+          name: "Category-time aggregation test root category",
+          is_meta: false,
+          keywords: [],
+        }),
+        await insertCategory({
+          name: "Category-time aggregation test category 1",
+          is_meta: true,
+          keywords: [],
+        }),
+        await insertCategory({
+          name: "Category-time aggregation test category 2",
+          is_meta: true,
+          keywords: [],
+        }),
+        await insertCategory({
+          name: "Category-time aggregation test category 3",
+          is_meta: true,
+          keywords: [],
+        }),
+      ]
+
+      await insertTransactions([
+        {
+          description: "Category-time aggregation test 1",
+          date: new Date(2020, 0, 1),
+          value: -2500,
+          categories_ids: [
+            categories[0]!.id,
+            categories[1]!.id,
+            categories[2]!.id,
+          ],
+        },
+        {
+          description: "Category-time aggregation test 2",
+          date: new Date(2020, 0, 15),
+          value: -2500,
+          categories_ids: [
+            categories[0]!.id,
+            categories[1]!.id,
+            categories[2]!.id,
+          ],
+        },
+        {
+          description: "Category-time aggregation test 3",
+          date: new Date(2020, 5, 1),
+          value: -2500,
+          categories_ids: [
+            categories[0]!.id,
+            categories[1]!.id,
+            categories[3]!.id,
+          ],
+        },
+        {
+          description: "Category-time aggregation test 4",
+          date: new Date(2020, 5, 15),
+          value: -2500,
+          categories_ids: [],
+        },
+        {
+          description: "Category-time aggregation test 5",
+          date: new Date(2021, 0, 1),
+          value: -2500,
+          categories_ids: [],
+        },
+      ])
+    })
+
+    it("should allow to group monthly", async () => {
+      const result = await aggregateTransactionsByTimeAndCategory({
+        time_range: "monthly",
+        year: 2020,
+      })
+
+      expect(result.time).toEqual([
+        {
+          time: 1,
+          total: -50,
+        },
+        {
+          time: 6,
+          total: -50,
+        },
+      ])
+    })
+
+    it("should allow to group weekly", async () => {
+      const result = await aggregateTransactionsByTimeAndCategory({
+        time_range: "weekly",
+        year: 2020,
+      })
+
+      expect(result.time).toEqual([
+        {
+          time: 1,
+          total: -25,
+        },
+        {
+          time: 3,
+          total: -25,
+        },
+        {
+          time: 23,
+          total: -25,
+        },
+        {
+          time: 25,
+          total: -25,
+        },
+      ])
+    })
+
+    it("should allow to group daily", async () => {
+      const result = await aggregateTransactionsByTimeAndCategory({
+        time_range: "daily",
+        year: 2020,
+        categories_ids: [],
+      })
+
+      expect(result.time).toEqual([
+        {
+          time: 1,
+          total: -25,
+        },
+        {
+          time: 15,
+          total: -25,
+        },
+        {
+          time: 153,
+          total: -25,
+        },
+        {
+          time: 167,
+          total: -25,
+        },
+      ])
+    })
+
+    it("should aggregate subcategories", async () => {
+      const result = await aggregateTransactionsByTimeAndCategory({
+        time_range: "monthly",
+        year: 2020,
+        categories_ids: [categories[0]!.id],
+      })
+
+      expect(result.categories).toEqual([
+        {
+          id: categories[0]!.id,
+          name: categories[0]!.name,
+          is_meta: false,
+          min_transaction_value: -25,
+          max_transaction_value: -25,
+          total: -75,
+        },
+        {
+          id: categories[1]!.id,
+          name: categories[1]!.name,
+          is_meta: true,
+          min_transaction_value: -25,
+          max_transaction_value: -25,
+          total: -75,
+        },
+        {
+          id: categories[2]!.id,
+          name: categories[2]!.name,
+          is_meta: true,
+          min_transaction_value: -25,
+          max_transaction_value: -25,
+          total: -50,
+        },
+        {
+          id: categories[3]!.id,
+          name: categories[3]!.name,
+          is_meta: true,
+          min_transaction_value: -25,
+          max_transaction_value: -25,
+          total: -25,
+        },
+      ])
+    })
+
+    it("should not aggregated subcategories if not needed", async () => {
+      const result = await aggregateTransactionsByTimeAndCategory({
+        time_range: "monthly",
+        year: 2020,
+        categories_ids: [],
+      })
+
+      expect(result.categories).toEqual([])
     })
   })
 })

@@ -8,13 +8,16 @@ import {
   Typography,
   useTheme,
 } from "@mui/material"
-import { TimeAggregation, TimeRange } from "./domain"
 import { BarChart } from "@mui/x-charts"
+import {
+  AggregateTransactionsByTimeAndCategoryInput,
+  TransactionsByTimeAndCategory,
+} from "./domain"
 
 interface Props {
   year: number
-  timeRange: TimeRange
-  data: TimeAggregation[]
+  timeRange: AggregateTransactionsByTimeAndCategoryInput["time_range"]
+  data: TransactionsByTimeAndCategory["time"]
 }
 
 export default function TimeData(props: Props) {
@@ -24,23 +27,24 @@ export default function TimeData(props: Props) {
     if (props.data.length === 0) {
       return []
     } else {
-      const timeMin = 1
+      const minTimeInData = Math.min(...props.data.map((entry) => entry.time))
+      const maxTimeInData = Math.max(...props.data.map((entry) => entry.time))
 
-      const timeMax: number = (() => {
-        switch (props.timeRange) {
-          case TimeRange.MONTH:
-            return 12
-          case TimeRange.WEEK:
-            return 51
-          case TimeRange.DAY:
-            return props.year % 4 === 0 ? 366 : 365
-        }
-      })()
+      const min = Math.max(1, minTimeInData)
 
-      const dataMin = Math.min(...props.data.map((entry) => entry.time))
-      const dataMax = Math.max(...props.data.map((entry) => entry.time))
-      const min = Math.min(timeMin, dataMin)
-      const max = Math.max(timeMax, dataMax)
+      const max = Math.min(
+        maxTimeInData,
+        (() => {
+          switch (props.timeRange) {
+            case "monthly":
+              return 12
+            case "weekly":
+              return 51
+            case "daily":
+              return props.year % 4 === 0 ? 366 : 365
+          }
+        })(),
+      )
 
       return new Array(max - min + 1).fill(null).map((_, index) => {
         const entry = props.data.find((entry) => entry.time === index + 1)
@@ -59,22 +63,22 @@ export default function TimeData(props: Props) {
 
   const timeRangeLabel = (() => {
     switch (props.timeRange) {
-      case TimeRange.MONTH:
+      case "monthly":
         return "Month"
-      case TimeRange.WEEK:
+      case "weekly":
         return "Week"
-      case TimeRange.DAY:
+      case "daily":
         return "Day"
     }
   })()
 
   const timeRangeTitle = (() => {
     switch (props.timeRange) {
-      case TimeRange.MONTH:
+      case "monthly":
         return "Monthly"
-      case TimeRange.WEEK:
+      case "weekly":
         return "Weekly"
-      case TimeRange.DAY:
+      case "daily":
         return "Daily"
     }
   })()
@@ -98,14 +102,14 @@ export default function TimeData(props: Props) {
               label: timeRangeLabel,
               valueFormatter: (n: number) => {
                 switch (props.timeRange) {
-                  case TimeRange.MONTH:
+                  case "monthly":
                     return new Date(props.year, n - 1, 1).toLocaleString(
                       undefined,
                       { month: "short" },
                     )
-                  case TimeRange.WEEK:
+                  case "weekly":
                     return `Week ${n}`
-                  case TimeRange.DAY:
+                  case "daily":
                     return new Date(props.year, 0, n).toLocaleDateString(
                       undefined,
                       {
