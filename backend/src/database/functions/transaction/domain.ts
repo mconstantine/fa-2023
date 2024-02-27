@@ -119,6 +119,7 @@ export type AggregateTransactionsByCategoryInput = S.Schema.To<
 export const TransactionByCategory = S.struct({
   category_id: S.nullable(S.UUID),
   category_name: S.nullable(S.Trim.pipe(S.nonEmpty())),
+  category_is_projectable: S.nullable(S.boolean),
   transactions_total: CurrencyFromValue,
 })
 

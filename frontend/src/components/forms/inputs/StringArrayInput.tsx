@@ -74,12 +74,14 @@ export function StringArrayInput(props: Props) {
               endAdornment: (
                 <InputAdornment position="end">
                   <Tooltip title="Remove from the list">
-                    <IconButton
-                      aria-label="Remove"
-                      onClick={() => onDeleteButtonClick(index)}
-                    >
-                      <Delete />
-                    </IconButton>
+                    <span>
+                      <IconButton
+                        aria-label="Remove"
+                        onClick={() => onDeleteButtonClick(index)}
+                      >
+                        <Delete />
+                      </IconButton>
+                    </span>
                   </Tooltip>
                 </InputAdornment>
               ),
@@ -103,13 +105,15 @@ export function StringArrayInput(props: Props) {
             endAdornment: (
               <InputAdornment position="end">
                 <Tooltip title="Add to the list (you can also hit Submit)">
-                  <IconButton
-                    aria-label="Add"
-                    onClick={() => onAddButtonClick()}
-                    disabled={Option.isSome(props.error)}
-                  >
-                    <Add />
-                  </IconButton>
+                  <span>
+                    <IconButton
+                      aria-label="Add"
+                      onClick={() => onAddButtonClick()}
+                      disabled={Option.isSome(props.error)}
+                    >
+                      <Add />
+                    </IconButton>
+                  </span>
                 </Tooltip>
               </InputAdornment>
             ),

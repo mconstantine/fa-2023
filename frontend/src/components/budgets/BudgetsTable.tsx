@@ -14,6 +14,7 @@ import { BudgetWithCategory, InsertBudgetInput } from "./domain"
 import { useState } from "react"
 import { optionStringEq } from "../../globalDomain"
 import { CategoryData } from "./mergeTransactionsAndBudgetsByCategory"
+import { getProjectionValue } from "./getProjectionValue"
 
 interface Props {
   year: number
@@ -22,6 +23,7 @@ interface Props {
   onBudgetUpdate(data: BudgetWithCategory | InsertBudgetInput): void
   onBudgetsUpdate(data: Array<BudgetWithCategory | InsertBudgetInput>): void
   onBudgetDelete(budget: BudgetWithCategory): void
+  onProjectableStatusUpdate(categoryId: string, isProjectable: boolean): void
 }
 
 interface IdleTableFormState {
@@ -77,6 +79,11 @@ export default function BudgetsTable(props: Props) {
         Option.map((budget) => budget.value),
         Option.getOrElse(() => entry.totalTransactionsYearBefore),
       ),
+    0,
+  )
+
+  const projectionsTotal = props.categories.reduce(
+    (sum, entry) => sum + getProjectionValue(entry),
     0,
   )
 
@@ -171,6 +178,15 @@ export default function BudgetsTable(props: Props) {
     }
   }
 
+  function onProjectableStatusUpdate(
+    entry: CategoryData,
+    isProjectable: boolean,
+  ) {
+    if (Option.isSome(entry.categoryId)) {
+      props.onProjectableStatusUpdate(entry.categoryId.value, isProjectable)
+    }
+  }
+
   return (
     <Paper>
       <TableContainer sx={{ maxHeight: 637 }}>
@@ -188,6 +204,7 @@ export default function BudgetsTable(props: Props) {
               return (
                 <BudgetsTableRow
                   key={Option.getOrNull(entry.categoryId)}
+                  year={props.year}
                   categoryData={entry}
                   formState={formState}
                   onValueChange={(value) => onBudgetValueChange(entry, value)}
@@ -195,6 +212,9 @@ export default function BudgetsTable(props: Props) {
                   onSaveButtonClick={onSaveBudgetButtonClick}
                   onDeleteButtonClick={() => onDeleteBudgetButtonClick(entry)}
                   onCancel={onCancelEditing}
+                  onProjectableStatusUpdate={(isProjectable) =>
+                    onProjectableStatusUpdate(entry, isProjectable)
+                  }
                   isLoading={props.isLoading}
                 />
               )
@@ -211,13 +231,21 @@ export default function BudgetsTable(props: Props) {
                 {transactionsTotalYearBefore.toFixed(2)}
               </TableCell>
               <TableCell align="right">{budgetsTotal.toFixed(2)}</TableCell>
+              <TableCell />
               <TableCell align="right">
                 {(budgetsTotal + transactionsTotalYearBefore).toFixed(2)}
               </TableCell>
               <TableCell align="right">
                 {transactionsTotalChosenYear.toFixed(2)}
               </TableCell>
-              <TableCell />
+              {props.year === new Date().getUTCFullYear() ? (
+                <>
+                  <TableCell align="right">
+                    {projectionsTotal.toFixed(2)}
+                  </TableCell>
+                  <TableCell />
+                </>
+              ) : null}
             </TableRow>
           </TableBody>
         </Table>

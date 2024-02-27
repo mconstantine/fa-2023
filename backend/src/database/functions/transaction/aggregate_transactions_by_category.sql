@@ -5,6 +5,7 @@ return (
     select
       c.id as category_id,
       c.name as category_name,
+      c.is_projectable as category_is_projectable,
       sum(t.value) as transactions_total
     from transaction t
     left join transactions_categories tc on tc.transaction_id = t.id

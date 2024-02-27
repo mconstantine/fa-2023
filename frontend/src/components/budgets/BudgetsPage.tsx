@@ -61,15 +61,15 @@ export default function BudgetsPage() {
 
   const [budgets, updateLocalBudgets] = useQuery(listBudgetsRequest, filters)
 
-  const [transactionsByCategoryYearBefore] = useQuery(
-    aggregateTransactionsByCategoryRequest,
-    yearBeforeFilters,
-  )
+  const [
+    transactionsByCategoryYearBefore,
+    updateTransactionsByCategoryYearBefore,
+  ] = useQuery(aggregateTransactionsByCategoryRequest, yearBeforeFilters)
 
-  const [transactionsByCategoryChosenYear] = useQuery(
-    aggregateTransactionsByCategoryRequest,
-    filters,
-  )
+  const [
+    transactionsByCategoryChosenYear,
+    updateTransactionsByCategoryChosenYear,
+  ] = useQuery(aggregateTransactionsByCategoryRequest, filters)
 
   const [newBudget, insertBudget] = useCommand(insertBudgetRequest)
   const [newBudgets, insertBudgets] = useCommand(insertBudgetsRequest)
@@ -126,7 +126,6 @@ export default function BudgetsPage() {
       Option.match({
         onNone: constVoid,
         onSome: (n) => {
-          console.log(n + 1)
           setFilters({
             query: {
               year: n,
@@ -261,6 +260,37 @@ export default function BudgetsPage() {
     )
   }
 
+  function onProjectableStatusUpdate(
+    categoryId: string,
+    isProjectable: boolean,
+  ) {
+    updateTransactionsByCategoryYearBefore((data) =>
+      data.map((entry) => {
+        if (Option.getOrNull(entry.category_id) === categoryId) {
+          return {
+            ...entry,
+            category_is_projectable: isProjectable,
+          }
+        } else {
+          return entry
+        }
+      }),
+    )
+
+    updateTransactionsByCategoryChosenYear((data) =>
+      data.map((entry) => {
+        if (Option.getOrNull(entry.category_id) === categoryId) {
+          return {
+            ...entry,
+            category_is_projectable: isProjectable,
+          }
+        } else {
+          return entry
+        }
+      }),
+    )
+  }
+
   return (
     <>
       <Container>
@@ -303,6 +333,7 @@ export default function BudgetsPage() {
                 onBudgetUpdate={onBudgetUpdate}
                 onBudgetsUpdate={onBudgetsUpdate}
                 onBudgetDelete={onDeleteBudgetButtonClick}
+                onProjectableStatusUpdate={onProjectableStatusUpdate}
                 isLoading={
                   NetworkResponse.isLoading(newBudget) ||
                   NetworkResponse.isLoading(deletedBudget) ||

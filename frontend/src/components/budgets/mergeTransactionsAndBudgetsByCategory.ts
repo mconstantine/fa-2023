@@ -1,9 +1,11 @@
 import { Option, pipe } from "effect"
 import { BudgetWithCategory, TransactionByCategory } from "./domain"
+import { constTrue } from "effect/Function"
 
 export interface CategoryData {
   categoryId: Option.Option<string>
   categoryName: Option.Option<string>
+  categoryIsProjectable: boolean
   totalTransactionsYearBefore: number
   totalTransactionsChosenYear: number
   budget: Option.Option<BudgetWithCategory>
@@ -18,10 +20,12 @@ export function mergeTransactionsAndBudgetsByCategory(input: {
     ...input.transactionsByCategoryChosenYear.map((entry) => ({
       categoryId: Option.getOrNull(entry.category_id),
       categoryName: Option.getOrNull(entry.category_name),
+      categoryIsProjectable: entry.category_is_projectable ?? true,
     })),
     ...input.transactionsByCategoryYearBefore.map((entry) => ({
       categoryId: Option.getOrNull(entry.category_id),
       categoryName: Option.getOrNull(entry.category_name),
+      categoryIsProjectable: entry.category_is_projectable ?? true,
     })),
     ...input.budgets.map((entry) => ({
       categoryId: Option.getOrNull(entry.category_id),
@@ -29,6 +33,11 @@ export function mergeTransactionsAndBudgetsByCategory(input: {
         entry.category,
         Option.map((category) => category.name),
         Option.getOrNull,
+      ),
+      categoryIsProjectable: pipe(
+        entry.category,
+        Option.map((category) => category.is_projectable),
+        Option.getOrElse(constTrue),
       ),
     })),
   ]
@@ -51,6 +60,7 @@ export function mergeTransactionsAndBudgetsByCategory(input: {
   return allCategories.map((category) => ({
     categoryId: Option.fromNullable(category.categoryId),
     categoryName: Option.fromNullable(category.categoryName),
+    categoryIsProjectable: category.categoryIsProjectable,
     totalTransactionsYearBefore:
       input.transactionsByCategoryYearBefore.find(
         (t) => Option.getOrNull(t.category_id) === category.categoryId,
