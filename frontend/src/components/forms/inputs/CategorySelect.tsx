@@ -140,6 +140,7 @@ export default function CategorySelect(props: Props) {
           name: props.searchQuery,
           keywords: [],
           is_meta: false,
+          is_projectable: false,
         },
       ]
     } else {

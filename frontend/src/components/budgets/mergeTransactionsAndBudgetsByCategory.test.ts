@@ -27,6 +27,7 @@ describe("mergeTransactionsAndBudgetsByCategory", () => {
       id: v4(),
       name: "Category 1",
       is_meta: false,
+      is_projectable: false,
       keywords: [],
     }
 
@@ -34,6 +35,7 @@ describe("mergeTransactionsAndBudgetsByCategory", () => {
       id: v4(),
       name: "Category 2",
       is_meta: false,
+      is_projectable: false,
       keywords: [],
     }
 
@@ -135,6 +137,7 @@ describe("mergeTransactionsAndBudgetsByCategory", () => {
       id: v4(),
       name: "Category 1",
       is_meta: false,
+      is_projectable: false,
       keywords: [],
     }
 
@@ -142,6 +145,7 @@ describe("mergeTransactionsAndBudgetsByCategory", () => {
       id: v4(),
       name: "Category 2",
       is_meta: false,
+      is_projectable: false,
       keywords: [],
     }
 
@@ -149,6 +153,7 @@ describe("mergeTransactionsAndBudgetsByCategory", () => {
       id: v4(),
       name: "Category 3",
       is_meta: false,
+      is_projectable: false,
       keywords: [],
     }
 
@@ -235,6 +240,7 @@ describe("mergeTransactionsAndBudgetsByCategory", () => {
       id: v4(),
       name: "Category 1",
       is_meta: false,
+      is_projectable: false,
       keywords: [],
     }
 
@@ -242,6 +248,7 @@ describe("mergeTransactionsAndBudgetsByCategory", () => {
       id: v4(),
       name: "Category 2",
       is_meta: false,
+      is_projectable: false,
       keywords: [],
     }
 
@@ -249,6 +256,7 @@ describe("mergeTransactionsAndBudgetsByCategory", () => {
       id: v4(),
       name: "Category 3",
       is_meta: false,
+      is_projectable: false,
       keywords: [],
     }
 

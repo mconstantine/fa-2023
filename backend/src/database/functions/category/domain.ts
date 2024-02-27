@@ -1,15 +1,31 @@
 import * as S from "@effect/schema/Schema"
 import { BooleanFromString, PaginationQuery } from "../../domain"
 
-export const Category = S.struct({
+const BaseCategory = S.struct({
   id: S.UUID,
   name: S.string.pipe(S.nonEmpty()),
-  is_meta: S.boolean,
-  is_projectable: S.boolean,
   keywords: S.array(S.string.pipe(S.nonEmpty())),
 })
 
-export interface Category extends S.Schema.To<typeof Category> {}
+const NonMetaCategory = S.extend(
+  BaseCategory,
+  S.struct({
+    is_meta: S.literal(false),
+    is_projectable: S.boolean,
+  }),
+)
+
+const MetaCategory = S.extend(
+  BaseCategory,
+  S.struct({
+    is_meta: S.literal(true),
+    is_projectable: S.literal(false),
+  }),
+)
+
+export const Category = S.union(NonMetaCategory, MetaCategory)
+
+export type Category = S.Schema.To<typeof Category>
 
 export const ListCategoriesInput = S.extend(
   PaginationQuery,
@@ -22,22 +38,58 @@ export const ListCategoriesInput = S.extend(
 export interface ListCategoriesInput
   extends S.Schema.To<typeof ListCategoriesInput> {}
 
-export const InsertCategoryInput = S.struct({
+const BaseInsertCategoryInput = S.struct({
   name: S.string.pipe(S.nonEmpty()),
-  is_meta: S.boolean,
-  is_projectable: S.boolean,
   keywords: S.array(S.string.pipe(S.nonEmpty())),
 })
 
-export interface InsertCategoryInput
-  extends S.Schema.To<typeof InsertCategoryInput> {}
+const InsertNonMetaCategoryInput = S.extend(
+  BaseInsertCategoryInput,
+  S.struct({
+    is_meta: S.literal(false),
+    is_projectable: S.boolean,
+  }),
+)
 
-export const UpdateCategoryInput = S.struct({
+const InsertMetaCategoryInput = S.extend(
+  BaseInsertCategoryInput,
+  S.struct({
+    is_meta: S.literal(true),
+    is_projectable: S.literal(false),
+  }),
+)
+
+export const InsertCategoryInput = S.union(
+  InsertNonMetaCategoryInput,
+  InsertMetaCategoryInput,
+)
+
+export type InsertCategoryInput = S.Schema.To<typeof InsertCategoryInput>
+
+const BaseUpdateCategoryInput = S.struct({
   name: S.optional(S.string.pipe(S.nonEmpty())),
-  is_meta: S.optional(S.boolean),
-  is_projectable: S.optional(S.boolean),
   keywords: S.optional(S.array(S.string.pipe(S.nonEmpty()))),
 })
 
-export interface UpdateCategoryInput
-  extends S.Schema.To<typeof UpdateCategoryInput> {}
+const UpdateNonMetaCategoryInput = S.extend(
+  BaseUpdateCategoryInput,
+  S.struct({
+    is_meta: S.optional(S.literal(false)),
+    is_projectable: S.optional(S.boolean),
+  }),
+)
+
+const UpdateMetaCategoryInput = S.extend(
+  BaseUpdateCategoryInput,
+  S.struct({
+    is_meta: S.optional(S.literal(true)),
+    is_projectable: S.optional(S.literal(false)),
+  }),
+)
+
+export const UpdateCategoryInput = S.union(
+  UpdateNonMetaCategoryInput,
+  UpdateMetaCategoryInput,
+)
+
+export type UpdateCategoryInput = S.Schema.To<typeof UpdateCategoryInput>
