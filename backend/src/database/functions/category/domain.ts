@@ -5,6 +5,7 @@ export const Category = S.struct({
   id: S.UUID,
   name: S.string.pipe(S.nonEmpty()),
   is_meta: S.boolean,
+  is_projectable: S.boolean,
   keywords: S.array(S.string.pipe(S.nonEmpty())),
 })
 
@@ -24,6 +25,7 @@ export interface ListCategoriesInput
 export const InsertCategoryInput = S.struct({
   name: S.string.pipe(S.nonEmpty()),
   is_meta: S.boolean,
+  is_projectable: S.boolean,
   keywords: S.array(S.string.pipe(S.nonEmpty())),
 })
 
@@ -33,6 +35,7 @@ export interface InsertCategoryInput
 export const UpdateCategoryInput = S.struct({
   name: S.optional(S.string.pipe(S.nonEmpty())),
   is_meta: S.optional(S.boolean),
+  is_projectable: S.optional(S.boolean),
   keywords: S.optional(S.array(S.string.pipe(S.nonEmpty()))),
 })
 

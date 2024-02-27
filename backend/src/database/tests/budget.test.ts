@@ -25,11 +25,13 @@ describe("database budget functions", () => {
       await insertCategory({
         name: "Budget tests category 1",
         is_meta: false,
+        is_projectable: false,
         keywords: [],
       }),
       await insertCategory({
         name: "Budget tests category 2",
         is_meta: false,
+        is_projectable: false,
         keywords: [],
       }),
     ]

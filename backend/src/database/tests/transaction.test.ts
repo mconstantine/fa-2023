@@ -28,11 +28,13 @@ describe("database transaction functions", () => {
       await insertCategory({
         name: "Transaction tests category 1",
         is_meta: false,
+        is_projectable: false,
         keywords: [],
       }),
       await insertCategory({
         name: "Transaction tests category 2",
         is_meta: false,
+        is_projectable: false,
         keywords: [],
       }),
     ])
@@ -358,6 +360,7 @@ describe("database transaction functions", () => {
       const category = await insertCategory({
         name: "Relationship with transactions test",
         is_meta: false,
+        is_projectable: false,
         keywords: [],
       })
 
@@ -1005,21 +1008,25 @@ describe("database transaction functions", () => {
         await insertCategory({
           name: "Category-time aggregation test root category",
           is_meta: false,
+          is_projectable: false,
           keywords: [],
         }),
         await insertCategory({
           name: "Category-time aggregation test category 1",
           is_meta: true,
+          is_projectable: false,
           keywords: [],
         }),
         await insertCategory({
           name: "Category-time aggregation test category 2",
           is_meta: true,
+          is_projectable: false,
           keywords: [],
         }),
         await insertCategory({
           name: "Category-time aggregation test category 3",
           is_meta: true,
+          is_projectable: false,
           keywords: [],
         }),
       ]

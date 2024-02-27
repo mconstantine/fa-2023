@@ -23,6 +23,7 @@ describe("database category functions", () => {
       const result = await insertCategory({
         name: "Insert category test",
         is_meta: false,
+        is_projectable: false,
         keywords: ["keyword"],
       })
 
@@ -34,6 +35,7 @@ describe("database category functions", () => {
       const result = await insertCategory({
         name: "Insert category test empty keywords",
         is_meta: true,
+        is_projectable: false,
         keywords: [],
       })
 
@@ -47,6 +49,7 @@ describe("database category functions", () => {
       const category = await insertCategory({
         name: "Update category test",
         is_meta: false,
+        is_projectable: false,
         keywords: ["keyword"],
       })
 
@@ -66,6 +69,7 @@ describe("database category functions", () => {
       const category = await insertCategory({
         name: "Delete category test",
         is_meta: false,
+        is_projectable: false,
         keywords: ["keyword"],
       })
 
@@ -89,6 +93,7 @@ describe("database category functions", () => {
       const category = await insertCategory({
         name: "Relationship with transactions test",
         is_meta: false,
+        is_projectable: false,
         keywords: [],
       })
 
@@ -122,6 +127,7 @@ describe("database category functions", () => {
       const category = await insertCategory({
         name: "Relationship with budgets test",
         is_meta: false,
+        is_projectable: false,
         keywords: [],
       })
 
@@ -180,36 +186,43 @@ describe("database category functions", () => {
               {
                 name: "AX",
                 is_meta: true,
+                is_projectable: false,
                 keywords: [],
               },
               {
                 name: "BX",
                 is_meta: true,
+                is_projectable: false,
                 keywords: [],
               },
               {
                 name: "CX",
                 is_meta: true,
+                is_projectable: false,
                 keywords: [],
               },
               {
                 name: "DX",
                 is_meta: false,
+                is_projectable: false,
                 keywords: [],
               },
               {
                 name: "EX",
                 is_meta: false,
+                is_projectable: false,
                 keywords: [],
               },
               {
                 name: "FX",
                 is_meta: false,
+                is_projectable: false,
                 keywords: [],
               },
               {
                 name: "G",
                 is_meta: false,
+                is_projectable: false,
                 keywords: [],
               },
             ] satisfies InsertCategoryInput[]
