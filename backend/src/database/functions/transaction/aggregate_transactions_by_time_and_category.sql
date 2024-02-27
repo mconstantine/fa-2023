@@ -21,8 +21,20 @@ return jsonb_build_object(
           else null
         end as time,
         sum(t.value) as total
-      from transaction t
-      where extract(year from t.date) = (filters->>'year')::integer
+      from (
+        select t.*
+        from transaction t
+        left join transactions_categories tc on tc.transaction_id = t.id
+        left join category c on tc.category_id = c.id
+        where
+          extract(year from t.date) = (filters->>'year')::integer
+          and case
+            when coalesce(array_length(categories_ids, 1), 0) = 0
+            then true
+            else c.id = any(categories_ids)
+            end
+        group by t.id
+      ) t
       group by
         case
           when filters->>'time_range' = 'monthly'

@@ -1148,6 +1148,17 @@ describe("database transaction functions", () => {
         categories_ids: [categories[0]!.id],
       })
 
+      expect(result.time).toEqual([
+        {
+          time: 1,
+          total: -50,
+        },
+        {
+          time: 6,
+          total: -25,
+        },
+      ])
+
       expect(result.categories).toEqual([
         {
           id: categories[0]!.id,
