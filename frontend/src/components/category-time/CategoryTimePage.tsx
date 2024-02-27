@@ -117,6 +117,7 @@ export default function CategoryTimePage() {
         direction: "forward",
         count: 10,
         ...(query === "" ? {} : { search_query: query }),
+        is_meta: false,
       },
     })
   }

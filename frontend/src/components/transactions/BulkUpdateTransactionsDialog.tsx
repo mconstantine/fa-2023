@@ -81,6 +81,16 @@ export default function BulkUpdateTransactionsDialog(props: Props) {
         direction: "forward",
         count: 10,
         ...(query === "" ? {} : { search_query: query }),
+        ...(() => {
+          switch (inputProps("categoryUpdateMode").value) {
+            case "replace":
+              return {
+                is_meta: inputProps("categories").value.length > 0,
+              }
+            case "add":
+              return {}
+          }
+        })(),
       },
     })
   }

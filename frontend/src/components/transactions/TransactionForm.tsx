@@ -105,6 +105,7 @@ export default function TransactionForm(props: Props) {
         direction: "forward",
         count: 10,
         ...(query === "" ? {} : { search_query: query }),
+        is_meta: inputProps("categories").value.length > 0,
       },
     })
   }

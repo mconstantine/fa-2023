@@ -78,3 +78,18 @@ export const ValueFromCurrency = S.number.pipe(
 )
 
 export type ValueFromCurrency = S.Schema.To<typeof ValueFromCurrency>
+
+export const BooleanFromString = S.literal("false", "true").pipe(
+  S.transform(
+    S.boolean,
+    (fromA) => {
+      switch (fromA) {
+        case "true":
+          return true
+        case "false":
+          return false
+      }
+    },
+    (toI) => (toI ? "true" : "false"),
+  ),
+)

@@ -73,6 +73,7 @@ export default function InsertBudgetForm(props: Props) {
         direction: "forward",
         count: 10,
         ...(searchQuery === "" ? {} : { search_query: searchQuery }),
+        is_meta: false,
       },
     })
   }

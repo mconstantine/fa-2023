@@ -72,6 +72,7 @@ type Props =
 export default function CategorySelect(props: Props) {
   const isLoading = NetworkResponse.isLoading(props.categories)
   const value = props.selection
+  const label = props.multiple ? "Categories" : "Category"
 
   const options: Array<Category | InsertCategoryInput> = pipe(
     props.categories,
@@ -211,7 +212,7 @@ export default function CategorySelect(props: Props) {
             value={props.searchQuery}
             onChange={onQueryChange}
             size="medium"
-            label="Categories"
+            label={label}
             InputProps={{
               ...params.InputProps,
               endAdornment: (

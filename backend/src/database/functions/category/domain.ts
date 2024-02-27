@@ -1,5 +1,5 @@
 import * as S from "@effect/schema/Schema"
-import { PaginationQuery } from "../../domain"
+import { BooleanFromString, PaginationQuery } from "../../domain"
 
 export const Category = S.struct({
   id: S.UUID,
@@ -14,7 +14,7 @@ export const ListCategoriesInput = S.extend(
   PaginationQuery,
   S.struct({
     search_query: S.optional(S.string),
-    is_meta: S.optional(S.boolean),
+    is_meta: S.optional(BooleanFromString),
   }),
 )
 
