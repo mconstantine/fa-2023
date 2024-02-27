@@ -34,6 +34,11 @@ declare c cursor for
 		then lower(name) like concat('%', lower(search_query), '%')
 		else true
 		end
+	and case
+		when is_meta_filter is null
+		then true
+		else is_meta = is_meta_filter
+		end
 	order by
 		case when p.direction = 'backward' then name end desc,
 		case when p.direction = 'forward' then name end asc
@@ -52,11 +57,17 @@ select
 	min(name),
 	max(name)
 from category
-where case
-	when search_query != ''
-	then lower(name) like concat('%', lower(search_query), '%')
-	else true
-	end
+where
+	case
+		when search_query != ''
+		then lower(name) like concat('%', lower(search_query), '%')
+		else true
+		end
+	and case
+		when is_meta_filter is null
+		then true
+		else is_meta = is_meta_filter
+		end
 into total_count, min_name, max_name;
 
 select id

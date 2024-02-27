@@ -179,17 +179,17 @@ describe("database category functions", () => {
             [
               {
                 name: "AX",
-                is_meta: false,
+                is_meta: true,
                 keywords: [],
               },
               {
                 name: "BX",
-                is_meta: false,
+                is_meta: true,
                 keywords: [],
               },
               {
                 name: "CX",
-                is_meta: false,
+                is_meta: true,
                 keywords: [],
               },
               {
@@ -454,6 +454,41 @@ describe("database category functions", () => {
             {
               cursor: categories[6]?.id,
               node: categories[6],
+            },
+          ],
+        })
+      })
+
+      it("should filter meta categories if needed", async () => {
+        const result = S.encodeSync(PaginationResponse(Category))(
+          await listCategories({
+            search_query: "",
+            direction: "forward",
+            count: 10,
+            is_meta: true,
+          }),
+        )
+
+        expect(result).toEqual({
+          page_info: {
+            total_count: 3,
+            start_cursor: categories[0]?.id,
+            end_cursor: categories[2]?.id,
+            has_previous_page: false,
+            has_next_page: false,
+          },
+          edges: [
+            {
+              cursor: categories[0]?.id,
+              node: categories[0],
+            },
+            {
+              cursor: categories[1]?.id,
+              node: categories[1],
+            },
+            {
+              cursor: categories[2]?.id,
+              node: categories[2],
             },
           ],
         })

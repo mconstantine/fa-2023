@@ -14,6 +14,7 @@ export const ListCategoriesInput = S.extend(
   PaginationQuery,
   S.struct({
     search_query: S.optional(S.string),
+    is_meta: S.optional(S.boolean),
   }),
 )
 

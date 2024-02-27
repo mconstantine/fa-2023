@@ -18,6 +18,12 @@ export default {
       name: "search_query",
       defaultExpr: null,
     },
+    {
+      mode: "IN",
+      type: "boolean",
+      name: "is_meta_filter",
+      defaultExpr: null,
+    },
   ],
   returns: "jsonb",
   volatility: "STABLE",
@@ -29,12 +35,17 @@ export default {
 export async function listCategories(
   input: ListCategoriesInput,
 ): Promise<PaginationResponse<Category>> {
-  const { search_query: searchQuery, ...paginationQuery } = input
+  const {
+    search_query: searchQuery,
+    is_meta: isMeta,
+    ...paginationQuery
+  } = input
 
   return await db.callFunction(
     "list_categories",
     PaginationResponse(Category),
     paginationQuery,
     searchQuery ?? "",
+    isMeta ?? null,
   )
 }
