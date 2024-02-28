@@ -1,5 +1,5 @@
 import * as S from "@effect/schema/Schema"
-import { Option, pipe } from "effect"
+import { Effect, Option, pipe } from "effect"
 import express, { type Request } from "express"
 import { type RouteParameters } from "express-serve-static-core"
 import { HttpError } from "./HttpError"
@@ -34,10 +34,12 @@ interface RouteHandlerData<
     BodyTo,
     BodyFrom
   >,
+  Locals extends Record<string, unknown>,
 > {
   query: Codecs["query"] extends undefined ? never : QueryTo
   params: Codecs["params"] extends undefined ? never : ParamsTo
   body: Codecs["body"] extends undefined ? never : BodyTo
+  locals: Locals
 }
 
 type ResponseType = Record<string, unknown>
@@ -58,6 +60,7 @@ interface Route<
     BodyFrom
   >,
   Response extends Record<string, unknown> | readonly ResponseType[],
+  Locals extends Record<string, never>,
 > {
   codecs: Codecs
   handler: (
@@ -68,12 +71,13 @@ interface Route<
       QueryFrom,
       BodyTo,
       BodyFrom,
-      Codecs
+      Codecs,
+      Locals
     >,
   ) => Promise<Response>
 }
 
-export class Router {
+export class Router<Locals extends Record<string, never>> {
   private readonly router: express.Router
 
   private constructor(router: express.Router) {
@@ -107,9 +111,10 @@ export class Router {
         never,
         never
       >,
-      Response
+      Response,
+      Record<string, never>
     >,
-  ): Router {
+  ): Router<Record<string, never>> {
     return new Router(express.Router()).get(path, route)
   }
 
@@ -138,9 +143,10 @@ export class Router {
         BodyTo,
         BodyFrom
       >,
-      Response
+      Response,
+      Record<string, never>
     >,
-  ): Router {
+  ): Router<Record<string, never>> {
     return new Router(express.Router()).post(path, route)
   }
 
@@ -169,9 +175,10 @@ export class Router {
         BodyTo,
         BodyFrom
       >,
-      Response
+      Response,
+      Record<string, never>
     >,
-  ): Router {
+  ): Router<Record<string, never>> {
     return new Router(express.Router()).patch(path, route)
   }
 
@@ -200,9 +207,10 @@ export class Router {
         BodyTo,
         BodyFrom
       >,
-      Response
+      Response,
+      Record<string, never>
     >,
-  ): Router {
+  ): Router<Record<string, never>> {
     return new Router(express.Router()).put(path, route)
   }
 
@@ -229,9 +237,10 @@ export class Router {
         never,
         never
       >,
-      Response
+      Response,
+      Record<string, never>
     >,
-  ): Router {
+  ): Router<Record<string, never>> {
     return new Router(express.Router()).delete(path, route)
   }
 
@@ -258,9 +267,10 @@ export class Router {
         never,
         never
       >,
-      Response
+      Response,
+      Locals
     >,
-  ): Router {
+  ): Router<Locals> {
     return new Router(
       this.router.get<
         Path,
@@ -298,9 +308,10 @@ export class Router {
         BodyTo,
         BodyFrom
       >,
-      Response
+      Response,
+      Locals
     >,
-  ): Router {
+  ): Router<Locals> {
     return new Router(
       this.router.post<
         Path,
@@ -338,9 +349,10 @@ export class Router {
         BodyTo,
         BodyFrom
       >,
-      Response
+      Response,
+      Locals
     >,
-  ): Router {
+  ): Router<Locals> {
     return new Router(
       this.router.patch<
         Path,
@@ -378,9 +390,10 @@ export class Router {
         BodyTo,
         BodyFrom
       >,
-      Response
+      Response,
+      Locals
     >,
-  ): Router {
+  ): Router<Locals> {
     return new Router(
       this.router.put<
         Path,
@@ -416,9 +429,10 @@ export class Router {
         never,
         never
       >,
-      Response
+      Response,
+      Locals
     >,
-  ): Router {
+  ): Router<Locals> {
     return new Router(
       this.router.delete<
         Path,
@@ -431,8 +445,39 @@ export class Router {
     )
   }
 
-  public tap(fn: (router: express.Router) => express.Router): Router {
+  public tap(fn: (router: express.Router) => express.Router): Router<Locals> {
     return new Router(fn(this.router))
+  }
+
+  public withMiddleware<L extends Record<string, unknown>>(
+    middleware: (
+      req: Request<Record<string, never>, never, never, never, Locals>,
+    ) => Effect.Effect<L, HttpError>,
+  ): Router<Locals & { [key in keyof L]: L[key] }> {
+    return new Router(
+      this.router.use(
+        (
+          req: Request<Record<string, never>, never, never, never, Locals>,
+          res,
+          next,
+        ) => {
+          ;(async () => {
+            try {
+              const result = await Effect.runPromise(middleware(req))
+
+              for (const [key, value] of Object.entries(result)) {
+                // @ts-expect-error key is actually keyof L
+                req[key] = value
+              }
+
+              next()
+            } catch (e) {
+              handleError(e, res)
+            }
+          })().then(constVoid, constVoid)
+        },
+      ),
+    )
   }
 
   private handle<
@@ -459,12 +504,19 @@ export class Router {
         BodyTo,
         BodyFrom
       >,
-      Response
+      Response,
+      Locals
     >,
   ) {
     return (
-      req: Request<RouteParameters<Path>, Response, BodyFrom, QueryFrom, never>,
-      res: express.Response<Response, never>,
+      req: Request<
+        RouteParameters<Path>,
+        Response,
+        BodyFrom,
+        QueryFrom,
+        Locals
+      >,
+      res: express.Response<Response, Locals>,
     ) => {
       ;(async () => {
         try {
@@ -508,6 +560,7 @@ export class Router {
             params: params as ParamsTo,
             query: query as QueryTo,
             body: body as BodyTo,
+            locals: req as unknown as Locals,
           })
 
           res.json(result).end()

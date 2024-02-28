@@ -50,7 +50,7 @@ export interface AuthTokens extends S.Schema.To<typeof AuthTokens> {}
 export function AuthTokensFromUser(user: User): AuthTokens {
   const accessToken: AuthToken = {
     expiration: new Date(Date.now() + 86400000),
-    value: sign(user.id, env.JWT_SECRET, {
+    value: sign({ id: user.id }, env.JWT_SECRET, {
       expiresIn: "24h",
       issuer: "backend",
     }),
@@ -58,7 +58,7 @@ export function AuthTokensFromUser(user: User): AuthTokens {
 
   const refreshToken: AuthToken = {
     expiration: new Date(Date.now() + 604800000),
-    value: sign(user.id, env.JWT_SECRET, {
+    value: sign({ id: user.id }, env.JWT_SECRET, {
       expiresIn: "7 days",
       issuer: "backend",
     }),

@@ -5,6 +5,7 @@ import { categoryRouter } from "./routes/category"
 import { transactionRouter } from "./routes/transaction"
 import { budgetRouter } from "./routes/budget"
 import cors from "cors"
+import { userRouter } from "./routes/user"
 
 const app = express()
 
@@ -22,7 +23,8 @@ const app = express()
     Router()
       .use("/categories", categoryRouter)
       .use("/transactions", transactionRouter)
-      .use("/budgets", budgetRouter),
+      .use("/budgets", budgetRouter)
+      .use("/users", userRouter),
   )
 
   app.listen(env.SERVER_PORT, () => {

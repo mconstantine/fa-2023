@@ -7,6 +7,7 @@ import { insertUser } from "../database/functions/user/insert_user"
 import { HttpError } from "./HttpError"
 import { loginUser } from "../database/functions/user/login_user"
 import { Router } from "./Router"
+import { authMiddleware } from "../middlewares/auth"
 
 export const userRouter = Router.post("/register", {
   codecs: {
@@ -26,22 +27,31 @@ export const userRouter = Router.post("/register", {
 
     return AuthTokensFromUser(user)
   },
-}).post("/login", {
-  codecs: {
-    body: LoginUserInput,
-  },
-  handler: async ({ body }) => {
-    const user = await (async () => {
-      try {
-        return await loginUser(body)
-      } catch (e) {
-        throw new HttpError(
-          401,
-          "Unable to login. Please double check your credentials",
-        )
-      }
-    })()
-
-    return AuthTokensFromUser(user)
-  },
 })
+  .post("/login", {
+    codecs: {
+      body: LoginUserInput,
+    },
+    handler: async ({ body }) => {
+      const user = await (async () => {
+        try {
+          return await loginUser(body)
+        } catch (e) {
+          throw new HttpError(
+            401,
+            "Unable to login. Please double check your credentials",
+          )
+        }
+      })()
+
+      return AuthTokensFromUser(user)
+    },
+  })
+  .withMiddleware(authMiddleware)
+  .get("/me", {
+    codecs: {},
+    handler: async ({ locals }) => {
+      return locals.user
+    },
+  })
+  .toExpressRouter()
