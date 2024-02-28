@@ -4,6 +4,7 @@ import { insertUser } from "../functions/user/insert_user"
 import { User } from "../functions/user/domain"
 import { loginUser } from "../functions/user/login_user"
 import { updateUser } from "../functions/user/update_user"
+import { deleteUser } from "../functions/user/delete_user"
 
 describe("database user functions", () => {
   afterAll(async () => {
@@ -152,6 +153,20 @@ describe("database user functions", () => {
   })
 
   describe("delete user", () => {
-    it.todo("should work")
+    it("should work", async () => {
+      const user = await insertUser({
+        name: "Delete User Test",
+        email: "delete.user.test@example.com",
+        password: "P4ssw0rd!",
+      })
+
+      const result = await deleteUser(user.id)
+
+      expect(result.id).toBe(user.id)
+
+      await expect(async () => {
+        await db.getOne(User, 'select * from "user" where id = $1', [user.id])
+      }).rejects.toBeTruthy()
+    })
   })
 })
