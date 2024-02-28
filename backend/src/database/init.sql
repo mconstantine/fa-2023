@@ -1,3 +1,4 @@
+-- custom types
 drop type if exists
 	pagination_query,
 	pagination_query_direction,
@@ -27,3 +28,6 @@ create type list_transactions_filters as (
 	date_since date,
 	date_until date
 );
+
+-- extensions
+create extension if not exists pgcrypto;

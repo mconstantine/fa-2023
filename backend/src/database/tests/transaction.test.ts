@@ -908,16 +908,19 @@ describe("database transaction functions", () => {
         {
           category_id: categories[0]?.id,
           category_name: categories[0]?.name,
+          category_is_projectable: categories[0]?.is_projectable,
           transactions_total: 6.5,
         },
         {
           category_id: categories[1]?.id,
           category_name: categories[1]?.name,
+          category_is_projectable: categories[1]?.is_projectable,
           transactions_total: 7.5,
         },
         {
           category_id: null,
           category_name: null,
+          category_is_projectable: null,
           transactions_total: 5,
         },
       ])

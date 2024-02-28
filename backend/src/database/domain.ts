@@ -93,3 +93,7 @@ export const BooleanFromString = S.literal("false", "true").pipe(
     (toI) => (toI ? "true" : "false"),
   ),
 )
+
+export const Email = S.pattern(
+  /^(?!\.)(?!.*\.\.)([A-Z0-9_+-.]*)[A-Z0-9_+-]@([A-Z0-9][A-Z0-9-]*\.)+[A-Z]{2,}$/i,
+)
