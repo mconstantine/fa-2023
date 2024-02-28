@@ -1,5 +1,4 @@
 import * as db from "../../db"
-import * as S from "@effect/schema/Schema"
 import { type FunctionTemplate } from "../template"
 import { type LoginUserInput, User } from "./domain"
 
@@ -26,11 +25,6 @@ export default {
   cost: null,
 } satisfies FunctionTemplate
 
-export async function loginUser(input: LoginUserInput): Promise<User | null> {
-  return await db.callFunction(
-    "login_user",
-    S.nullable(User),
-    input.email,
-    input.password,
-  )
+export async function loginUser(input: LoginUserInput): Promise<User> {
+  return await db.callFunction("login_user", User, input.email, input.password)
 }

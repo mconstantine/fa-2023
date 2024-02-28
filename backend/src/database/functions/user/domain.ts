@@ -16,6 +16,14 @@ export const LoginUserInput = S.struct({
 
 export interface LoginUserInput extends S.Schema.To<typeof LoginUserInput> {}
 
+export const UpdateUserInput = S.struct({
+  name: S.optional(S.Trim.pipe(S.nonEmpty())),
+  email: S.optional(S.Trim.pipe(Email)),
+  password: S.optional(S.Trim.pipe(S.nonEmpty())),
+})
+
+export interface UpdateUserInput extends S.Schema.To<typeof UpdateUserInput> {}
+
 export const User = S.struct({
   id: S.UUID,
   name: S.Trim.pipe(S.nonEmpty()),
