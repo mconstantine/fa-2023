@@ -9,6 +9,7 @@ const Env = S.struct({
   DB_PORT: S.NumberFromString.pipe(S.int()),
   DB_DATABASE: S.string.pipe(S.nonEmpty()),
   SERVER_PORT: S.NumberFromString.pipe(S.int()),
+  JWT_SECRET: S.string.pipe(S.minLength(48)).pipe(S.maxLength(48)),
 })
 
 export const env = pipe(process.env, S.decodeUnknownSync(Env))
