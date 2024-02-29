@@ -8,6 +8,8 @@ export function handleError(e: unknown, response: Response): void {
     })
   } else {
     console.log(e)
-    response.status(500).end()
+    response.status(500).json({
+      error: "An unexpected error occurred",
+    })
   }
 }

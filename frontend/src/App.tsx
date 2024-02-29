@@ -7,6 +7,7 @@ import {
 } from "react-router-dom"
 import ErrorPage from "./ErrorPage"
 import { routes } from "./routes"
+import { AuthContextProvider } from "./contexts/AuthContext"
 
 const router = createBrowserRouter(
   routes.map(
@@ -21,8 +22,10 @@ const router = createBrowserRouter(
 function App() {
   return (
     <ThemeProvider>
-      <CssBaseline />
-      <RouterProvider router={router} />
+      <AuthContextProvider>
+        <CssBaseline />
+        <RouterProvider router={router} />
+      </AuthContextProvider>
     </ThemeProvider>
   )
 }

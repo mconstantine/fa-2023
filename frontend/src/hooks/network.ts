@@ -11,6 +11,8 @@ import { Dispatch, SetStateAction, useEffect, useState } from "react"
 import * as NetworkResponse from "../network/NetworkResponse"
 import { identity } from "effect/Function"
 import { useSearchParams } from "react-router-dom"
+import { AuthTokens } from "../../../backend/src/database/functions/user/domain"
+import { useAuthContext } from "../contexts/AuthContext"
 
 type HttpRequestType = "JSON" | "FormData"
 
@@ -340,7 +342,18 @@ function sendRequest<
     ResponseFrom
   >,
   body: Option.Option<string | FormData>,
+  authTokens: Option.Option<AuthTokens>,
 ): Effect.Effect<Response, HttpError> {
+  const headers: HeadersInit = {}
+
+  if (Option.isSome(body) && type === "JSON") {
+    headers["Content-Type"] = "application/json; charset=utf-8"
+  }
+
+  if (Option.isSome(authTokens)) {
+    headers["Authorization"] = `Bearer ${authTokens.value.access.value}`
+  }
+
   return Effect.tryPromise({
     try: () =>
       window.fetch(urlWithParamsAndQuery, {
@@ -352,24 +365,7 @@ function sendRequest<
             onSome: (body) => ({ body }),
           }),
         ),
-        ...pipe(
-          body,
-          Option.match({
-            onNone: () => ({}),
-            onSome: () => {
-              switch (type) {
-                case "JSON":
-                  return {
-                    headers: {
-                      "Content-Type": "application/json; charset=utf-8",
-                    },
-                  }
-                case "FormData":
-                  return {}
-              }
-            },
-          }),
-        ),
+        headers,
       }),
     catch: (error): HttpError => ({
       code: 500,
@@ -476,6 +472,7 @@ function sendHttpJSONRequest<
     ResponseFrom,
     typeof request.codecs
   >,
+  authTokens: Option.Option<AuthTokens>,
 ): Effect.Effect<ResponseTo, HttpError> {
   const urlTemplate = (env.VITE_API_URL + request.path) as Path
 
@@ -486,7 +483,7 @@ function sendHttpJSONRequest<
       pipe(
         encodeJSONBody(request, data),
         Effect.flatMap((body) =>
-          sendRequest("JSON", urlWithParamsAndQuery, request, body),
+          sendRequest("JSON", urlWithParamsAndQuery, request, body, authTokens),
         ),
         Effect.flatMap((response) =>
           pipe(
@@ -501,7 +498,7 @@ function sendHttpJSONRequest<
   )
 }
 
-function sendHttpFormDataRequest<
+export function sendHttpFormDataRequest<
   ParamsTo,
   Path extends string,
   QueryTo,
@@ -532,6 +529,7 @@ function sendHttpFormDataRequest<
     ResponseFrom,
     typeof request.codecs
   >,
+  authTokens: Option.Option<AuthTokens>,
 ): Effect.Effect<ResponseTo, HttpError> {
   const urlTemplate = (env.VITE_API_URL + request.path) as Path
 
@@ -542,7 +540,13 @@ function sendHttpFormDataRequest<
       pipe(
         encodeFormDataBody(request, data),
         Effect.flatMap((body) =>
-          sendRequest("FormData", urlWithParamsAndQuery, request, body),
+          sendRequest(
+            "FormData",
+            urlWithParamsAndQuery,
+            request,
+            body,
+            authTokens,
+          ),
         ),
         Effect.flatMap((response) =>
           pipe(
@@ -829,6 +833,125 @@ export function useRequestData<
   return [state, onStateChange]
 }
 
+export function useSendHttpRequest<
+  ParamsTo,
+  Path extends string,
+  QueryTo,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  BodyTo,
+  BodyFrom,
+  ResponseTo,
+  ResponseFrom,
+>(
+  request: HttpRequest<
+    ParamsTo,
+    Path,
+    QueryTo,
+    QueryFrom,
+    BodyTo,
+    BodyFrom,
+    ResponseTo,
+    ResponseFrom
+  >,
+): [
+  NetworkResponse.NetworkResponse<HttpError, ResponseTo>,
+  (
+    data: HttpRequestData<
+      ParamsTo,
+      RouteParameters<Path>,
+      QueryTo,
+      QueryFrom,
+      BodyTo,
+      BodyFrom,
+      ResponseTo,
+      ResponseFrom,
+      typeof request.codecs
+    >,
+    authTokens: Option.Option<AuthTokens>,
+  ) => Effect.Effect<Either.Either<HttpError, ResponseTo>>,
+] {
+  const [response, setResponse] = useState<
+    NetworkResponse.NetworkResponse<HttpError, ResponseTo>
+  >(NetworkResponse.idle())
+
+  function sendRequest(
+    data: HttpRequestData<
+      ParamsTo,
+      RouteParameters<Path>,
+      QueryTo,
+      QueryFrom,
+      BodyTo,
+      BodyFrom,
+      ResponseTo,
+      ResponseFrom,
+      typeof request.codecs
+    >,
+    authTokens: Option.Option<AuthTokens>,
+  ): Effect.Effect<Either.Either<HttpError, ResponseTo>> {
+    setResponse(
+      NetworkResponse.flatMatch({
+        onIdle: NetworkResponse.load(),
+        onLoading: identity,
+        onFailure: NetworkResponse.retry(),
+        onSuccess: NetworkResponse.refresh(),
+      }),
+    )
+
+    const response: Effect.Effect<Either.Either<HttpError, ResponseTo>> = pipe(
+      sendHttpJSONRequest(request, data, authTokens),
+      Effect.match({
+        onFailure: Either.left,
+        onSuccess: Either.right,
+      }),
+    )
+
+    return pipe(
+      response,
+      Effect.map(
+        Either.match({
+          onLeft: (error) => {
+            setResponse(
+              NetworkResponse.flatMatch<
+                HttpError,
+                ResponseTo,
+                NetworkResponse.NetworkResponse<HttpError, ResponseTo>
+              >({
+                onIdle: identity,
+                onSuccess: identity,
+                onFailure: identity,
+                onLoading: (response) => {
+                  console.log(error.extras)
+                  return NetworkResponse.fail(error)(response)
+                },
+              }),
+            )
+
+            return Either.left(error)
+          },
+          onRight: (response) => {
+            setResponse(
+              NetworkResponse.flatMatch<
+                HttpError,
+                ResponseTo,
+                NetworkResponse.NetworkResponse<HttpError, ResponseTo>
+              >({
+                onIdle: identity,
+                onSuccess: identity,
+                onFailure: identity,
+                onLoading: NetworkResponse.succeed(response),
+              }),
+            )
+
+            return Either.right(response)
+          },
+        }),
+      ),
+    )
+  }
+
+  return [response, sendRequest]
+}
+
 type UseLazyQueryOutput<
   ParamsTo,
   Path extends string,
@@ -889,6 +1012,8 @@ export function useLazyQuery<
   ResponseFrom,
   HttpGetRequest<ParamsTo, Path, QueryTo, QueryFrom, ResponseTo, ResponseFrom>
 > {
+  const authContext = useAuthContext()
+
   const [response, setResponse] = useState<
     NetworkResponse.NetworkResponse<HttpError, ResponseTo>
   >(NetworkResponse.idle())
@@ -915,7 +1040,20 @@ export function useLazyQuery<
       }),
     )
 
-    Effect.runPromiseExit(sendHttpJSONRequest(request, data)).then(
+    Effect.runPromiseExit(
+      sendHttpJSONRequest(
+        request,
+        data,
+        (() => {
+          switch (authContext.type) {
+            case "Anonymous":
+              return Option.none()
+            case "Authenticated":
+              return Option.some(authContext.authTokens)
+          }
+        })(),
+      ),
+    ).then(
       flow(
         Exit.match({
           onFailure(cause) {
@@ -1008,6 +1146,8 @@ export function useQuery<
     typeof request.codecs
   >,
 ): UseQueryOutput<ResponseTo> {
+  const authContext = useAuthContext()
+
   const [response, setResponse] = useState<
     NetworkResponse.NetworkResponse<HttpError, ResponseTo>
   >(NetworkResponse.idle())
@@ -1022,7 +1162,20 @@ export function useQuery<
       }),
     )
 
-    Effect.runPromiseExit(sendHttpJSONRequest(request, data)).then(
+    Effect.runPromiseExit(
+      sendHttpJSONRequest(
+        request,
+        data,
+        (() => {
+          switch (authContext.type) {
+            case "Anonymous":
+              return Option.none()
+            case "Authenticated":
+              return Option.some(authContext.authTokens)
+          }
+        })(),
+      ),
+    ).then(
       flow(
         Exit.match({
           onFailure(cause) {
@@ -1061,7 +1214,7 @@ export function useQuery<
         }),
       ),
     )
-  }, [request, data])
+  }, [request, data, authContext])
 
   function update(
     update: ResponseTo | ((previousState: ResponseTo) => ResponseTo),
@@ -1145,6 +1298,8 @@ export function useCommand<
   ResponseTo,
   ResponseFrom
 > {
+  const authContext = useAuthContext()
+
   const [response, setResponse] = useState<
     NetworkResponse.NetworkResponse<HttpError, ResponseTo>
   >(NetworkResponse.idle())
@@ -1171,7 +1326,20 @@ export function useCommand<
       }),
     )
 
-    return Effect.runPromiseExit(sendHttpJSONRequest(request, data)).then(
+    return Effect.runPromiseExit(
+      sendHttpJSONRequest(
+        request,
+        data,
+        (() => {
+          switch (authContext.type) {
+            case "Anonymous":
+              return Option.none()
+            case "Authenticated":
+              return Option.some(authContext.authTokens)
+          }
+        })(),
+      ),
+    ).then(
       flow(
         Exit.match({
           onFailure(cause) {
@@ -1284,6 +1452,8 @@ export function useFormDataCommand<
   ResponseTo,
   ResponseFrom
 > {
+  const authContext = useAuthContext()
+
   const [response, setResponse] = useState<
     NetworkResponse.NetworkResponse<HttpError, ResponseTo>
   >(NetworkResponse.idle())
@@ -1310,7 +1480,20 @@ export function useFormDataCommand<
       }),
     )
 
-    return Effect.runPromiseExit(sendHttpFormDataRequest(request, data)).then(
+    return Effect.runPromiseExit(
+      sendHttpFormDataRequest(
+        request,
+        data,
+        (() => {
+          switch (authContext.type) {
+            case "Anonymous":
+              return Option.none()
+            case "Authenticated":
+              return Option.some(authContext.authTokens)
+          }
+        })(),
+      ),
+    ).then(
       flow(
         Exit.match({
           onFailure(cause) {

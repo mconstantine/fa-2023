@@ -56,8 +56,7 @@ export function succeed<A>(
 ): (self: LoadingNetworkResponse) => SuccessfulNetworkResponse<A>
 export function succeed<A>(
   data?: A,
-): (self: LoadingNetworkResponse) => SuccessfulNetworkResponse<A> {
-  // @ts-expect-error void data is allowed
+): (self: LoadingNetworkResponse) => SuccessfulNetworkResponse<A | void> {
   return () => successful(data)
 }
 
@@ -73,7 +72,9 @@ export function refresh<A>(): (
   return loading
 }
 
-function successful<A>(data: A): SuccessfulNetworkResponse<A> {
+function successful(): SuccessfulNetworkResponse<void>
+function successful<A>(data: A): SuccessfulNetworkResponse<A>
+function successful<A>(data?: A): SuccessfulNetworkResponse<A | void> {
   return { tag: "Success", data }
 }
 
@@ -179,6 +180,63 @@ export const all: <
     }
 
     return successful(result)
+  }
+}
+
+// @ts-expect-error this is too much
+export const any: <
+  const I extends
+    | Iterable<NetworkResponse<any, any>>
+    | Record<string, NetworkResponse<any, any>>,
+>(
+  input: I,
+) => [I] extends [ReadonlyArray<NetworkResponse<any, any>>]
+  ? NetworkResponse<
+      I[number] extends never
+        ? never
+        : [I[number]] extends [NetworkResponse<infer E, any>]
+        ? E
+        : never,
+      {
+        -readonly [K in keyof I]: [I[K]] extends [NetworkResponse<any, any>]
+          ? void
+          : never
+      }
+    >
+  : [I] extends [Iterable<NetworkResponse<infer E, any>>]
+  ? NetworkResponse<E, void>
+  : NetworkResponse<
+      I[keyof I] extends never
+        ? never
+        : [I[keyof I]] extends [NetworkResponse<infer E, any>]
+        ? E
+        : never,
+      {
+        -readonly [K in keyof I]: [I[K]] extends [NetworkResponse<any, any>]
+          ? void
+          : never
+      }
+    > = (
+  input:
+    | Iterable<NetworkResponse<any, any>>
+    | Record<string, NetworkResponse<any, any>>,
+): NetworkResponse<any, any> => {
+  if (Symbol.iterator in input) {
+    for (const entry of input) {
+      if (isLoading(entry) || isFailure(entry)) {
+        return entry
+      }
+    }
+
+    return successful()
+  } else {
+    for (const value of Object.values(input)) {
+      if (isLoading(value) || isFailure(value)) {
+        return value
+      }
+    }
+
+    return successful()
   }
 }
 

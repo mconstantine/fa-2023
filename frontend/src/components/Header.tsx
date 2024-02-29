@@ -2,6 +2,7 @@ import { Menu } from "@mui/icons-material"
 import {
   AppBar,
   Box,
+  Button,
   Container,
   Drawer,
   IconButton,
@@ -15,30 +16,49 @@ import {
 import { useState } from "react"
 import { Link } from "react-router-dom"
 import { routes } from "../routes"
+import { useAuthContext } from "../contexts/AuthContext"
 
 export default function Header() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const authContext = useAuthContext()
 
   return (
     <AppBar position="sticky">
       <Container maxWidth="xl">
         <Toolbar>
-          <Stack direction="row" spacing={1.5} alignItems="center">
-            <IconButton aria-label="Menu" onClick={() => setIsDrawerOpen(true)}>
-              <Menu />
-            </IconButton>
-            <Typography
-              variant="h6"
-              noWrap
-              sx={{
-                fontFamily: "monospace",
-                fontWeight: 700,
-                letterSpacing: "2px",
-                color: "inherit",
-              }}
-            >
-              FA2023
-            </Typography>
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            sx={{ width: "100%" }}
+          >
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              <IconButton
+                aria-label="Menu"
+                onClick={() => setIsDrawerOpen(true)}
+              >
+                <Menu />
+              </IconButton>
+              <Typography
+                variant="h6"
+                noWrap
+                sx={{
+                  fontFamily: "monospace",
+                  fontWeight: 700,
+                  letterSpacing: "2px",
+                  color: "inherit",
+                }}
+              >
+                FA2023
+              </Typography>
+            </Stack>
+            {(() => {
+              switch (authContext.type) {
+                case "Anonymous":
+                  return null
+                case "Authenticated":
+                  return <Button onClick={authContext.logout}>Logout</Button>
+              }
+            })()}
           </Stack>
         </Toolbar>
       </Container>

@@ -1,8 +1,8 @@
 import {
   InsertUserInput,
-  AuthTokensFromUser,
   LoginUserInput,
 } from "../database/functions/user/domain"
+import { AuthTokensFromUser } from "../database/AuthTokensFromUser"
 import { insertUser } from "../database/functions/user/insert_user"
 import { HttpError } from "./HttpError"
 import { loginUser } from "../database/functions/user/login_user"
@@ -18,6 +18,8 @@ export const userRouter = Router.post("/register", {
       try {
         return await insertUser(body)
       } catch (e) {
+        console.log(e)
+
         throw new HttpError(
           409,
           "Unable to register user. The email address could have already been taken",
@@ -37,6 +39,8 @@ export const userRouter = Router.post("/register", {
         try {
           return await loginUser(body)
         } catch (e) {
+          console.log(e)
+
           throw new HttpError(
             401,
             "Unable to login. Please double check your credentials",
