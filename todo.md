@@ -4,3 +4,5 @@
 - [x] Automatically refresh tokens at startup if expired
 - [x] Automatically refresh tokens if server responds 403 and try again
 - [x] Can localStorage not be used as a hook?
+- [ ] Add user id to everything
+- [ ] Build for production
