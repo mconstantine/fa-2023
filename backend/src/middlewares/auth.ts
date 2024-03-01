@@ -1,6 +1,6 @@
 import * as db from "../database/db"
 import * as S from "@effect/schema/Schema"
-import { Effect, pipe } from "effect"
+import { Effect, Either, pipe } from "effect"
 import { HttpError } from "../routes/HttpError"
 import { User } from "../database/functions/user/domain"
 import { verify } from "jsonwebtoken"
@@ -37,6 +37,11 @@ export function authMiddleware(
         catch: () => new HttpError(403, "Invalid access token"),
       }),
     ),
-    Effect.map((user) => ({ user })),
+    Effect.flatMap(
+      Either.match({
+        onLeft: () => Effect.fail(new HttpError(404, "User not found")),
+        onRight: (user) => Effect.succeed({ user }),
+      }),
+    ),
   )
 }

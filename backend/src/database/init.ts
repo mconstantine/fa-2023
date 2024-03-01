@@ -4,7 +4,7 @@ import fs from "fs"
 import path from "path"
 import { FunctionTemplate, template } from "./functions/template"
 import { glob } from "glob"
-import { pipe } from "effect"
+import { Either, pipe } from "effect"
 
 const upMigrationPattern = /^\d+_up/
 
@@ -26,7 +26,12 @@ export async function initDatabase(): Promise<void> {
   `)
 
   const migrations = await db.getMany(Migration, "select * from migration")
-  const migrationNames = migrations.map((m) => m.name)
+
+  if (Either.isLeft(migrations)) {
+    throw migrations.left
+  }
+
+  const migrationNames = migrations.right.map((m) => m.name)
 
   const migrationFiles = fs
     .readdirSync(path.join(__dirname, "migrations"))

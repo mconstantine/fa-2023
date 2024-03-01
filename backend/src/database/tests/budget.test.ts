@@ -14,6 +14,7 @@ import { updateBudget } from "../functions/budget/update_budget"
 import { updateBudgets } from "../functions/budget/update_budgets"
 import { deleteBudget } from "../functions/budget/delete_budget"
 import { listBudgets } from "../functions/budget/list_budgets"
+import { Either } from "effect"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
@@ -219,11 +220,13 @@ describe("database budget functions", () => {
 
       expect(result.id).toBe(budget.id)
 
-      await expect(async () => {
-        await db.getOne(Budget, "select * from transaction where id = $1", [
-          budget.id,
-        ])
-      }).rejects.toBeTruthy()
+      const budgetAfterDeletion = await db.getOne(
+        Budget,
+        "select * from transaction where id = $1",
+        [budget.id],
+      )
+
+      expect(Either.isLeft(budgetAfterDeletion)).toBe(true)
     })
   })
 

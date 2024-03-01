@@ -17,6 +17,7 @@ import { listTransactions } from "../functions/transaction/list_transactions"
 import { aggregateTransactionsByCategory } from "../functions/transaction/aggregate_transactions_by_category"
 import { aggregateTransactionsByMonth } from "../functions/transaction/aggregate_transactions_by_month"
 import { aggregateTransactionsByTimeAndCategory } from "../functions/transaction/aggregate_transactions_by_time_and_category"
+import { Either } from "effect"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
@@ -342,13 +343,13 @@ describe("database transaction functions", () => {
 
       expect(result.id).toBe(transaction.id)
 
-      await expect(async () => {
-        await db.getOne(
-          Transaction,
-          "select * from transaction where id = $1",
-          [transaction.id],
-        )
-      }).rejects.toBeTruthy()
+      const transactionAfterDeletion = await db.getOne(
+        Transaction,
+        "select * from transaction where id = $1",
+        [transaction.id],
+      )
+
+      expect(Either.isLeft(transactionAfterDeletion)).toBe(true)
     })
 
     it("should cascade on categories", async () => {
@@ -377,7 +378,7 @@ describe("database transaction functions", () => {
         [transaction.id],
       )
 
-      expect(relationshipBefore.length).toBe(1)
+      expect(Either.getOrThrow(relationshipBefore).length).toBe(1)
 
       await deleteTransaction(transaction.id)
 
@@ -387,7 +388,7 @@ describe("database transaction functions", () => {
         [transaction.id],
       )
 
-      expect(relationshipAfter.length).toBe(0)
+      expect(Either.getOrThrow(relationshipAfter).length).toBe(0)
     })
   })
 

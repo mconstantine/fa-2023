@@ -1,5 +1,5 @@
 import * as S from "@effect/schema/Schema"
-import { Effect, Option, pipe } from "effect"
+import { Effect, Exit, Option, pipe } from "effect"
 import express, { type Request } from "express"
 import { type RouteParameters } from "express-serve-static-core"
 import { HttpError } from "./HttpError"
@@ -462,18 +462,33 @@ export class Router<Locals extends Record<string, never>> {
           next,
         ) => {
           ;(async () => {
-            try {
-              const result = await Effect.runPromise(middleware(req))
+            const result = await Effect.runPromiseExit(middleware(req))
 
-              for (const [key, value] of Object.entries(result)) {
-                // @ts-expect-error key is actually keyof L
-                req[key] = value
-              }
+            pipe(
+              result,
+              Exit.match({
+                onFailure: (cause) => {
+                  if (cause._tag === "Fail") {
+                    handleError(cause.error, res)
+                  } else {
+                    handleError(
+                      new HttpError(500, "Process failed for middleware", {
+                        cause,
+                      }),
+                      res,
+                    )
+                  }
+                },
+                onSuccess: (result) => {
+                  for (const [key, value] of Object.entries(result)) {
+                    // @ts-expect-error key is actually keyof L
+                    req[key] = value
+                  }
 
-              next()
-            } catch (e) {
-              handleError(e, res)
-            }
+                  next()
+                },
+              }),
+            )
           })().then(constVoid, constVoid)
         },
       ),

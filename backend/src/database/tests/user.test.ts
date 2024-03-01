@@ -5,6 +5,7 @@ import { User } from "../functions/user/domain"
 import { loginUser } from "../functions/user/login_user"
 import { updateUser } from "../functions/user/update_user"
 import { deleteUser } from "../functions/user/delete_user"
+import { Either } from "effect"
 
 describe("database user functions", () => {
   afterAll(async () => {
@@ -164,9 +165,13 @@ describe("database user functions", () => {
 
       expect(result.id).toBe(user.id)
 
-      await expect(async () => {
-        await db.getOne(User, 'select * from "user" where id = $1', [user.id])
-      }).rejects.toBeTruthy()
+      const userAfterDeletion = await db.getOne(
+        User,
+        'select * from "user" where id = $1',
+        [user.id],
+      )
+
+      expect(Either.isLeft(userAfterDeletion)).toBe(true)
     })
   })
 })

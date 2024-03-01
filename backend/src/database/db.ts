@@ -10,7 +10,8 @@ import {
   type Submittable,
 } from "pg"
 import { env } from "../env"
-import { Effect, pipe } from "effect"
+import { Either, pipe } from "effect"
+import { HttpError } from "../routes/HttpError"
 
 const db = new Pool({
   host: env.DB_HOST,
@@ -73,14 +74,26 @@ export async function getOne<O, I>(
   codec: S.Schema<O, I>,
   queryText: string,
   params?: any[],
-): Promise<O> {
+): Promise<Either.Either<HttpError, O>> {
   const result = await query<I[]>(queryText, params)
 
   if (typeof result.rows[0] === "undefined") {
-    throw new Error(`Nothing found for query: ${queryText}`)
+    return Either.left(
+      new HttpError(500, "Nothing found for query", { queryText, params }),
+    )
   } else {
-    const validation = pipe(result.rows[0], S.decodeUnknown(codec))
-    return await Effect.runPromise(validation)
+    return pipe(
+      result.rows[0],
+      S.decodeUnknownEither(codec),
+      Either.mapLeft(
+        (error) =>
+          new HttpError(500, "Unable to decode database response", {
+            queryText,
+            params,
+            error,
+          }),
+      ),
+    )
   }
 }
 
@@ -88,11 +101,22 @@ export async function getMany<O, I>(
   codec: S.Schema<O, I>,
   queryText: string,
   params?: any[],
-): Promise<readonly O[]> {
+): Promise<Either.Either<HttpError, readonly O[]>> {
   const result = await query<I[]>(queryText, params)
-  const validation = pipe(result.rows, S.decodeUnknown(S.array(codec)))
 
-  return await Effect.runPromise(validation)
+  // eslint-disable-next-line @typescript-eslint/return-await
+  return pipe(
+    result.rows,
+    S.decodeUnknownEither(S.array(codec)),
+    Either.mapLeft(
+      (error) =>
+        new HttpError(500, "Unable to decode database response", {
+          queryText,
+          params,
+          error,
+        }),
+    ),
+  )
 }
 
 export async function transact<O>(

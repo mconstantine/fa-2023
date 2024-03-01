@@ -12,6 +12,7 @@ import { PaginationResponse } from "../domain"
 import { insertTransaction } from "../functions/transaction/insert_transaction"
 import { insertBudget } from "../functions/budget/insert_budget"
 import { Budget } from "../functions/budget/domain"
+import { Either } from "effect"
 
 describe("database category functions", () => {
   afterAll(async () => {
@@ -77,11 +78,13 @@ describe("database category functions", () => {
 
       expect(result.id).toBe(category.id)
 
-      await expect(async () => {
-        await db.getOne(Category, "select * from category where id = $1", [
-          category.id,
-        ])
-      }).rejects.toBeTruthy()
+      const categoryAfterDeletion = await db.getOne(
+        Category,
+        "select * from category where id = $1",
+        [category.id],
+      )
+
+      expect(Either.isLeft(categoryAfterDeletion)).toBe(true)
     })
 
     it("should cascade on transactions", async () => {
@@ -110,7 +113,7 @@ describe("database category functions", () => {
         [transaction.id],
       )
 
-      expect(relationshipBefore.length).toBe(1)
+      expect(Either.getOrThrow(relationshipBefore).length).toBe(1)
 
       await deleteCategory(category.id)
 
@@ -120,7 +123,7 @@ describe("database category functions", () => {
         [transaction.id],
       )
 
-      expect(relationshipAfter.length).toBe(0)
+      expect(Either.getOrThrow(relationshipAfter).length).toBe(0)
     })
 
     it("should cascade on budgets", async () => {
@@ -139,12 +142,13 @@ describe("database category functions", () => {
 
       await deleteCategory(category.id)
 
-      await expect(
-        async () =>
-          await db.getOne(Budget, "select * from budget where id = $1", [
-            budget.id,
-          ]),
-      ).rejects.toBeTruthy()
+      const budgetAfterDeletion = await db.getOne(
+        Budget,
+        "select * from budget where id = $1",
+        [budget.id],
+      )
+
+      expect(Either.isLeft(budgetAfterDeletion)).toBe(true)
     })
   })
 

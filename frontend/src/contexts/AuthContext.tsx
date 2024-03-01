@@ -11,7 +11,7 @@ import {
   HttpError,
   useSendHttpRequest as useHttpRequest,
 } from "../hooks/network"
-import { Effect, Either, Option, pipe } from "effect"
+import { Effect, Either, Exit, Option, identity, pipe } from "effect"
 
 interface AnonymousAuthContext {
   readonly type: "Anonymous"
@@ -84,36 +84,43 @@ export function AuthContextProvider(props: PropsWithChildren) {
   async function getProfile(
     authTokens: AuthTokens,
   ): Promise<Either.Either<HttpError, User>> {
-    try {
-      return await Effect.runPromise(
-        sendGetProfileRequest({}, Option.some(authTokens)),
-      )
-    } catch (error) {
-      return Either.left({
-        code: 500,
-        message: "Unable to get user profile",
-        extras: { error },
-      })
-    }
+    const result = await Effect.runPromiseExit(
+      sendGetProfileRequest({}, Option.some(authTokens)),
+    )
+
+    return pipe(
+      result,
+      Exit.match({
+        onFailure: (cause) => {
+          return Either.left({
+            code: 500,
+            message: "The process of getting user profile failed",
+            extras: { cause },
+          })
+        },
+        onSuccess: identity,
+      }),
+    )
   }
 
   async function register(
     body: InsertUserInput,
   ): Promise<Either.Either<HttpError, AuthTokens>> {
-    const registration: Either.Either<HttpError, AuthTokens> =
-      await (async () => {
-        try {
-          return await Effect.runPromise(
-            sendRegistrationRequest({ body }, Option.none()),
-          )
-        } catch (error) {
+    const registration: Either.Either<HttpError, AuthTokens> = pipe(
+      await Effect.runPromiseExit(
+        sendRegistrationRequest({ body }, Option.none()),
+      ),
+      Exit.match({
+        onFailure: (cause) => {
           return Either.left({
             code: 500,
-            message: "Unable to complete registration",
-            extras: { error },
+            message: "The process of user registration failed",
+            extras: { cause },
           })
-        }
-      })()
+        },
+        onSuccess: identity,
+      }),
+    )
 
     if (Either.isLeft(registration)) {
       return registration
@@ -140,19 +147,19 @@ export function AuthContextProvider(props: PropsWithChildren) {
   async function login(
     body: LoginUserInput,
   ): Promise<Either.Either<HttpError, AuthTokens>> {
-    const login: Either.Either<HttpError, AuthTokens> = await (async () => {
-      try {
-        return await Effect.runPromise(
-          sendLoginRequest({ body }, Option.none()),
-        )
-      } catch (error) {
-        return Either.left({
-          code: 500,
-          message: "Unable to complete login",
-          extras: { error },
-        })
-      }
-    })()
+    const login: Either.Either<HttpError, AuthTokens> = pipe(
+      await Effect.runPromiseExit(sendLoginRequest({ body }, Option.none())),
+      Exit.match({
+        onFailure: (cause) => {
+          return Either.left({
+            code: 500,
+            message: "The process of user login failed",
+            extras: { cause },
+          })
+        },
+        onSuccess: identity,
+      }),
+    )
 
     if (Either.isLeft(login)) {
       return login

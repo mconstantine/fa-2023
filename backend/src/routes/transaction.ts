@@ -24,9 +24,9 @@ import multer from "multer"
 import { type Request, type Response } from "express"
 import { handleError } from "./handleError"
 import { BankAdapter } from "../adapters/BankAdapter"
-import { Cause, Effect, Either, Exit, pipe } from "effect"
+import { Effect, Either, Exit, pipe } from "effect"
 import { ImportErrorType } from "../adapters/Adapter"
-import { constVoid, flow, identity } from "effect/Function"
+import { constVoid } from "effect/Function"
 import { aggregateTransactionsByCategory } from "../database/functions/transaction/aggregate_transactions_by_category"
 import { aggregateTransactionsByMonth } from "../database/functions/transaction/aggregate_transactions_by_month"
 import { aggregateTransactionsByTimeAndCategory } from "../database/functions/transaction/aggregate_transactions_by_time_and_category"
@@ -204,25 +204,13 @@ function handleTransactionsImport(req: Request, res: Response): void {
             onSuccess: (response) => {
               res.json(response)
             },
-            onFailure: flow(
-              Cause.match({
-                onDie: () => new HttpError(500, "Process is dead"),
-                onEmpty: new HttpError(
-                  500,
-                  "Process terminated with empty result",
-                ),
-                onFail: identity,
-                onInterrupt: () =>
-                  new HttpError(500, "Process was interrupted"),
-                onParallel: () =>
-                  new HttpError(500, "Parallel processes failed"),
-                onSequential: () =>
-                  new HttpError(500, "Sequential processes failed"),
-              }),
-              (error): void => {
-                handleError(error, res)
-              },
-            ),
+            onFailure: (cause) => {
+              if (cause._tag === "Fail") {
+                return cause.error
+              } else {
+                return new HttpError(500, "Process failed", { cause })
+              }
+            },
           }),
           constVoid,
         )

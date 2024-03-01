@@ -6,7 +6,7 @@ import {
   RouteParameters,
 } from "../network/HttpRequest"
 import { env } from "../env"
-import { Cause, Effect, Either, Exit, Option, flow, pipe } from "effect"
+import { Effect, Either, Exit, Option, flow, pipe } from "effect"
 import { Dispatch, SetStateAction, useEffect, useState } from "react"
 import * as NetworkResponse from "../network/NetworkResponse"
 import { identity } from "effect/Function"
@@ -561,39 +561,6 @@ export function sendHttpFormDataRequest<
   )
 }
 
-function causeToHttpError(cause: Cause.Cause<HttpError>): HttpError {
-  return pipe(
-    cause,
-    Cause.match<HttpError, HttpError>({
-      onDie: (defect) => ({
-        code: 500,
-        message: "Unexpected failure",
-        extras: { defect },
-      }),
-      onEmpty: {
-        code: 500,
-        message: "Request process failed with no errors",
-      },
-      onInterrupt: (fiberId) => ({
-        code: 500,
-        message: "Request process was interrupted",
-        extras: { fiberId },
-      }),
-      onParallel: (left, right) => ({
-        code: 500,
-        message: "Parallel failures during request process",
-        extras: { left, right },
-      }),
-      onSequential: (left, right) => ({
-        code: 500,
-        message: "Sequential failures during request process",
-        extras: { left, right },
-      }),
-      onFail: identity,
-    }),
-  )
-}
-
 type HttpRequestData<
   ParamsTo,
   Path extends Record<string, string | undefined>,
@@ -1057,7 +1024,17 @@ export function useLazyQuery<
       flow(
         Exit.match({
           onFailure(cause) {
-            const error: HttpError = causeToHttpError(cause)
+            const error: HttpError = (() => {
+              if (cause._tag === "Fail") {
+                return cause.error
+              } else {
+                return {
+                  code: 500,
+                  message: "The query process failed",
+                  extras: { cause },
+                }
+              }
+            })()
 
             setResponse(
               NetworkResponse.flatMatch<
@@ -1179,7 +1156,17 @@ export function useQuery<
       flow(
         Exit.match({
           onFailure(cause) {
-            const error: HttpError = causeToHttpError(cause)
+            const error: HttpError = (() => {
+              if (cause._tag === "Fail") {
+                return cause.error
+              } else {
+                return {
+                  code: 500,
+                  message: "The query process failed",
+                  extras: { cause },
+                }
+              }
+            })()
 
             setResponse(
               NetworkResponse.flatMatch<
@@ -1343,25 +1330,15 @@ export function useCommand<
       flow(
         Exit.match({
           onFailure(cause) {
-            const error: HttpError = causeToHttpError(cause)
-
-            setResponse(
-              NetworkResponse.flatMatch<
-                HttpError,
-                ResponseTo,
-                NetworkResponse.NetworkResponse<HttpError, ResponseTo>
-              >({
-                onIdle: identity,
-                onSuccess: identity,
-                onFailure: identity,
-                onLoading: (response) => {
-                  console.log(error.extras)
-                  return NetworkResponse.fail(error)(response)
-                },
-              }),
-            )
-
-            return Either.left(error)
+            if (cause._tag === "Fail") {
+              return Either.left(cause.error)
+            } else {
+              return Either.left({
+                code: 500,
+                message: "The command process failed",
+                extras: { cause },
+              })
+            }
           },
           onSuccess(data) {
             setResponse(
@@ -1497,25 +1474,15 @@ export function useFormDataCommand<
       flow(
         Exit.match({
           onFailure(cause) {
-            const error: HttpError = causeToHttpError(cause)
-
-            setResponse(
-              NetworkResponse.flatMatch<
-                HttpError,
-                ResponseTo,
-                NetworkResponse.NetworkResponse<HttpError, ResponseTo>
-              >({
-                onIdle: identity,
-                onSuccess: identity,
-                onFailure: identity,
-                onLoading: (response) => {
-                  console.log(error.extras)
-                  return NetworkResponse.fail(error)(response)
-                },
-              }),
-            )
-
-            return Either.left(error)
+            if (cause._tag === "Fail") {
+              return Either.left(cause.error)
+            } else {
+              return Either.left({
+                code: 500,
+                message: "The command process failed",
+                extras: { cause },
+              })
+            }
           },
           onSuccess(data) {
             setResponse(
