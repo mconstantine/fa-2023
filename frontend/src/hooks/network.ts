@@ -13,7 +13,7 @@ import { constVoid, identity } from "effect/Function"
 import { useSearchParams } from "react-router-dom"
 import { AuthTokens } from "../../../backend/src/database/functions/user/domain"
 import { useAuthContext } from "../contexts/AuthContext"
-import { getLocalStorageValue, setLocalStorageValue } from "./useLocalStorage"
+import { getLocalStorageValue, setLocalStorageValue } from "../localStorage"
 
 type HttpRequestType = "JSON" | "FormData"
 

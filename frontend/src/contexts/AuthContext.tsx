@@ -12,8 +12,12 @@ import {
   useSendHttpRequest as useHttpRequest,
 } from "../hooks/network"
 import { Effect, Either, Exit, Option, identity, pipe } from "effect"
-import { useLocalStorage } from "../hooks/useLocalStorage"
 import { constVoid } from "effect/Function"
+import {
+  getLocalStorageValue,
+  removeLocalStorageValue,
+  setLocalStorageValue,
+} from "../localStorage"
 
 interface AnonymousAuthContext {
   readonly type: "Anonymous"
@@ -78,9 +82,6 @@ export function AuthContextProvider(props: PropsWithChildren) {
     login,
   })
 
-  const { getStoredValue, setStoredValue, removeStoredValue } =
-    useLocalStorage()
-
   const authContextNetworkResponse = pipe(
     [registrationResponse, loginResponse, profileResponse],
     NetworkResponse.any,
@@ -88,7 +89,7 @@ export function AuthContextProvider(props: PropsWithChildren) {
 
   if (state.type === "Anonymous") {
     pipe(
-      getStoredValue("authContext"),
+      getLocalStorageValue("authContext"),
       Option.match({
         onNone: constVoid,
         onSome: (authContext) => {
@@ -160,7 +161,7 @@ export function AuthContextProvider(props: PropsWithChildren) {
           logout,
         })
 
-        setStoredValue("authContext", { authTokens, user })
+        setLocalStorageValue("authContext", { authTokens, user })
 
         return Either.right(authTokens)
       }),
@@ -201,7 +202,7 @@ export function AuthContextProvider(props: PropsWithChildren) {
           logout,
         })
 
-        setStoredValue("authContext", { authTokens, user })
+        setLocalStorageValue("authContext", { authTokens, user })
 
         return Either.right(authTokens)
       }),
@@ -216,7 +217,7 @@ export function AuthContextProvider(props: PropsWithChildren) {
       networkResponse: NetworkResponse.idle(),
     })
 
-    removeStoredValue("authContext")
+    removeLocalStorageValue("authContext")
   }
 
   return (

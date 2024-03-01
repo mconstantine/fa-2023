@@ -3,7 +3,7 @@ import { Either, Option, pipe } from "effect"
 import {
   AuthTokens,
   User,
-} from "../../../backend/src/database/functions/user/domain"
+} from "../../backend/src/database/functions/user/domain"
 import { constVoid } from "effect/Function"
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -16,27 +16,6 @@ const LocalStorageMap = {
 }
 
 type LocalStorageMap = typeof LocalStorageMap
-
-interface UseLocalStorageOutput {
-  getStoredValue<K extends keyof LocalStorageMap>(
-    key: K,
-  ): Option.Option<
-    LocalStorageMap[K] extends S.Schema<infer A, any> ? A : never
-  >
-  setStoredValue<const K extends keyof LocalStorageMap>(
-    key: K,
-    value: LocalStorageMap[K] extends S.Schema<infer A, any> ? A : never,
-  ): void
-  removeStoredValue(key: keyof LocalStorageMap): void
-}
-
-export function useLocalStorage(): UseLocalStorageOutput {
-  return {
-    getStoredValue: getLocalStorageValue,
-    setStoredValue: setLocalStorageValue,
-    removeStoredValue: removeLocalStorageValue,
-  }
-}
 
 export function getLocalStorageValue<K extends keyof LocalStorageMap>(
   key: K,
