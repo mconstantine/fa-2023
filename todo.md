@@ -1,5 +1,6 @@
 - [x] Save tokens in local storage and skip login if present and not expired
 - [x] Delete tokens on logout
-- [ ] Implement token refresh
-- [ ] Automatically refresh tokens at startup if expired
-- [ ] Automatically refresh tokens if server responds 403 and try again
+- [x] Implement token refresh
+- [x] Automatically refresh tokens at startup if expired
+- [x] Automatically refresh tokens if server responds 403 and try again
+- [ ] Can localStorage not be used as a hook?

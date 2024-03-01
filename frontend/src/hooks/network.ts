@@ -9,10 +9,11 @@ import { env } from "../env"
 import { Effect, Either, Exit, Option, flow, pipe } from "effect"
 import { Dispatch, SetStateAction, useEffect, useState } from "react"
 import * as NetworkResponse from "../network/NetworkResponse"
-import { identity } from "effect/Function"
+import { constVoid, identity } from "effect/Function"
 import { useSearchParams } from "react-router-dom"
 import { AuthTokens } from "../../../backend/src/database/functions/user/domain"
 import { useAuthContext } from "../contexts/AuthContext"
+import { getLocalStorageValue, setLocalStorageValue } from "./useLocalStorage"
 
 type HttpRequestType = "JSON" | "FormData"
 
@@ -319,6 +320,78 @@ function encodeFormDataBody<
   )
 }
 
+function refreshTokens<
+  ParamsTo,
+  Path extends string,
+  QueryTo,
+  QueryFrom extends Record<string, string | readonly string[] | undefined>,
+  BodyTo,
+  BodyFrom,
+  ResponseTo,
+  ResponseFrom,
+>(
+  type: HttpRequestType,
+  urlWithParamsAndQuery: string,
+  request: HttpRequest<
+    ParamsTo,
+    Path,
+    QueryTo,
+    QueryFrom,
+    BodyTo,
+    BodyFrom,
+    ResponseTo,
+    ResponseFrom
+  >,
+  body: Option.Option<string | FormData>,
+  authTokens: AuthTokens,
+): Effect.Effect<Response, void> {
+  return pipe(
+    Effect.tryPromise({
+      try: () =>
+        window.fetch(env.VITE_API_URL + "/users/refresh-token/", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json; charset=utf-8",
+          },
+          body: JSON.stringify({
+            refresh_token: authTokens.refresh.value,
+          }),
+        }),
+      catch: constVoid,
+    }),
+    Effect.flatMap((response) =>
+      Effect.tryPromise({
+        try: () => response.json(),
+        catch: constVoid,
+      }),
+    ),
+    Effect.flatMap(
+      flow(S.decodeUnknown(AuthTokens), Effect.mapError(constVoid)),
+    ),
+    Effect.flatMap((authTokens) => {
+      const authContext = getLocalStorageValue("authContext")
+
+      pipe(
+        authContext,
+        Option.match({
+          onNone: constVoid,
+          onSome: (authContext) =>
+            setLocalStorageValue("authContext", { ...authContext, authTokens }),
+        }),
+      )
+
+      return sendRequest(
+        type,
+        urlWithParamsAndQuery,
+        request,
+        body,
+        Option.some(authTokens),
+        false,
+      )
+    }),
+  )
+}
+
 function sendRequest<
   ParamsTo,
   Path extends string,
@@ -343,7 +416,29 @@ function sendRequest<
   >,
   body: Option.Option<string | FormData>,
   authTokens: Option.Option<AuthTokens>,
+  tryRefreshTokens = true,
 ): Effect.Effect<Response, HttpError> {
+  if (Option.isSome(authTokens)) {
+    const accessTokenExpiration = authTokens.value.access.expiration
+
+    if (accessTokenExpiration.getTime() <= Date.now()) {
+      return pipe(
+        refreshTokens(
+          type,
+          urlWithParamsAndQuery,
+          request,
+          body,
+          authTokens.value,
+        ),
+        Effect.mapError(() => ({
+          code: 403,
+          message:
+            "Unable to get authorization. Please logout and login again.",
+        })),
+      )
+    }
+  }
+
   const headers: HeadersInit = {}
 
   if (Option.isSome(body) && type === "JSON") {
@@ -354,25 +449,47 @@ function sendRequest<
     headers["Authorization"] = `Bearer ${authTokens.value.access.value}`
   }
 
-  return Effect.tryPromise({
-    try: () =>
-      window.fetch(urlWithParamsAndQuery, {
-        method: request.method,
-        ...pipe(
-          body,
-          Option.match({
-            onNone: () => ({}),
-            onSome: (body) => ({ body }),
-          }),
-        ),
-        headers,
+  return pipe(
+    Effect.tryPromise({
+      try: () =>
+        window.fetch(urlWithParamsAndQuery, {
+          method: request.method,
+          ...pipe(
+            body,
+            Option.match({
+              onNone: () => ({}),
+              onSome: (body) => ({ body }),
+            }),
+          ),
+          headers,
+        }),
+      catch: (error): HttpError => ({
+        code: 500,
+        message: "Unable to reach the server",
+        extras: { error },
       }),
-    catch: (error): HttpError => ({
-      code: 500,
-      message: "Unable to reach the server",
-      extras: { error },
     }),
-  })
+    Effect.flatMap((response) => {
+      if (
+        response.status === 403 &&
+        Option.isSome(authTokens) &&
+        tryRefreshTokens
+      ) {
+        return pipe(
+          refreshTokens(
+            type,
+            urlWithParamsAndQuery,
+            request,
+            body,
+            authTokens.value,
+          ),
+          Effect.orElse(() => Effect.succeed(response)),
+        )
+      } else {
+        return Effect.succeed(response)
+      }
+    }),
+  )
 }
 
 function parseResponse(response: Response): Effect.Effect<unknown, HttpError> {

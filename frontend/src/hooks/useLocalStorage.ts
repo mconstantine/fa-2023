@@ -31,54 +31,58 @@ interface UseLocalStorageOutput {
 }
 
 export function useLocalStorage(): UseLocalStorageOutput {
-  function getStoredValue<K extends keyof LocalStorageMap>(
-    key: K,
-  ): Option.Option<
+  return {
+    getStoredValue: getLocalStorageValue,
+    setStoredValue: setLocalStorageValue,
+    removeStoredValue: removeLocalStorageValue,
+  }
+}
+
+export function getLocalStorageValue<K extends keyof LocalStorageMap>(
+  key: K,
+): Option.Option<
+  LocalStorageMap[K] extends S.Schema<infer A, any> ? A : never
+> {
+  const value = pipe(
+    window.localStorage.getItem(key),
+    Option.fromNullable,
+    Option.flatMap((stringValue) => {
+      try {
+        return Option.some(JSON.parse(stringValue))
+      } catch (e) {
+        console.log(e)
+        return Option.none()
+      }
+    }),
+    Option.flatMap(S.decodeUnknownOption(LocalStorageMap[key])),
+  )
+
+  return value as Option.Option<
     LocalStorageMap[K] extends S.Schema<infer A, any> ? A : never
-  > {
-    const value = pipe(
-      window.localStorage.getItem(key),
-      Option.fromNullable,
-      Option.flatMap((stringValue) => {
+  >
+}
+
+export function setLocalStorageValue<const K extends keyof LocalStorageMap>(
+  key: K,
+  value: LocalStorageMap[K] extends S.Schema<infer A, any> ? A : never,
+): void {
+  pipe(
+    value,
+    S.encodeUnknownEither(LocalStorageMap[key]),
+    Either.match({
+      onLeft: constVoid,
+      onRight: (encoded) => {
         try {
-          return Option.some(JSON.parse(stringValue))
+          const stringValue = JSON.stringify(encoded)
+          window.localStorage.setItem(key, stringValue)
         } catch (e) {
           console.log(e)
-          return Option.none()
         }
-      }),
-      Option.flatMap(S.decodeUnknownOption(LocalStorageMap[key])),
-    )
+      },
+    }),
+  )
+}
 
-    return value as Option.Option<
-      LocalStorageMap[K] extends S.Schema<infer A, any> ? A : never
-    >
-  }
-
-  function setStoredValue<const K extends keyof LocalStorageMap>(
-    key: K,
-    value: LocalStorageMap[K] extends S.Schema<infer A, any> ? A : never,
-  ): void {
-    pipe(
-      value,
-      S.encodeUnknownEither(LocalStorageMap[key]),
-      Either.match({
-        onLeft: constVoid,
-        onRight: (encoded) => {
-          try {
-            const stringValue = JSON.stringify(encoded)
-            window.localStorage.setItem(key, stringValue)
-          } catch (e) {
-            console.log(e)
-          }
-        },
-      }),
-    )
-  }
-
-  function removeStoredValue(key: keyof LocalStorageMap): void {
-    window.localStorage.removeItem(key)
-  }
-
-  return { getStoredValue, setStoredValue, removeStoredValue }
+export function removeLocalStorageValue(key: keyof LocalStorageMap): void {
+  window.localStorage.removeItem(key)
 }
