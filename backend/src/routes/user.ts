@@ -1,3 +1,4 @@
+import * as S from "@effect/schema/Schema"
 import {
   InsertUserInput,
   LoginUserInput,
@@ -7,7 +8,8 @@ import { insertUser } from "../database/functions/user/insert_user"
 import { HttpError } from "./HttpError"
 import { loginUser } from "../database/functions/user/login_user"
 import { Router } from "./Router"
-import { authMiddleware } from "../middlewares/auth"
+import { authMiddleware, verifyAuthToken } from "../middlewares/auth"
+import { Effect, Exit, identity, pipe } from "effect"
 
 export const userRouter = Router.post("/register", {
   codecs: {
@@ -49,6 +51,35 @@ export const userRouter = Router.post("/register", {
       })()
 
       return AuthTokensFromUser(user)
+    },
+  })
+  .put("/refresh-token", {
+    codecs: {
+      body: S.struct({
+        refresh_token: S.Trim.pipe(S.nonEmpty()),
+      }),
+    },
+    handler: async ({ body }) => {
+      return pipe(
+        await Effect.runPromiseExit(
+          pipe(
+            verifyAuthToken(body.refresh_token),
+            Effect.map(AuthTokensFromUser),
+          ),
+        ),
+        Exit.match({
+          onSuccess: identity,
+          onFailure: (cause) => {
+            if (cause._tag === "Fail") {
+              throw cause.error
+            } else {
+              throw new HttpError(500, "Refresh token process failed", {
+                cause,
+              })
+            }
+          },
+        }),
+      )
     },
   })
   .withMiddleware(authMiddleware)

@@ -8,9 +8,13 @@ import {
 
 export function AuthTokensFromUser(user: User): AuthTokens {
   const accessToken: AuthToken = {
-    expiration: new Date(Date.now() + 86400000),
+    // FIXME:
+    // expiration: new Date(Date.now() + 86400000),
+    expiration: new Date(Date.now() + 1000),
     value: sign({ id: user.id }, env.JWT_SECRET, {
-      expiresIn: "24h",
+      // FIXME:
+      // expiresIn: "24h",
+      expiresIn: 1,
       issuer: "backend",
     }),
   }

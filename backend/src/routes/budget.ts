@@ -12,15 +12,17 @@ import {
   UpdateBudgetInput,
   UpdateBudgetsInput,
 } from "../database/functions/budget/domain"
+import { authMiddleware } from "../middlewares/auth"
 
-export const budgetRouter = Router.get("/", {
-  codecs: {
-    query: S.struct({
-      year: S.NumberFromString.pipe(S.int()),
-    }),
-  },
-  handler: async ({ query }) => await listBudgets(query),
-})
+export const budgetRouter = Router.withMiddleware(authMiddleware)
+  .get("/", {
+    codecs: {
+      query: S.struct({
+        year: S.NumberFromString.pipe(S.int()),
+      }),
+    },
+    handler: async ({ query }) => await listBudgets(query),
+  })
   .post("/", {
     codecs: {
       body: InsertBudgetInput,

@@ -244,6 +244,20 @@ export class Router<Locals extends Record<string, never>> {
     return new Router(express.Router()).delete(path, route)
   }
 
+  static withMiddleware<L extends Record<string, unknown>>(
+    middleware: (
+      req: Request<
+        Record<string, never>,
+        never,
+        never,
+        never,
+        Record<string, never>
+      >,
+    ) => Effect.Effect<L, HttpError>,
+  ): Router<Record<string, never> & L> {
+    return new Router(express.Router()).withMiddleware(middleware)
+  }
+
   public get<
     ParamsTo,
     Path extends string,
@@ -453,7 +467,7 @@ export class Router<Locals extends Record<string, never>> {
     middleware: (
       req: Request<Record<string, never>, never, never, never, Locals>,
     ) => Effect.Effect<L, HttpError>,
-  ): Router<Locals & { [key in keyof L]: L[key] }> {
+  ): Router<Locals & L> {
     return new Router(
       this.router.use(
         (

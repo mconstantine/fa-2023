@@ -10,15 +10,17 @@ import {
   ListCategoriesInput,
   UpdateCategoryInput,
 } from "../database/functions/category/domain"
+import { authMiddleware } from "../middlewares/auth"
 
-export const categoryRouter = Router.get("/", {
-  codecs: {
-    query: ListCategoriesInput,
-  },
-  handler: async ({ query }) => {
-    return await listCategories(query)
-  },
-})
+export const categoryRouter = Router.withMiddleware(authMiddleware)
+  .get("/", {
+    codecs: {
+      query: ListCategoriesInput,
+    },
+    handler: async ({ query }) => {
+      return await listCategories(query)
+    },
+  })
   .post("/", {
     codecs: {
       body: InsertCategoryInput,

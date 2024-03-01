@@ -21,26 +21,33 @@ export function authMiddleware(
     S.decodeUnknown(S.Trim.pipe(S.nonEmpty())),
     Effect.mapError(() => new HttpError(403, "Missing authentication header")),
     Effect.map((header) => header.slice(7)),
-    Effect.flatMap((accessToken) =>
-      Effect.try({
-        try: () =>
-          verify(accessToken, env.JWT_SECRET, { issuer: "backend" }) as {
-            id: string
-          },
-        catch: () => new HttpError(403, "Invalid access token"),
-      }),
-    ),
+    Effect.flatMap(verifyAuthToken),
+    Effect.map((user) => ({ user })),
+  )
+}
+
+export function verifyAuthToken(
+  authToken: string,
+): Effect.Effect<User, HttpError> {
+  return pipe(
+    Effect.try({
+      try: () =>
+        verify(authToken, env.JWT_SECRET, { issuer: "backend" }) as {
+          id: string
+        },
+      catch: () => new HttpError(403, "Invalid authentication token"),
+    }),
     Effect.flatMap(({ id }) =>
       Effect.tryPromise({
         try: async () =>
           await db.getOne(User, 'select * from "user" where id = $1', [id]),
-        catch: () => new HttpError(403, "Invalid access token"),
+        catch: () => new HttpError(403, "Invalid authentication token"),
       }),
     ),
     Effect.flatMap(
       Either.match({
         onLeft: () => Effect.fail(new HttpError(404, "User not found")),
-        onRight: (user) => Effect.succeed({ user }),
+        onRight: Effect.succeed,
       }),
     ),
   )

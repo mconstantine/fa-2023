@@ -30,13 +30,15 @@ import { constVoid } from "effect/Function"
 import { aggregateTransactionsByCategory } from "../database/functions/transaction/aggregate_transactions_by_category"
 import { aggregateTransactionsByMonth } from "../database/functions/transaction/aggregate_transactions_by_month"
 import { aggregateTransactionsByTimeAndCategory } from "../database/functions/transaction/aggregate_transactions_by_time_and_category"
+import { authMiddleware } from "../middlewares/auth"
 
-export const transactionRouter = Router.get("/", {
-  codecs: {
-    query: ListTransactionsInput,
-  },
-  handler: async ({ query }) => await listTransactions(query),
-})
+export const transactionRouter = Router.withMiddleware(authMiddleware)
+  .get("/", {
+    codecs: {
+      query: ListTransactionsInput,
+    },
+    handler: async ({ query }) => await listTransactions(query),
+  })
   .get("/by-category", {
     codecs: {
       query: AggregateTransactionsByCategoryInput,
