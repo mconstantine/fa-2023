@@ -7,21 +7,29 @@ import {
   TextField,
   Theme,
 } from "@mui/material"
-import { NetworkResponse } from "../../../network/NetworkResponse"
-import {
-  Category,
-  CategoryCreationBody,
-  isCategory,
-} from "../../categories/domain"
+import * as NetworkResponse from "../../../network/NetworkResponse"
+import { Category, InsertCategoryInput } from "../../categories/domain"
 import { ChangeEventHandler, SyntheticEvent } from "react"
+import {
+  PaginationResponse,
+  emptyPaginationResponse,
+} from "../../../globalDomain"
+import { HttpError } from "../../../hooks/network"
+import { pipe } from "effect"
+import * as paginationResponse from "../../../network/PaginationResponse"
 
-export interface CategorySelection {
-  categories: Category[]
-  additions: CategoryCreationBody[]
+export type CategorySelection = Category | InsertCategoryInput
+
+export interface MultipleCategoriesSelection {
+  categories: readonly Category[]
+  additions: readonly InsertCategoryInput[]
 }
 
 interface BaseProps {
-  categories: NetworkResponse<Category[]>
+  categories: NetworkResponse.NetworkResponse<
+    HttpError,
+    PaginationResponse<Category>
+  >
   searchQuery: string
   onSearchQueryChange(searchQuery: string): void
   sx?: SxProps<Theme>
@@ -31,7 +39,7 @@ interface SingleCreatableProps extends BaseProps {
   creatable: true
   multiple: false
   selection: Category | null
-  onSelectionChange(selection: Category | CategoryCreationBody): void
+  onSelectionChange(selection: CategorySelection): void
 }
 
 interface SingleSelectableProps extends BaseProps {
@@ -44,15 +52,15 @@ interface SingleSelectableProps extends BaseProps {
 interface MultipleCreatableProps extends BaseProps {
   creatable: true
   multiple: true
-  selection: Category[]
-  onSelectionChange(selection: CategorySelection): void
+  selection: readonly Category[]
+  onSelectionChange(selection: MultipleCategoriesSelection): void
 }
 
 interface MultipleSelectableProps extends BaseProps {
   creatable: false
   multiple: true
-  selection: Category[]
-  onSelectionChange(category: Category[]): void
+  selection: readonly Category[]
+  onSelectionChange(category: readonly Category[]): void
 }
 
 type Props =
@@ -62,20 +70,24 @@ type Props =
   | MultipleSelectableProps
 
 export default function CategorySelect(props: Props) {
-  const isLoading = props.categories.isLoading()
+  const isLoading = NetworkResponse.isLoading(props.categories)
   const value = props.selection
+  const label = props.multiple ? "Categories" : "Category"
 
-  const options: Array<Category | CategoryCreationBody> =
-    props.categories.getOrElse([])
+  const options: Array<Category | InsertCategoryInput> = pipe(
+    props.categories,
+    NetworkResponse.getOrElse(() => emptyPaginationResponse<Category>()),
+    paginationResponse.getNodes,
+  )
 
   const onQueryChange: ChangeEventHandler<HTMLInputElement> = (event) => {
     props.onSearchQueryChange(event.currentTarget.value)
   }
 
   function getOptionKey(
-    input: string | Category | CategoryCreationBody,
+    input: string | Category | InsertCategoryInput,
   ): string {
-    if (typeof input !== "string" && isCategory(input)) {
+    if (typeof input !== "string" && "id" in input) {
       return input.id
     } else if (typeof input === "string") {
       return input
@@ -85,11 +97,11 @@ export default function CategorySelect(props: Props) {
   }
 
   function getOptionLabel(
-    input: string | Category | CategoryCreationBody,
+    input: string | Category | InsertCategoryInput,
   ): string {
     if (typeof input === "string") {
       return input
-    } else if (isCategory(input)) {
+    } else if ("id" in input) {
       return input.name
     } else {
       return `Add "${input.name}"`
@@ -97,11 +109,11 @@ export default function CategorySelect(props: Props) {
   }
 
   function isOptionEqualToValue(
-    a: Category | CategoryCreationBody,
-    b: Category | CategoryCreationBody,
+    a: Category | InsertCategoryInput,
+    b: Category | InsertCategoryInput,
   ): boolean {
-    const aIsCategory = isCategory(a)
-    const bIsCategory = isCategory(b)
+    const aIsCategory = "id" in a
+    const bIsCategory = "id" in b
 
     if (aIsCategory !== bIsCategory) {
       return false
@@ -113,23 +125,22 @@ export default function CategorySelect(props: Props) {
   }
 
   function filterOptions(options: Category[]): Category[]
+  function filterOptions(options: InsertCategoryInput[]): InsertCategoryInput[]
   function filterOptions(
-    options: CategoryCreationBody[],
-  ): CategoryCreationBody[]
-  function filterOptions(
-    options: Array<Category | CategoryCreationBody>,
-  ): Array<Category | CategoryCreationBody> {
+    options: Array<Category | InsertCategoryInput>,
+  ): Array<Category | InsertCategoryInput> {
     if (
       props.creatable &&
       options.length === 0 &&
-      props.categories.isSuccessful() &&
+      NetworkResponse.isSuccessful(props.categories) &&
       props.searchQuery !== ""
     ) {
       return [
         {
           name: props.searchQuery,
           keywords: [],
-          isMeta: false,
+          is_meta: false,
+          is_projectable: false,
         },
       ]
     } else {
@@ -142,33 +153,33 @@ export default function CategorySelect(props: Props) {
     value:
       | string
       | Category
-      | CategoryCreationBody
-      | Array<string | Category | CategoryCreationBody>
+      | InsertCategoryInput
+      | Array<string | Category | InsertCategoryInput>
       | null,
   ): void {
     if (value !== null) {
       if (props.multiple) {
         const selection = value as Array<
-          string | Category | CategoryCreationBody
+          string | Category | InsertCategoryInput
         >
 
         if (props.creatable) {
           props.onSelectionChange({
             categories: selection.filter(
-              (c) => typeof c !== "string" && isCategory(c),
+              (c) => typeof c !== "string" && "id" in c,
             ) as Category[],
             additions: selection.filter(
-              (c) => typeof c !== "string" && !isCategory(c),
-            ) as CategoryCreationBody[],
+              (c) => typeof c !== "string" && !("id" in c),
+            ) as InsertCategoryInput[],
           })
         } else {
           props.onSelectionChange(selection as Category[])
         }
       } else if (typeof value !== "string") {
-        const selection = value as Category | CategoryCreationBody
+        const selection = value as Category | InsertCategoryInput
 
         if (props.creatable) {
-          props.onSelectionChange(selection as CategoryCreationBody)
+          props.onSelectionChange(selection as InsertCategoryInput)
         } else {
           props.onSelectionChange(selection as Category)
         }
@@ -184,7 +195,8 @@ export default function CategorySelect(props: Props) {
         clearOnBlur
         handleHomeEndKeys
         freeSolo={props.creatable}
-        value={value}
+        // Overriding the readonly attribute here, unsafe but functional for now
+        value={value as Category | Category[] | null}
         noOptionsText={
           props.creatable ? "Type to search categories" : "No categories found"
         }
@@ -201,7 +213,7 @@ export default function CategorySelect(props: Props) {
             value={props.searchQuery}
             onChange={onQueryChange}
             size="medium"
-            label="Categories"
+            label={label}
             InputProps={{
               ...params.InputProps,
               endAdornment: (

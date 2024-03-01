@@ -1,52 +1,56 @@
-import { useMemo, useState } from "react"
-import { useLazyQuery, useQuery } from "../../hooks/network"
-import {
-  CategoriesAndTimeAggregation,
-  CategoriesAndTimeAggregationParams,
-  TimeRange,
-} from "./domain"
-import Query from "../Query"
+import * as S from "@effect/schema/Schema"
+import { constVoid } from "effect/Function"
 import { Container, Paper, Stack, Toolbar, Typography } from "@mui/material"
-import ValidatedSelect from "../forms/inputs/ValidatedSelect"
-import { useCategorySelect } from "../../hooks/useCategorySelect"
-import { Category, FindCategoryParams } from "../categories/domain"
-import CategorySelect from "../forms/inputs/CategorySelect"
+import { Either, pipe } from "effect"
+import { useLazyQuery, useQuery, useRequestData } from "../../hooks/network"
+import { aggregateTransactionsByTimeAndCategoryRequest } from "./api"
+import Query from "../Query"
 import TimeData from "./TimeData"
+import { useForm } from "../../hooks/useForm"
+import ValidatedSelect from "../forms/inputs/ValidatedSelect"
+import { AggregateTransactionsByTimeAndCategoryInput } from "./domain"
+import { listCategoriesRequest } from "../categories/api"
+import { useState } from "react"
+import { useDebounce } from "../../hooks/useDebounce"
+import { Category } from "../categories/domain"
+import CategorySelect from "../forms/inputs/CategorySelect"
 import CategoriesData from "./CategoriesData"
 
 export default function CategoryTimePage() {
-  const [params, setParams] = useState<CategoriesAndTimeAggregationParams>({
-    year: new Date().getFullYear(),
-    timeRange: TimeRange.MONTH,
-    categoryIds: [],
+  const [filters, setFilters] = useRequestData<
+    typeof aggregateTransactionsByTimeAndCategoryRequest
+  >(aggregateTransactionsByTimeAndCategoryRequest, {
+    query: {
+      time_range: "monthly",
+      year: new Date().getUTCFullYear(),
+      categories_ids: [],
+    },
   })
 
-  const [categoriesTimeAggregationResponse] = useQuery<
-    CategoriesAndTimeAggregationParams,
-    CategoriesAndTimeAggregation
-  >("/transactions/category-time", params)
+  const [categories, fetchCategories] = useLazyQuery(listCategoriesRequest)
+  const [categoriesQuery, setCategoriesQuery] = useState("")
+  const debounceFetchCategories = useDebounce(fetchCategories, 500)
 
-  const categoriesQuery = useLazyQuery<Category[], FindCategoryParams>(
-    "/categories",
+  const [aggregation] = useQuery(
+    aggregateTransactionsByTimeAndCategoryRequest,
+    filters,
   )
 
-  const {
-    categories,
-    searchQuery,
-    selection,
-    onSearchQueryChange,
-    onSelectionChange,
-  } = useCategorySelect({
-    visible: true,
-    creatable: false,
-    multiple: true,
-    initialValue: [],
-    categoriesQuery,
+  const { inputProps } = useForm({
+    initialValues: {
+      ...filters.query,
+      categories: [],
+    },
+    validators: {
+      year: S.NumberFromString.pipe(S.int()).pipe(S.positive()),
+      categories: S.array(Category),
+    },
+    submit: constVoid,
   })
 
-  const yearOptions = useMemo(() => {
+  const yearOptions = (() => {
     const minYear = 2023
-    const maxYear = new Date().getFullYear()
+    const maxYear = new Date().getUTCFullYear()
 
     return new Array(maxYear - minYear + 1)
       .fill(null)
@@ -55,34 +59,77 @@ export default function CategoryTimePage() {
         result[year.toString(10)] = year.toString(10)
         return result
       }, {})
-  }, [])
+  })()
 
-  const timeRangeLabels = {
-    WEEK: "Week",
-    MONTH: "Month",
-    DAY: "Day",
+  const timeRangeLabels: Record<
+    AggregateTransactionsByTimeAndCategoryInput["time_range"],
+    string
+  > = {
+    monthly: "Month",
+    weekly: "Week",
+    daily: "Day",
   }
 
-  function onYearChange(yearString: string): void {
-    const year = parseInt(yearString)
+  function onYearChange(yearString: string): Either.Either<string, string> {
+    const validation = inputProps("year").onChange(yearString)
 
-    if (!Number.isNaN(year)) {
-      setParams((params) => ({
-        ...params,
-        year,
-      }))
-    }
+    pipe(
+      validation,
+      Either.match({
+        onLeft: constVoid,
+        onRight: (year) => {
+          setFilters((filters) => ({ query: { ...filters.query, year } }))
+        },
+      }),
+    )
+
+    return Either.right(yearString)
   }
 
-  function onTimeRangeChange(timeRange: TimeRange): void {
-    setParams((params) => ({ ...params, timeRange }))
+  function onTimeRangeChange(
+    timeRange: AggregateTransactionsByTimeAndCategoryInput["time_range"],
+  ): Either.Either<
+    string,
+    AggregateTransactionsByTimeAndCategoryInput["time_range"]
+  > {
+    const validation = inputProps("time_range").onChange(timeRange)
+
+    pipe(
+      validation,
+      Either.match({
+        onLeft: constVoid,
+        onRight: (timeRange) => {
+          setFilters((filters) => ({
+            query: { ...filters.query, time_range: timeRange },
+          }))
+        },
+      }),
+    )
+
+    return validation
   }
 
-  function onCategorySelectionChange(selection: Category[]) {
-    onSelectionChange(selection)
-    setParams((params) => ({
-      ...params,
-      categoryIds: selection.map((category) => category.id),
+  function onCategoriesQueryChange(query: string): void {
+    setCategoriesQuery(query)
+
+    debounceFetchCategories({
+      query: {
+        direction: "forward",
+        count: 10,
+        ...(query === "" ? {} : { search_query: query }),
+        is_meta: false,
+      },
+    })
+  }
+
+  function onCategoriesChange(categories: Category[]) {
+    inputProps("categories").onChange(categories)
+
+    setFilters((filters) => ({
+      query: {
+        ...filters.query,
+        categories_ids: categories.map((category) => category.id),
+      },
     }))
   }
 
@@ -103,45 +150,45 @@ export default function CategoryTimePage() {
         <Toolbar sx={{ pt: 1.5, pb: 1.5 }}>
           <Stack direction="row" spacing={1.5}>
             <ValidatedSelect
-              name="year"
               label="Year"
-              value={params.year.toString(10)}
               options={yearOptions}
+              {...inputProps("year")}
               onChange={onYearChange}
               sx={{ minWidth: "6em" }}
             />
             <ValidatedSelect
-              name="timeRange"
               label="Time Range"
-              value={params.timeRange}
-              options={TimeRange}
+              options={timeRangeLabels}
+              {...inputProps("time_range")}
               onChange={onTimeRangeChange}
-              optionLabels={timeRangeLabels}
               sx={{ minWidth: "6em" }}
             />
             <CategorySelect
               creatable={false}
               multiple
               categories={categories}
-              searchQuery={searchQuery}
-              selection={selection}
-              onSearchQueryChange={onSearchQueryChange}
-              onSelectionChange={onCategorySelectionChange}
+              searchQuery={categoriesQuery}
+              selection={inputProps("categories").value}
+              onSearchQueryChange={onCategoriesQueryChange}
+              onSelectionChange={onCategoriesChange}
               sx={{ width: "100%", minWidth: "8em" }}
             />
           </Stack>
         </Toolbar>
         <Paper sx={{ p: 1.5 }}>
           <Query
-            response={categoriesTimeAggregationResponse}
+            response={aggregation}
             render={(data) => (
               <Stack spacing={3}>
                 <TimeData
-                  year={params.year}
-                  timeRange={params.timeRange}
+                  year={filters.query.year}
+                  timeRange={filters.query.time_range}
                   data={data.time}
                 />
-                <CategoriesData data={data.categories} selection={selection} />
+                <CategoriesData
+                  data={data.categories}
+                  selection={inputProps("categories").value}
+                />
               </Stack>
             )}
           />

@@ -2,24 +2,35 @@ import {
   Backdrop,
   Button,
   Container,
+  FormControl,
+  InputAdornment,
+  InputLabel,
+  OutlinedInput,
   Paper,
   Stack,
   Typography,
 } from "@mui/material"
 import CategoryCard from "./CategoryCard"
-import { Category } from "./domain"
-import { useState } from "react"
-import { NetworkResponse, networkResponse } from "../../network/NetworkResponse"
+import { Category, ListCategoriesInput } from "./domain"
+import * as NetworkResponse from "../../network/NetworkResponse"
 import Query from "../Query"
+import { PaginationResponse } from "../../globalDomain"
+import { useState } from "react"
 import CategoryForm from "./CategoryForm"
 import { useConfirmation } from "../../hooks/useConfirmation"
+import { Search } from "@mui/icons-material"
+import { useDebounce } from "../../hooks/useDebounce"
+import { usePagination } from "../../hooks/usePagination"
+import Pagination from "../Pagination"
+import { HttpError } from "../../hooks/network"
+import { pipe } from "effect"
 
-interface ReadingMode {
-  type: "reading"
+interface ListingMode {
+  type: "listing"
 }
 
-interface CreatingMode {
-  type: "creating"
+interface InsertingMode {
+  type: "inserting"
 }
 
 interface UpdatingMode {
@@ -27,82 +38,99 @@ interface UpdatingMode {
   category: Category
 }
 
-type Mode = ReadingMode | CreatingMode | UpdatingMode
+type Mode = ListingMode | InsertingMode | UpdatingMode
 
 interface Props {
-  readingResponse: NetworkResponse<Category[]>
-  creationResponse: NetworkResponse<Category>
-  updateResponse: NetworkResponse<Category>
-  deletionResponse: NetworkResponse<Omit<Category, "id">>
-  onCategoryCreate(category: Category): Promise<boolean>
+  filters: ListCategoriesInput
+  categories: NetworkResponse.NetworkResponse<
+    HttpError,
+    PaginationResponse<Category>
+  >
+  insertionResponse: NetworkResponse.NetworkResponse<HttpError, Category>
+  updateResponse: NetworkResponse.NetworkResponse<HttpError, Category>
+  deletionResponse: NetworkResponse.NetworkResponse<
+    HttpError,
+    Omit<Category, "id">
+  >
+  onFiltersChange(filters: ListCategoriesInput): void
+  onCategoryInsert(category: Category): Promise<boolean>
   onCategoryUpdate(category: Category): Promise<boolean>
   onCategoryDelete(category: Category): Promise<boolean>
 }
 
 export default function CategoriesList(props: Props) {
-  const [mode, setMode] = useState<Mode>({ type: "reading" })
-  const [deletingCategory, setDeletingCategory] = useState<Category | null>(
-    null,
+  const [mode, setMode] = useState<Mode>({ type: "listing" })
+
+  const [searchQuery, setSearchQuery] = useState(
+    props.filters.search_query ?? "",
   )
 
-  const [onCategoryDeleteButtonClick, deleteConfirmationDialog] =
-    useConfirmation(onCategoryDelete, (category) => ({
+  const [onDeleteCategoryButtonClick, deleteConfirmationDialog] =
+    useConfirmation(props.onCategoryDelete, (category) => ({
       title: "Warning! One way decision",
       message: `Are you sure you want delete category "${category.name}"? The category will be lost forever!`,
     }))
 
   const isBackdropOpen: boolean = (() => {
     switch (mode.type) {
-      case "reading":
+      case "listing":
         return false
-      case "creating":
+      case "inserting":
       case "updating":
         return true
     }
   })()
 
-  function onAddCategoryButtonClick() {
-    setMode({ type: "creating" })
+  const debounceUpdateFiltersQuery = useDebounce((searchQuery: string) => {
+    props.onFiltersChange({
+      direction: props.filters.direction,
+      count: props.filters.count,
+      ...(searchQuery === "" ? {} : { search_query: searchQuery }),
+    })
+  }, 500)
+
+  function onChangeFiltersQuery(searchQuery: string) {
+    setSearchQuery(searchQuery)
+    debounceUpdateFiltersQuery(searchQuery)
   }
 
-  function onCategoryEditButtonClick(category: Category): void {
+  function onInsertCategoryButtonClick() {
+    setMode({ type: "inserting" })
+  }
+
+  function onEditCategoryButtonClick(category: Category): void {
     setMode({ type: "updating", category })
   }
 
   function cancel() {
-    setMode({ type: "reading" })
+    setMode({ type: "listing" })
   }
 
   function onSubmit(category: Category): void {
     switch (mode.type) {
-      case "creating":
-        props.onCategoryCreate(category).then((result) => {
+      case "inserting":
+        props.onCategoryInsert(category).then((result) => {
           if (result) {
-            setMode({ type: "reading" })
+            setMode({ type: "listing" })
           }
         })
         return
       case "updating":
         props.onCategoryUpdate(category).then((result) => {
           if (result) {
-            setMode({ type: "reading" })
+            setMode({ type: "listing" })
           }
         })
         return
-      case "reading":
+      case "listing":
         return
     }
-  }
-
-  function onCategoryDelete(category: Category) {
-    setDeletingCategory(category)
-    props.onCategoryDelete(category)
   }
 
   return (
     <>
       <Container>
-        <Stack spacing={1.5} sx={{ mt: 1.5 }}>
+        <Stack spacing={1.5} sx={{ mt: 1.5, mb: 1.5 }}>
           <Paper
             sx={{
               mt: 1.5,
@@ -113,42 +141,37 @@ export default function CategoriesList(props: Props) {
             }}
           >
             <Typography variant="h5">Categories</Typography>
-            <Button onClick={onAddCategoryButtonClick}>Add category</Button>
+            <Button onClick={onInsertCategoryButtonClick}>Add category</Button>
           </Paper>
+          <FormControl variant="outlined" fullWidth>
+            <InputLabel htmlFor="search">Search</InputLabel>
+            <OutlinedInput
+              id="search"
+              endAdornment={
+                <InputAdornment position="end">
+                  <Search />
+                </InputAdornment>
+              }
+              label="Search"
+              value={searchQuery}
+              onChange={(event) =>
+                onChangeFiltersQuery(event.currentTarget.value)
+              }
+            />
+          </FormControl>
           <Query
-            response={props.readingResponse}
+            response={pipe(
+              props.categories,
+              NetworkResponse.withErrorFrom(props.deletionResponse),
+            )}
             render={(categories) => (
-              <Stack spacing={1.5}>
-                {categories.map((category) => {
-                  const card = (
-                    <CategoryCard
-                      key={category.id}
-                      category={category}
-                      onEditButtonClick={() =>
-                        onCategoryEditButtonClick(category)
-                      }
-                      onDeleteButtonClick={() =>
-                        onCategoryDeleteButtonClick(category)
-                      }
-                    />
-                  )
-
-                  if (
-                    deletingCategory !== null &&
-                    deletingCategory.id === category.id
-                  ) {
-                    return (
-                      <Query
-                        key={category.id}
-                        response={props.deletionResponse}
-                        render={() => card}
-                      />
-                    )
-                  } else {
-                    return card
-                  }
-                })}
-              </Stack>
+              <List
+                categories={categories}
+                filters={props.filters}
+                onFiltersChange={props.onFiltersChange}
+                onEditCategoryButtonClick={onEditCategoryButtonClick}
+                onDeleteCategoryButtonClick={onDeleteCategoryButtonClick}
+              />
             )}
           />
         </Stack>
@@ -158,8 +181,8 @@ export default function CategoriesList(props: Props) {
               key={mode.type}
               category={(() => {
                 switch (mode.type) {
-                  case "reading":
-                  case "creating":
+                  case "listing":
+                  case "inserting":
                     return null
                   case "updating":
                     return mode.category
@@ -168,12 +191,12 @@ export default function CategoriesList(props: Props) {
               onSubmit={onSubmit}
               networkResponse={(() => {
                 switch (mode.type) {
-                  case "creating":
-                    return props.creationResponse
+                  case "inserting":
+                    return props.insertionResponse
                   case "updating":
                     return props.updateResponse
-                  case "reading":
-                    return networkResponse.make()
+                  case "listing":
+                    return NetworkResponse.idle()
                 }
               })()}
               cancelAction={cancel}
@@ -183,5 +206,43 @@ export default function CategoriesList(props: Props) {
       </Container>
       {deleteConfirmationDialog}
     </>
+  )
+}
+
+interface ListProps {
+  categories: PaginationResponse<Category>
+  filters: ListCategoriesInput
+  onFiltersChange(filters: ListCategoriesInput): void
+  onEditCategoryButtonClick(category: Category): void
+  onDeleteCategoryButtonClick(category: Category): void
+}
+
+function List(props: ListProps) {
+  const paginationProps = usePagination({
+    filters: props.filters,
+    paginationResponse: props.categories,
+    rowsPerPageOptions: [20, 50, 100],
+    onFiltersChange: props.onFiltersChange,
+  })
+
+  return (
+    <Stack spacing={3}>
+      <Pagination {...paginationProps} />
+      <Stack spacing={1.5}>
+        {props.categories.edges.map((category) => (
+          <CategoryCard
+            key={category.cursor}
+            category={category.node}
+            onEditButtonClick={() =>
+              props.onEditCategoryButtonClick(category.node)
+            }
+            onDeleteButtonClick={() =>
+              props.onDeleteCategoryButtonClick(category.node)
+            }
+          />
+        ))}
+      </Stack>
+      <Pagination {...paginationProps} />
+    </Stack>
   )
 }

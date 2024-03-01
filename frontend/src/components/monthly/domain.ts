@@ -1,12 +1,24 @@
-import { Param } from "../../hooks/network"
+import * as S from "@effect/schema/Schema"
+import {
+  AggregateTransactionsByMonthInput as ServerAggregateTransactionsByMonthInput,
+  TransactionByMonth as ServerTransactionByMonth,
+} from "../../../../backend/src/database/functions/transaction/domain"
 
-export interface MonthlyAggregationParams extends Record<string, Param> {
-  year: number
-}
+export const AggregateTransactionsByMonthInput =
+  ServerAggregateTransactionsByMonthInput
 
-export interface MonthlyAggregation {
-  month: number
-  income: number
-  outcome: number
-  total: number
-}
+export type AggregateTransactionsByMonthInput =
+  ServerAggregateTransactionsByMonthInput
+
+export const TransactionByMonth = S.extend(
+  S.omit<ServerTransactionByMonth, ["income", "outcome", "total"]>(
+    "income",
+    "outcome",
+    "total",
+  )(ServerTransactionByMonth),
+  S.struct({
+    income: S.number,
+    outcome: S.number,
+    total: S.number,
+  }),
+)

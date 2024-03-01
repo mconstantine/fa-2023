@@ -1,5 +1,5 @@
-import { type Result, result } from "../Result"
-import { Transaction } from "../models/Transaction"
+import { Either, pipe } from "effect"
+import { type Transaction } from "../database/functions/transaction/domain"
 import { Adapter, ImportError, ImportErrorType } from "./Adapter"
 import { Source } from "./Source"
 import { dateFromItalianString } from "./dateFromItalianString"
@@ -9,8 +9,8 @@ export class BankAdapter extends Adapter {
 
   public static override fromString(
     input: string,
-  ): Result<ImportError, Transaction> {
-    const [, dateString, description, inbound, outbound] = input.split(";")
+  ): Either.Either<ImportError, Omit<Transaction, "id">> {
+    const [dateString, , description, inbound, outbound] = input.split(";")
 
     if (
       typeof dateString === "undefined" ||
@@ -18,32 +18,27 @@ export class BankAdapter extends Adapter {
       typeof outbound === "undefined" ||
       typeof description === "undefined"
     ) {
-      return result.fromFailure(
-        new ImportError(ImportErrorType.INVALID_ROW, input),
-      )
+      return Either.left(new ImportError(ImportErrorType.INVALID_ROW, input))
     }
 
-    const dateResult = dateFromItalianString(dateString)
+    return pipe(
+      dateFromItalianString(dateString),
+      Either.fromOption(
+        () => new ImportError(ImportErrorType.INVALID_DATE, dateString),
+      ),
+      Either.flatMap((date) => {
+        const valueString = inbound !== "" ? inbound : outbound
 
-    if (dateResult.isFailure()) {
-      return result.fromFailure(
-        new ImportError(ImportErrorType.INVALID_DATE, dateString),
-      )
-    } else {
-      const date = dateResult.value
-      const valueString = inbound !== "" ? inbound : outbound
+        if (typeof valueString === "undefined") {
+          return Either.left(new ImportError(ImportErrorType.NO_VALUE, input))
+        }
 
-      if (typeof valueString === "undefined") {
-        return result.fromFailure(
-          new ImportError(ImportErrorType.NO_VALUE, input),
+        const value = Math.round(
+          parseFloat(valueString.replace(".", "").replace(",", ".")) * 100,
         )
-      }
 
-      const value = parseFloat(valueString.replace(".", "").replace(",", "."))
-
-      return result.fromSuccess(
-        Transaction.create({ description, value, date }),
-      )
-    }
+        return Either.right({ description, value, date })
+      }),
+    )
   }
 }

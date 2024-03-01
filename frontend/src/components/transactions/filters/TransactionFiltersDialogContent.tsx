@@ -1,356 +1,399 @@
+import * as S from "@effect/schema/Schema"
+import * as NetworkResponse from "../../../network/NetworkResponse"
+import { Category } from "../../categories/domain"
+import { PaginationResponse as PaginationResponseType } from "../../../globalDomain"
+import { ListTransactionsInput, TransactionWithCategories } from "../domain"
 import {
-  Button,
   FormControl,
   FormControlLabel,
-  FormLabel,
-  InputAdornment,
+  FormHelperText,
   Paper,
   Radio,
-  RadioGroup,
   Stack,
   Typography,
 } from "@mui/material"
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers"
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
-import { CategoryMode, FindTransactionsParams, Transaction } from "../domain"
+import { useForm } from "../../../hooks/useForm"
+import Form from "../../forms/Form"
 import dayjs, { Dayjs } from "dayjs"
-import { NetworkResponse } from "../../../network/NetworkResponse"
-import PositiveIntegerInput from "../../forms/inputs/PositiveIntegerInput"
+import { Either, Option, pipe } from "effect"
+import { constNull, constTrue, constVoid } from "effect/Function"
+import { DateTimeRange, RelativeTimeRange } from "./TimeRange"
+import TextInput from "../../forms/inputs/TextInput"
 import ValidatedSelect from "../../forms/inputs/ValidatedSelect"
-import { useState } from "react"
-import { DateTimeRange, RelativeTimeRange, ShortcutRange } from "./TimeRange"
 import CategorySelect from "../../forms/inputs/CategorySelect"
-import { Category } from "../../categories/domain"
-import { PaginatedResponse } from "../../../globalDomain"
+import { HttpError, useLazyQuery } from "../../../hooks/network"
+import { listCategoriesRequest } from "../../categories/api"
+import { useState } from "react"
+import { useDebounce } from "../../../hooks/useDebounce"
+import { RelativeRange } from "./domain"
 
 interface Props {
-  params: FindTransactionsParams
-  onFiltersChange(params: FindTransactionsParams): void
-  transactionsNetworkResponse: NetworkResponse<PaginatedResponse<Transaction>>
-  categoriesNetworkResponse: NetworkResponse<Category[]>
+  filters: ListTransactionsInput
+  onFiltersChange(filters: ListTransactionsInput): void
+  listTransactionsResponse: PaginationResponseType<TransactionWithCategories>
+  listCategoriesResponse: NetworkResponse.NetworkResponse<
+    HttpError,
+    PaginationResponseType<Category>
+  >
   categoriesSearchQuery: string
-  onCategoriesSearchQueryChange(searchQuery: string): void
+  onCategoriesSearchQueryChange(query: string): void
   onCancel(): void
 }
 
-type Mode = "RelativeTimeRange" | "DateRange"
-
-type TransactionFilters = FindTransactionsParams & {
-  mode: Mode
-}
-
 export default function TransactionFiltersDialogContent(props: Props) {
-  const [filters, setFilters] = useState<TransactionFilters>({
-    ...props.params,
-    mode: "RelativeTimeRange",
-  })
+  const { inputProps, validated, submit, isValid, formError } = useForm({
+    initialValues: {
+      timeRange: "RelativeTimeRange",
+      dateSince: props.filters.date_since,
+      dateUntil: props.filters.date_until,
+      ...(() => {
+        const relativeTimeRange = RelativeTimeRange.fromDateRange(
+          new DateTimeRange(props.filters.date_since, props.filters.date_until),
+        )
 
-  const [categoriesSelection, setCategoriesSelection] = useState<Category[]>([])
-
-  const datesAreValid =
-    typeof filters.startDate !== "undefined" &&
-    typeof filters.endDate !== "undefined" &&
-    filters.startDate.localeCompare(filters.endDate) <= 0
-
-  const categoriesAreValid =
-    filters.categoryMode !== CategoryMode.SPECIFIC ||
-    filters.categories.length > 0
-
-  const submitIsDisabled =
-    !datesAreValid ||
-    !categoriesAreValid ||
-    props.transactionsNetworkResponse.isLoading()
-
-  function onTimeRangeModeChange(mode: Mode) {
-    setFilters((filters) => ({ ...filters, mode }))
-  }
-
-  function onDatesChange(startDate: Date, endDate: Date): void {
-    setFilters((filters) => ({
-      ...filters,
-      startDate: startDate.toISOString().slice(0, 10),
-      endDate: endDate.toISOString().slice(0, 10),
-    }))
-  }
-
-  function onCategoryModeChange(categoryMode: CategoryMode): void {
-    switch (categoryMode) {
-      case CategoryMode.ALL:
-      case CategoryMode.UNCATEGORIZED:
-        return setFilters((filters) => ({ ...filters, categoryMode }))
-      case CategoryMode.SPECIFIC:
-        return setFilters((filters) => ({
-          ...filters,
-          categoryMode,
-          categories: categoriesSelection.map((category) => category.id),
-        }))
-    }
-  }
-
-  function onCategoriesSelectionChange(selection: Category[]): void {
-    setCategoriesSelection(selection)
-
-    setFilters((filters) => ({
-      ...filters,
-      categories: selection.map((category) => category.id),
-    }))
-  }
-
-  return (
-    <Stack spacing={3}>
-      <RelativeTimeRangeForm
-        startDate={filters.startDate ? new Date(filters.startDate) : null}
-        endDate={filters.endDate ? new Date(filters.endDate) : null}
-        onChange={onDatesChange}
-        disabled={filters.mode !== "RelativeTimeRange"}
-        onEnable={() => onTimeRangeModeChange("RelativeTimeRange")}
-      />
-      <DateRangeForm
-        startDate={filters.startDate ? new Date(filters.startDate) : null}
-        endDate={filters.endDate ? new Date(filters.endDate) : null}
-        isValid={datesAreValid}
-        onChange={onDatesChange}
-        disabled={filters.mode !== "DateRange"}
-        onEnable={() => onTimeRangeModeChange("DateRange")}
-      />
-      {(() => {
-        switch (filters.categoryMode) {
-          case CategoryMode.ALL:
-          case CategoryMode.UNCATEGORIZED:
-            return (
-              <CategoriesFiltersForm
-                mode={filters.categoryMode}
-                onModeChange={onCategoryModeChange}
-              />
-            )
-          case CategoryMode.SPECIFIC:
-            return (
-              <CategoriesFiltersForm
-                mode={filters.categoryMode}
-                onModeChange={onCategoryModeChange}
-                networkResponse={props.categoriesNetworkResponse}
-                searchQuery={props.categoriesSearchQuery}
-                onSearchQueryChange={props.onCategoriesSearchQueryChange}
-                categories={categoriesSelection}
-                onSelectionChange={onCategoriesSelectionChange}
-              />
+        return {
+          relativeLast: relativeTimeRange.last,
+          relativeRange: relativeTimeRange.range,
+          relativeSince: relativeTimeRange.since,
+        }
+      })(),
+      categoryMode: props.filters.categories,
+      categories: [],
+    },
+    validators: {
+      timeRange: S.literal("DateTimeRange", "RelativeTimeRange"),
+      dateSince: S.Date.pipe(
+        S.filter(constTrue, { message: () => "Invalid date" }),
+      ).pipe(
+        S.filter((date) => date.getTime() < Date.now(), {
+          message: () => "Start date cannot be in the future",
+        }),
+      ),
+      dateUntil: S.Date.pipe(
+        S.filter(constTrue, { message: () => "Invalid date" }),
+      ),
+      relativeLast: S.NumberFromString.pipe(
+        S.int({ message: () => "Last should be an integer" }),
+      ).pipe(S.positive({ message: () => "Last should be positive" })),
+      categories: S.array(Category),
+    },
+    formValidator: (data) => {
+      if (
+        data.dateSince
+          .toISOString()
+          .localeCompare(data.dateUntil.toISOString()) > 0
+      ) {
+        return Either.left("Start date should come before end date")
+      } else {
+        switch (data.categoryMode) {
+          case "all":
+          case "uncategorized":
+            return Either.right(data)
+          case "specific":
+            return pipe(
+              data.categories.map((category) => category.id),
+              S.decodeEither(
+                S.array(S.UUID).pipe(
+                  S.minItems(1, {
+                    message: () =>
+                      "You should choose some categories if you want to filter by specific ones.",
+                  }),
+                ),
+              ),
+              Either.mapBoth({
+                onLeft: (error) => error.message,
+                onRight: (categories) => ({
+                  ...data,
+                  categories: categories as readonly [string, ...string[]],
+                }),
+              }),
             )
         }
-      })()}
-      <Stack direction="row" spacing={1.5}>
-        <Button
-          variant="contained"
-          onClick={() => props.onFiltersChange(filters)}
-          disabled={submitIsDisabled}
-        >
-          Set filters
-        </Button>
-        <Button color="inherit" onClick={() => props.onCancel()}>
-          Cancel
-        </Button>
-      </Stack>
-    </Stack>
-  )
-}
-
-interface RangeFormProps {
-  startDate: Date | null
-  endDate: Date | null
-  onChange(startDate: Date, endDate: Date): void
-  disabled: boolean
-  onEnable(): void
-}
-
-function RelativeTimeRangeForm(props: RangeFormProps) {
-  const value: RelativeTimeRange = (() => {
-    if (props.startDate !== null && props.endDate !== null) {
-      const dateTimeRange = new DateTimeRange(props.startDate, props.endDate)
-      const relativeTimeRange =
-        RelativeTimeRange.fromDateTimeRange(dateTimeRange)
-
-      if (relativeTimeRange !== null) {
-        return relativeTimeRange
       }
+    },
+    submit: (data) =>
+      props.onFiltersChange({
+        ...props.filters,
+        date_since: data.dateSince,
+        date_until: data.dateUntil,
+        ...(() => {
+          switch (data.categoryMode) {
+            case "all":
+            case "uncategorized":
+              return { categories: data.categoryMode }
+            case "specific":
+              return {
+                categories: "specific",
+                categories_ids: data.categories as readonly [
+                  string,
+                  ...string[],
+                ],
+              }
+          }
+        })(),
+      }),
+  })
+
+  const timeRangeProps = inputProps("timeRange")
+  const dateSinceProps = inputProps("dateSince")
+  const dateUntilProps = inputProps("dateUntil")
+  const relativeLastProps = inputProps("relativeLast")
+  const relativeRangeProps = inputProps("relativeRange")
+
+  const [categories, fetchCategories] = useLazyQuery(listCategoriesRequest)
+  const [categoriesSearchQuery, setCategoriesSearchQuery] = useState("")
+  const debounceFetchCategories = useDebounce(fetchCategories, 500)
+
+  function onDateSinceChange(value: Dayjs | null): void {
+    if (value !== null && value.isValid()) {
+      const dateSince = dateSinceProps.onChange(value.toISOString())
+
+      pipe(
+        dateSince,
+        Either.match({
+          onLeft: constVoid,
+          onRight: (dateSince) => {
+            const relativeTimeRange = RelativeTimeRange.fromDateRange(
+              new DateTimeRange(dateSince, validated.dateUntil),
+            )
+
+            relativeLastProps.onChange(relativeTimeRange.last.toString(10))
+            relativeRangeProps.onChange(relativeTimeRange.range)
+          },
+        }),
+      )
+    } else {
+      dateSinceProps.onChange("")
     }
-
-    return new RelativeTimeRange(1, ShortcutRange.YEARS)
-  })()
-
-  function onRangeNumberChange(last: number): void {
-    const relativeTimeRange = new RelativeTimeRange(last, value.range)
-    const dateTimeRange = relativeTimeRange.toDateTimeRange()
-
-    props.onChange(dateTimeRange.startDate, dateTimeRange.endDate)
   }
 
-  function onRangeChange(range: ShortcutRange): void {
-    const relativeTimeRange = new RelativeTimeRange(value.last, range)
-    const dateTimeRange = relativeTimeRange.toDateTimeRange()
+  function onDateUntilChange(value: Dayjs | null): void {
+    if (value !== null && value.isValid()) {
+      const dateUntil = dateUntilProps.onChange(value.toISOString())
 
-    props.onChange(dateTimeRange.startDate, dateTimeRange.endDate)
+      pipe(
+        dateUntil,
+        Either.match({
+          onLeft: constVoid,
+          onRight: (dateUntil) => {
+            const relativeTimeRange = RelativeTimeRange.fromDateRange(
+              new DateTimeRange(validated.dateSince, dateUntil),
+            )
+
+            relativeLastProps.onChange(relativeTimeRange.last.toString(10))
+            relativeRangeProps.onChange(relativeTimeRange.range)
+          },
+        }),
+      )
+    } else {
+      dateUntilProps.onChange("")
+    }
+  }
+
+  function onRelativeLastChange(value: string): Either.Either<string, number> {
+    const last = relativeLastProps.onChange(value)
+
+    pipe(
+      last,
+      Either.match({
+        onLeft: constVoid,
+        onRight: (last) => {
+          const dateTimeRange = DateTimeRange.fromRelativeTimeRange(
+            new RelativeTimeRange(
+              last,
+              relativeRangeProps.value,
+              validated.dateUntil,
+            ),
+          )
+
+          dateSinceProps.onChange(dateTimeRange.dateSince.toISOString())
+        },
+      }),
+    )
+
+    return last
+  }
+
+  function onRelativeRangeChange(
+    value: RelativeRange,
+  ): Either.Either<string, RelativeRange> {
+    const range = relativeRangeProps.onChange(value)
+
+    pipe(
+      range,
+      Either.match({
+        onLeft: constVoid,
+        onRight: (range) => {
+          const dateTimeRange = DateTimeRange.fromRelativeTimeRange(
+            new RelativeTimeRange(
+              validated.relativeLast,
+              range,
+              validated.dateUntil,
+            ),
+          )
+
+          dateSinceProps.onChange(dateTimeRange.dateSince.toISOString())
+        },
+      }),
+    )
+
+    return range
+  }
+
+  function onCategoriesSearchQueryChange(query: string) {
+    setCategoriesSearchQuery(query)
+
+    debounceFetchCategories({
+      query: {
+        direction: "forward",
+        count: 10,
+        ...(query === "" ? {} : { search_query: query }),
+      },
+    })
   }
 
   return (
-    <Paper sx={{ p: 1.5 }}>
-      <Stack spacing={1.5}>
-        <FormControlLabel
-          control={<Radio />}
-          label="By relative time range"
-          checked={!props.disabled}
-          onClick={() => props.onEnable()}
-        />
-        <Stack direction="row" spacing={1.5} alignItems="center">
-          <PositiveIntegerInput
-            name="last"
-            value={value.last}
-            onChange={onRangeNumberChange}
-            errorMessage="This should be a positive integer"
-            fieldProps={{
-              InputProps: {
-                startAdornment: (
-                  <InputAdornment position="start">Last</InputAdornment>
-                ),
-              },
-              disabled: props.disabled,
+    <Form
+      onSubmit={submit}
+      isValid={isValid}
+      submitButtonLabel="Filter"
+      cancelAction={props.onCancel}
+      networkResponse={props.listCategoriesResponse}
+      formError={formError}
+    >
+      <Paper sx={{ p: 1.5 }}>
+        <Stack spacing={3}>
+          <FormControlLabel
+            control={<Radio />}
+            label="By relative time range"
+            checked={timeRangeProps.value === "RelativeTimeRange"}
+            onClick={() => timeRangeProps.onChange("RelativeTimeRange")}
+          />
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            <TextInput
+              {...relativeLastProps}
+              onChange={onRelativeLastChange}
+              label="Last"
+              fieldProps={{
+                disabled: timeRangeProps.value === "DateTimeRange",
+              }}
+            />
+            <ValidatedSelect
+              {...relativeRangeProps}
+              onChange={onRelativeRangeChange}
+              options={{
+                days: "days",
+                weeks: "weeks",
+                months: "months",
+                years: "years",
+              }}
+              disabled={timeRangeProps.value === "DateTimeRange"}
+            />
+          </Stack>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <FormControl>
+              <DatePicker
+                label="Since"
+                value={dayjs(dateUntilProps.value)}
+                onChange={onDateUntilChange}
+                disabled={timeRangeProps.value === "DateTimeRange"}
+              />
+              {pipe(
+                dateSinceProps.error,
+                Option.match({
+                  onNone: constNull,
+                  onSome: (error) => (
+                    <FormHelperText error>{error}</FormHelperText>
+                  ),
+                }),
+              )}
+            </FormControl>
+          </LocalizationProvider>
+        </Stack>
+      </Paper>
+      <Paper sx={{ p: 1.5 }}>
+        <Stack spacing={3}>
+          <FormControlLabel
+            control={<Radio />}
+            label="By date range"
+            checked={timeRangeProps.value === "DateTimeRange"}
+            onClick={() => timeRangeProps.onChange("DateTimeRange")}
+          />
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <Stack spacing={3}>
+              <FormControl>
+                <DatePicker
+                  label="Start date"
+                  value={dayjs(dateSinceProps.value)}
+                  onChange={onDateSinceChange}
+                  disabled={timeRangeProps.value === "RelativeTimeRange"}
+                  disableFuture
+                />
+                {pipe(
+                  dateSinceProps.error,
+                  Option.match({
+                    onNone: constNull,
+                    onSome: (error) => (
+                      <FormHelperText error>{error}</FormHelperText>
+                    ),
+                  }),
+                )}
+              </FormControl>
+              <FormControl>
+                <DatePicker
+                  label="End date"
+                  value={dayjs(dateUntilProps.value)}
+                  onChange={onDateUntilChange}
+                  disabled={timeRangeProps.value === "RelativeTimeRange"}
+                />
+                {pipe(
+                  dateUntilProps.error,
+                  Option.match({
+                    onNone: constNull,
+                    onSome: (error) => (
+                      <FormHelperText error>{error}</FormHelperText>
+                    ),
+                  }),
+                )}
+              </FormControl>
+            </Stack>
+          </LocalizationProvider>
+        </Stack>
+      </Paper>
+      <Paper sx={{ p: 1.5 }}>
+        <Stack spacing={3}>
+          <Typography>Filter by categories</Typography>
+          <ValidatedSelect
+            {...inputProps("categoryMode")}
+            options={{
+              all: "All categories",
+              uncategorized: "Uncategorized only",
+              specific: "Specific categories",
             }}
           />
-          <ValidatedSelect
-            name="range"
-            value={value.range}
-            onChange={onRangeChange}
-            options={ShortcutRange}
-          />
+          {(() => {
+            switch (inputProps("categoryMode").value) {
+              case "all":
+              case "uncategorized":
+                return null
+              case "specific":
+                return (
+                  <CategorySelect
+                    creatable={false}
+                    multiple
+                    selection={inputProps("categories").value}
+                    onSelectionChange={inputProps("categories").onChange}
+                    categories={categories}
+                    searchQuery={categoriesSearchQuery}
+                    onSearchQueryChange={onCategoriesSearchQueryChange}
+                  />
+                )
+            }
+          })()}
         </Stack>
-      </Stack>
-    </Paper>
-  )
-}
-
-interface DateRangeFormProps extends RangeFormProps {
-  isValid: boolean
-}
-
-function DateRangeForm(props: DateRangeFormProps) {
-  function onStartDateChange(startDate: Dayjs | null): void {
-    if (startDate !== null && startDate.isValid() && props.endDate !== null) {
-      props.onChange(startDate.toDate(), props.endDate)
-    }
-  }
-
-  function onEndDateChange(endDate: Dayjs | null): void {
-    if (endDate !== null && endDate.isValid() && props.startDate !== null) {
-      props.onChange(props.startDate, endDate.toDate())
-    }
-  }
-
-  return (
-    <Paper sx={{ p: 1.5 }}>
-      <Stack spacing={1.5}>
-        <FormControlLabel
-          control={<Radio />}
-          label="By date range"
-          checked={!props.disabled}
-          onClick={() => props.onEnable()}
-        />
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <Stack spacing={1.5}>
-            <DatePicker
-              label="Start date"
-              value={dayjs(props.startDate)}
-              onChange={onStartDateChange}
-              disabled={props.disabled}
-              disableFuture
-            />
-            <DatePicker
-              label="End date"
-              value={dayjs(props.endDate)}
-              onChange={onEndDateChange}
-              disabled={props.disabled}
-              disableFuture
-            />
-            {props.isValid ? null : (
-              <Typography variant="caption" color="error">
-                End date should come after start date
-              </Typography>
-            )}
-          </Stack>
-        </LocalizationProvider>
-      </Stack>
-    </Paper>
-  )
-}
-
-interface BaseCategoriesFiltersProps {
-  onModeChange(mode: CategoryMode): void
-}
-
-interface SpecificCategoriesFiltersFormProps
-  extends BaseCategoriesFiltersProps {
-  mode: CategoryMode.SPECIFIC
-  networkResponse: NetworkResponse<Category[]>
-  categories: Category[]
-  searchQuery: string
-  onSearchQueryChange(searchQuery: string): void
-  onSelectionChange(selection: Category[]): void
-}
-
-interface NonSpecificCategoryFiltersFormProps
-  extends BaseCategoriesFiltersProps {
-  mode: CategoryMode.ALL | CategoryMode.UNCATEGORIZED
-}
-
-type CategoriesFiltersFormProps =
-  | SpecificCategoriesFiltersFormProps
-  | NonSpecificCategoryFiltersFormProps
-
-function CategoriesFiltersForm(props: CategoriesFiltersFormProps) {
-  return (
-    <Paper sx={{ p: 1.5 }}>
-      <Stack spacing={3}>
-        <FormControl>
-          <FormLabel id="categories-filter-label">Filter categories</FormLabel>
-          <RadioGroup
-            aria-labelledby="categories-filter-label"
-            name="categories-filter"
-            value={props.mode}
-            onChange={(_, value) => props.onModeChange(value as CategoryMode)}
-          >
-            <FormControlLabel
-              value={CategoryMode.ALL}
-              control={<Radio />}
-              label="All categories"
-            />
-            <FormControlLabel
-              value={CategoryMode.UNCATEGORIZED}
-              control={<Radio />}
-              label="Uncategorized only"
-            />
-            <FormControlLabel
-              value={CategoryMode.SPECIFIC}
-              control={<Radio />}
-              label="Choose specific categories"
-            />
-          </RadioGroup>
-        </FormControl>
-
-        {props.mode === CategoryMode.SPECIFIC ? (
-          <CategorySelectForm {...props} />
-        ) : null}
-      </Stack>
-    </Paper>
-  )
-}
-
-function CategorySelectForm(props: SpecificCategoriesFiltersFormProps) {
-  return (
-    <CategorySelect
-      creatable={false}
-      multiple
-      categories={props.networkResponse}
-      searchQuery={props.searchQuery}
-      onSearchQueryChange={props.onSearchQueryChange}
-      selection={props.categories}
-      onSelectionChange={props.onSelectionChange}
-    />
+      </Paper>
+    </Form>
   )
 }

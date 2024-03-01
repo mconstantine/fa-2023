@@ -1,57 +1,47 @@
 import {
   Checkbox,
+  FormControl,
+  FormControlLabel,
   Paper,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
-  TablePagination,
   TableRow,
   Toolbar,
   Typography,
 } from "@mui/material"
-import { Transaction } from "./domain"
-import { PaginationParams } from "../../globalDomain"
-import {
-  ChangeEvent,
-  ChangeEventHandler,
-  MouseEvent,
-  MouseEventHandler,
-} from "react"
+import { PaginationQuery, PaginationResponse } from "../../globalDomain"
+import { ChangeEvent, MouseEventHandler, useState } from "react"
+import TransactionsTableRow, {
+  SelectableTransactionWithWarnings,
+} from "./TransactonsTableRow"
+import { usePagination } from "../../hooks/usePagination"
+import Pagination from "../Pagination"
+import { SelectableTransaction } from "./TransactionsPage"
+import { ListTransactionsInput, TransactionWithCategories } from "./domain"
 import { useConfirmation } from "../../hooks/useConfirmation"
-import TransactionsTableRow from "./TransactonsTableRow"
-
-export interface SelectableTransaction extends Transaction {
-  isSelected: boolean
-}
 
 interface Props {
-  transactions: SelectableTransaction[]
-  transactionsCount: number
-  params: PaginationParams
-  onTransactionsSelectionChange(selected: boolean, ids: string[]): void
-  onParamsChange(params: PaginationParams): void
-  onEditTransactionButtonClick(transaction: Transaction): void
-  onDeleteTransactionButtonClick(transaction: Transaction): void
+  selectableTransactions: PaginationResponse<SelectableTransaction>
+  filters: ListTransactionsInput
+  onFiltersChange(filters: ListTransactionsInput): void
+  onTransactionSelectionChange(transactionId: string): void
+  onAllTransactionsSelectionChange(selection: boolean): void
+  onEditTransactionButtonClick(transaction: TransactionWithCategories): void
+  onDeleteTransactionButtonClick(transaction: TransactionWithCategories): void
 }
 
 export default function TransactionsTable(props: Props) {
-  const selectedRowsCount = props.transactions.filter(
-    (transaction) => transaction.isSelected,
-  ).length
+  const paginationProps = usePagination({
+    filters: props.filters,
+    paginationResponse: props.selectableTransactions,
+    rowsPerPageOptions: [50, 100, 500, 1000],
+    onFiltersChange: onPaginationFiltersChange,
+  })
 
-  const total = props.transactions
-    .reduce((sum, transaction) => sum + transaction.value, 0)
-    .toFixed(2)
-
-  const onRowsPerPageChange: ChangeEventHandler<HTMLInputElement> = (event) => {
-    const perPage = parseInt(event.target.value)
-
-    if (!Number.isNaN(perPage)) {
-      props.onParamsChange({ page: 0, perPage })
-    }
-  }
+  const [showWarnings, setShowWarnings] = useState(false)
 
   const [deleteTransaction, deleteTransactionConfirmationDialog] =
     useConfirmation(props.onDeleteTransactionButtonClick, (transaction) => ({
@@ -61,39 +51,45 @@ export default function TransactionsTable(props: Props) {
       noButtonLabel: "No",
     }))
 
-  function onPageChange(
-    _: MouseEvent<HTMLButtonElement> | null,
-    page: number,
-  ): void {
-    props.onParamsChange({ ...props.params, page })
+  const selectedRowsCount = props.selectableTransactions.edges.reduce(
+    (count, edge) => {
+      if (edge.node.isSelected) {
+        return count + 1
+      } else {
+        return count
+      }
+    },
+    0,
+  )
+
+  const total = props.selectableTransactions.edges
+    .reduce((sum, transaction) => sum + transaction.node.value, 0)
+    .toFixed(2)
+
+  const transactionsWithWarnings = props.selectableTransactions.edges.map(
+    (edge) => addWarningsToSelectableTransaction(edge.node),
+  )
+
+  function onPaginationFiltersChange(filters: PaginationQuery): void {
+    props.onFiltersChange({
+      ...props.filters,
+      ...filters,
+    })
   }
 
   function onSelectAllClick(
     _: ChangeEvent<HTMLInputElement>,
     checked: boolean,
   ) {
-    props.onTransactionsSelectionChange(
-      checked,
-      props.transactions.map((transaction) => transaction.id),
-    )
+    props.onAllTransactionsSelectionChange(checked)
   }
 
-  function onSelectOneClick(
-    id: string,
-  ): (event: MouseEvent<HTMLTableRowElement>) => void {
-    return () => {
-      const transaction = props.transactions.find(
-        (transaction) => transaction.id === id,
-      )
-
-      if (typeof transaction !== "undefined") {
-        props.onTransactionsSelectionChange(!transaction.isSelected, [id])
-      }
-    }
+  function onSelectOneClick(id: string) {
+    props.onTransactionSelectionChange(id)
   }
 
   function onEditButtonClick(
-    transaction: Transaction,
+    transaction: TransactionWithCategories,
   ): MouseEventHandler<HTMLButtonElement> {
     return (event) => {
       event.stopPropagation()
@@ -102,7 +98,7 @@ export default function TransactionsTable(props: Props) {
   }
 
   function onDeleteButtonClick(
-    transaction: Transaction,
+    transaction: TransactionWithCategories,
   ): MouseEventHandler<HTMLButtonElement> {
     return (event) => {
       event.stopPropagation()
@@ -122,9 +118,13 @@ export default function TransactionsTable(props: Props) {
                     color="primary"
                     indeterminate={
                       selectedRowsCount > 0 &&
-                      selectedRowsCount < props.transactions.length
+                      selectedRowsCount <
+                        props.selectableTransactions.edges.length
                     }
-                    checked={selectedRowsCount === props.transactions.length}
+                    checked={
+                      selectedRowsCount ===
+                      props.selectableTransactions.edges.length
+                    }
                     onChange={onSelectAllClick}
                     inputProps={{
                       "aria-label": "select all transactions",
@@ -140,32 +140,66 @@ export default function TransactionsTable(props: Props) {
               </TableRow>
             </TableHead>
             <TableBody>
-              {props.transactions.map((transaction) => (
-                <TransactionsTableRow
-                  key={transaction.id}
-                  transaction={transaction}
-                  onSelectClick={onSelectOneClick(transaction.id)}
-                  onEditButtonClick={onEditButtonClick(transaction)}
-                  onDeleteButtonClick={onDeleteButtonClick(transaction)}
-                />
-              ))}
+              {transactionsWithWarnings
+                .filter((transaction) => {
+                  if (showWarnings) {
+                    return (
+                      transaction.hasMultipleNonMetaCategories ||
+                      transaction.hasOnlyMetaCategories
+                    )
+                  } else {
+                    return true
+                  }
+                })
+                .map((transaction) => (
+                  <TransactionsTableRow
+                    key={transaction.id}
+                    selectableTransaction={transaction}
+                    isSelectingTransactions={selectedRowsCount > 0}
+                    onSelectClick={() => onSelectOneClick(transaction.id)}
+                    onEditButtonClick={onEditButtonClick(transaction)}
+                    onDeleteButtonClick={onDeleteButtonClick(transaction)}
+                  />
+                ))}
             </TableBody>
           </Table>
         </TableContainer>
-        <TablePagination
-          component="div"
-          rowsPerPageOptions={[100, 500, 1000]}
-          count={props.transactionsCount}
-          rowsPerPage={props.params.perPage}
-          page={props.params.page}
-          onPageChange={onPageChange}
-          onRowsPerPageChange={onRowsPerPageChange}
-        />
-        <Toolbar sx={{ justifyContent: "end" }}>
+        <Pagination {...paginationProps} />
+        <Toolbar sx={{ justifyContent: "space-between" }}>
+          <FormControl>
+            <FormControlLabel
+              label="Show warnings"
+              control={
+                <Checkbox
+                  checked={showWarnings}
+                  onChange={(event) => setShowWarnings(event.target.checked)}
+                />
+              }
+            />
+          </FormControl>
           <Typography>Total: {total}</Typography>
         </Toolbar>
       </Paper>
       {deleteTransactionConfirmationDialog}
     </>
   )
+}
+
+function addWarningsToSelectableTransaction(
+  transaction: SelectableTransaction,
+): SelectableTransactionWithWarnings {
+  // Warning: mutable code ahead
+  const t = transaction as SelectableTransactionWithWarnings
+
+  const hasOnlyMetaCategories =
+    t.categories.length > 0 &&
+    t.categories.every((category) => category.is_meta)
+
+  const hasMultipleNonMetaCategories =
+    t.categories.filter((category) => !category.is_meta).length > 1
+
+  t.hasOnlyMetaCategories = hasOnlyMetaCategories
+  t.hasMultipleNonMetaCategories = hasMultipleNonMetaCategories
+
+  return t
 }

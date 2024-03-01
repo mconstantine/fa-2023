@@ -1,34 +1,26 @@
-import { Param } from "../../hooks/network"
+import * as S from "@effect/schema/Schema"
 
-export enum TimeRange {
-  WEEK = "WEEK",
-  MONTH = "MONTH",
-  DAY = "DOY",
-}
+export { AggregateTransactionsByTimeAndCategoryInput } from "../../../../backend/src/database/functions/transaction/domain"
 
-export interface CategoriesAndTimeAggregationParams
-  extends Record<string, Param> {
-  timeRange: TimeRange
-  categoryIds: string[]
-  year: number
-}
+export const TransactionsByTimeAndCategory = S.struct({
+  time: S.array(
+    S.struct({
+      time: S.number,
+      total: S.number,
+    }),
+  ),
+  categories: S.array(
+    S.struct({
+      id: S.UUID,
+      name: S.string.pipe(S.nonEmpty()),
+      is_meta: S.boolean,
+      max_transaction_value: S.number,
+      min_transaction_value: S.number,
+      total: S.number,
+    }),
+  ),
+})
 
-export interface TimeAggregation extends Record<string, number> {
-  time: number
-  total: number
-}
-
-export interface CategoryAggregation {
-  id: string
-  name: string
-  keywords: string
-  isMeta: boolean
-  max_transaction_value: number
-  min_transaction_value: number
-  total: number
-}
-
-export interface CategoriesAndTimeAggregation {
-  time: TimeAggregation[]
-  categories: CategoryAggregation[]
-}
+export type TransactionsByTimeAndCategory = S.Schema.To<
+  typeof TransactionsByTimeAndCategory
+>

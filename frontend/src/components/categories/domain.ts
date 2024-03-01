@@ -1,29 +1,6 @@
-import { Param } from "../../hooks/network"
-
-export interface Category extends Record<string, unknown> {
-  id: string
-  name: string
-  keywords: string[]
-  isMeta: boolean
-}
-
-export interface FindCategoryParams extends Record<string, Param> {
-  query?: string
-  isMeta?: boolean
-}
-
-export interface CategoryCreationBody {
-  name: string
-  keywords: string[]
-  isMeta: boolean
-}
-
-export function isCategory(
-  subject: Category | CategoryCreationBody,
-): subject is Category {
-  return "id" in subject
-}
-
-export interface CategoryBulkCreationBody {
-  categories: CategoryCreationBody[]
-}
+export {
+  Category,
+  InsertCategoryInput,
+  UpdateCategoryInput,
+  ListCategoriesInput,
+} from "../../../../backend/src/database/functions/category/domain"

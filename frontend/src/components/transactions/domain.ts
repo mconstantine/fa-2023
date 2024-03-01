@@ -1,74 +1,94 @@
-import { PaginationParams } from "../../globalDomain"
-import { Category } from "../categories/domain"
-import { CategoryUpdateMode } from "./bulkUpdate/CategoryUpdateMode"
+import * as S from "@effect/schema/Schema"
+import {
+  InsertTransactionInput as ServerInsertTransactionInput,
+  Transaction as ServerTransaction,
+  TransactionWithCategories as ServerTransactionWithCategories,
+  UpdateTransactionsInput as ServerUpdateTransactionsInput,
+  UpdateTransactionInput as ServerUpdateTransactionInput,
+} from "../../../../backend/src/database/functions/transaction/domain"
+import { FileFromSelf, PaginationQuery } from "../../globalDomain"
 
-export interface Transaction extends Record<string, unknown> {
-  id: string
-  description: string
-  date: string
-  value: number
-  categories: Category[]
-}
+const ListTransactionsFiltersSubject = S.union(
+  S.struct({
+    subject: S.literal("description"),
+    search_query: S.string,
+  }),
+  S.struct({
+    subject: S.literal("value"),
+    max: S.NumberFromString,
+    min: S.NumberFromString,
+  }),
+)
 
-export enum FindTransactionsBy {
-  DESCRIPTION = "description",
-  VALUE = "value",
-}
+const ListTransactionsFiltersCategories = S.union(
+  S.struct({ categories: S.literal("all") }),
+  S.struct({ categories: S.literal("uncategorized") }),
+  S.struct({
+    categories: S.literal("specific"),
+    categories_ids: S.nonEmptyArray(S.UUID),
+  }),
+)
 
-interface BaseFindTransactionsByDescriptionParams {
-  findBy: FindTransactionsBy.DESCRIPTION
-  query?: string | undefined
-}
+const ListTransactionsFilters = S.extend(
+  S.extend(ListTransactionsFiltersSubject, ListTransactionsFiltersCategories),
+  S.struct({
+    date_since: S.DateFromString,
+    date_until: S.DateFromString,
+  }),
+)
 
-interface BaseFindTransactionsByValueParams {
-  findBy: FindTransactionsBy.VALUE
-  min: number
-  max: number
-}
+type ListTransactionsFilters = S.Schema.To<typeof ListTransactionsFilters>
 
-type BaseFindTransactionsParams = PaginationParams &
-  (
-    | BaseFindTransactionsByDescriptionParams
-    | BaseFindTransactionsByValueParams
-  ) & {
-    startDate?: string | undefined
-    endDate?: string | undefined
-  }
+export const ListTransactionsInput = S.extend(
+  PaginationQuery,
+  ListTransactionsFilters,
+)
 
-export enum CategoryMode {
-  ALL = "all",
-  UNCATEGORIZED = "uncategorized",
-  SPECIFIC = "specific",
-}
+export type ListTransactionsInput = S.Schema.To<typeof ListTransactionsInput>
 
-type SpecificCategoriesFindTransactionsParams = BaseFindTransactionsParams & {
-  categoryMode: CategoryMode.SPECIFIC
-  categories: string[]
-}
+export const UpdateTransactionsInput = ServerUpdateTransactionsInput
+export type UpdateTransactionsInput = S.Schema.To<
+  typeof UpdateTransactionsInput
+>
 
-type NonSpecificCategoriesFindTransactionsParams =
-  BaseFindTransactionsParams & {
-    categoryMode: CategoryMode.ALL | CategoryMode.UNCATEGORIZED
-  }
+export const UpdateTransactionInput = S.extend(
+  ServerUpdateTransactionInput.pipe(S.omit("value")),
+  S.struct({
+    value: S.optional(S.number),
+  }),
+)
+export type UpdateTransactionInput = S.Schema.To<typeof UpdateTransactionInput>
 
-export type FindTransactionsParams =
-  | SpecificCategoriesFindTransactionsParams
-  | NonSpecificCategoriesFindTransactionsParams
+export const InsertTransactionInput = S.extend(
+  ServerInsertTransactionInput.pipe(S.omit("value")),
+  S.struct({
+    value: S.optional(S.number),
+  }),
+)
+export type InsertTransactionInput = S.Schema.To<typeof InsertTransactionInput>
 
-export interface BulkUpdateTransactionsBody {
-  ids: string[]
-  description?: string | undefined
-  categoryIds?: string[] | undefined
-  categoryUpdateMode: CategoryUpdateMode
-}
+export const UploadTransactionsInput = S.struct({
+  bank: FileFromSelf,
+})
+export type UploadTransactionsInput = S.Schema.To<
+  typeof UploadTransactionsInput
+>
 
-export interface TransactionCreationBody {
-  description: string
-  value: number
-  date: string
-  categoryIds: string[]
-}
+export const Transaction = S.extend(
+  S.omit<ServerTransaction, ["value"]>("value")(ServerTransaction),
+  S.struct({
+    value: S.number,
+  }),
+)
+export interface Transaction extends S.Schema.To<typeof Transaction> {}
 
-export interface TransactionUpdateBody extends TransactionCreationBody {
-  id: string
-}
+export const TransactionWithCategories = S.extend(
+  S.omit<ServerTransactionWithCategories, ["value"]>("value")(
+    ServerTransactionWithCategories,
+  ),
+  S.struct({
+    value: S.number,
+  }),
+)
+export interface TransactionWithCategories
+  extends S.Schema.To<typeof TransactionWithCategories> {}

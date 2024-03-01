@@ -23,7 +23,7 @@ export default function CategoryCard(props: Props) {
             <Typography variant="h5" component="div">
               {props.category.name}
             </Typography>
-            {props.category.isMeta ? (
+            {props.category.is_meta ? (
               <Typography variant="overline" color="primary">
                 Meta
               </Typography>
