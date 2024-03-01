@@ -886,10 +886,7 @@ export function useSendHttpRequest<
                 onIdle: identity,
                 onSuccess: identity,
                 onFailure: identity,
-                onLoading: (response) => {
-                  console.log(error.extras)
-                  return NetworkResponse.fail(error)(response)
-                },
+                onLoading: NetworkResponse.fail(error),
               }),
             )
 
