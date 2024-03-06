@@ -16,6 +16,8 @@ import { Either } from "effect"
 import { insertUser } from "../functions/user/insert_user"
 import { type User } from "../functions/user/domain"
 
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+
 describe("database category functions", () => {
   let user: User
   let culprit: User
@@ -36,7 +38,6 @@ describe("database category functions", () => {
 
   afterAll(async () => {
     await db.query('delete from "user"')
-    await db.query("delete from category")
   })
 
   describe("insert category", () => {
@@ -137,7 +138,7 @@ describe("database category functions", () => {
         category_id: S.UUID,
       })
 
-      const transaction = await insertTransaction({
+      const transaction = await insertTransaction(user, {
         description: "Relationship with categories test",
         value: 690,
         date: new Date(2020, 0, 1),
@@ -354,7 +355,6 @@ describe("database category functions", () => {
             search_query: "",
             direction: "forward",
             count: 3,
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             target: categories[1]!.id,
           }),
         )
@@ -390,7 +390,6 @@ describe("database category functions", () => {
             search_query: "",
             direction: "forward",
             count: 3,
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             target: categories[3]!.id,
           }),
         )
@@ -426,7 +425,6 @@ describe("database category functions", () => {
             search_query: "",
             direction: "backward",
             count: 3,
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             target: categories[3]!.id,
           }),
         )
@@ -462,7 +460,6 @@ describe("database category functions", () => {
             search_query: "",
             direction: "backward",
             count: 3,
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             target: categories[5]!.id,
           }),
         )

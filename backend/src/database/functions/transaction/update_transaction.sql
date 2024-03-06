@@ -10,7 +10,7 @@ set
 	description = coalesce(update.description, description),
 	value = coalesce(update.value, value),
 	date = coalesce(update.date, date)
-where id = target_id
+where id = target_id and user_id = owner_id
 returning id into updated_id;
 
 if body ? 'categories_ids' then

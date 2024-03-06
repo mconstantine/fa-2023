@@ -3,13 +3,15 @@ declare created_id uuid;
 
 begin
 
-with created as (
-  insert into transaction (description, value, date)
-  select description, value, date
-  from jsonb_populate_recordset(null::transaction, body)
-  returning id
-)
-select array_agg(created.id) from created into created_ids;
+for i in 1 .. jsonb_array_length(body)
+loop
+  insert into transaction (description, value, date, user_id)
+  select description, value, date, user_id
+  from jsonb_populate_record(null::transaction, body->(i - 1) || jsonb_build_object('user_id', owner_id))
+  returning id into created_id;
+
+  created_ids := array_append(created_ids, created_id);
+end loop;
 
 for i in 1 .. array_upper(created_ids, 1)
 loop

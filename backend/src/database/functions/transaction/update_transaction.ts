@@ -5,10 +5,17 @@ import {
   type UpdateTransactionInput,
 } from "./domain"
 import * as db from "../../db"
+import { type User } from "../user/domain"
 
 export default {
   name: "update_transaction",
   args: [
+    {
+      mode: "IN",
+      type: "uuid",
+      name: "owner_id",
+      defaultExpr: null,
+    },
     {
       mode: "IN",
       type: "uuid",
@@ -30,12 +37,14 @@ export default {
 } satisfies FunctionTemplate
 
 export async function updateTransaction(
+  user: User,
   id: S.Schema.To<typeof S.UUID>,
   body: UpdateTransactionInput,
 ): Promise<TransactionWithCategories> {
   return await db.callFunction(
     "update_transaction",
     TransactionWithCategories,
+    user.id,
     id,
     body,
   )

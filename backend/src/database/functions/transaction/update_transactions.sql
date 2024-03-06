@@ -12,7 +12,7 @@ with updated as (
     description = coalesce(update.description, description),
     value = coalesce(update.value, value),
     date = coalesce(update.date, date)
-  where id = any (ids)
+  where id = any (ids) and user_id = owner_id
   returning id
 )
 select array_agg(updated.id) from updated into updated_ids;

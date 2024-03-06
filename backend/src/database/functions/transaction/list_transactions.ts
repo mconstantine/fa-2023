@@ -2,10 +2,17 @@ import { PaginationResponse } from "../../domain"
 import * as db from "../../db"
 import { type FunctionTemplate } from "../template"
 import { type ListTransactionsInput, TransactionWithCategories } from "./domain"
+import { type User } from "../user/domain"
 
 export default {
   name: "list_transactions",
   args: [
+    {
+      mode: "IN",
+      type: "uuid",
+      name: "owner_id",
+      defaultExpr: null,
+    },
     {
       mode: "IN",
       type: "jsonb",
@@ -27,6 +34,7 @@ export default {
 } satisfies FunctionTemplate
 
 export async function listTransactions(
+  user: User,
   input: ListTransactionsInput,
 ): Promise<PaginationResponse<TransactionWithCategories>> {
   const { direction, count, target, ...filters } = input
@@ -35,6 +43,7 @@ export async function listTransactions(
   return await db.callFunction(
     "list_transactions",
     PaginationResponse(TransactionWithCategories),
+    user.id,
     paginationQuery,
     filters,
   )

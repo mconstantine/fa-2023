@@ -4,7 +4,13 @@ create table if not exists transaction
     description character varying(255) not null,
     value integer not null,
     date date not null,
-    constraint transaction_pkey primary key (id)
+    user_id uuid not null,
+    constraint transaction_pkey primary key (id),
+    constraint transaction_user_id_fkey foreign key (user_id)
+        references "user" (id) match simple
+        on update no action
+        on delete cascade
+        not valid
 );
 
 create table if not exists transactions_categories

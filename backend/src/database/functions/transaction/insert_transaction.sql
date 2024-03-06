@@ -2,9 +2,9 @@ declare created_id uuid;
 
 begin
 
-insert into transaction (description, value, date)
-select description, value, date
-from jsonb_populate_record(null::transaction, body)
+insert into transaction (description, value, date, user_id)
+select description, value, date, user_id
+from jsonb_populate_record(null::transaction, body || jsonb_build_object('user_id', owner_id))
 returning id into created_id;
 
 insert into transactions_categories (transaction_id, category_id)

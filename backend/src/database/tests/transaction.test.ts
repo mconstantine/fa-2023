@@ -25,12 +25,19 @@ import { insertUser } from "../functions/user/insert_user"
 
 describe("database transaction functions", () => {
   let user: User
+  let culprit: User
   let categories: Category[]
 
   beforeAll(async () => {
     user = await insertUser({
       name: "Transaction Tests",
       email: "transaction.tests@example.com",
+      password: "P4ssw0rd!",
+    })
+
+    culprit = await insertUser({
+      name: "Transaction Tests Culprit",
+      email: "transaction.tests.culprit@example.com",
       password: "P4ssw0rd!",
     })
 
@@ -51,13 +58,13 @@ describe("database transaction functions", () => {
   })
 
   afterAll(async () => {
-    await db.query("delete from transaction")
-    await db.query("delete from category")
+    await db.query('delete from "user"')
   })
 
   describe("insert transaction", () => {
     it("should work and convert the value", async () => {
       const result = await insertTransaction(
+        user,
         S.decodeSync(InsertTransactionInput)({
           description: "Insert transaction test",
           value: 1.5,
@@ -79,7 +86,7 @@ describe("database transaction functions", () => {
     })
 
     it("should add categories", async () => {
-      const result = await insertTransaction({
+      const result = await insertTransaction(user, {
         description: "Insert transaction with categories test",
         value: 1300,
         date: new Date(2020, 0, 1),
@@ -92,7 +99,7 @@ describe("database transaction functions", () => {
 
   describe("bulk transactions insertion", () => {
     it("should work and convert the values", async () => {
-      const result = await insertTransactions([
+      const result = await insertTransactions(user, [
         {
           description: "Bulk transactions insertion test 1",
           value: 150,
@@ -125,7 +132,7 @@ describe("database transaction functions", () => {
     })
 
     it("should add categories", async () => {
-      const result = await insertTransactions([
+      const result = await insertTransactions(user, [
         {
           description: "Bulk transactions insertion with categories test 1",
           value: 150,
@@ -146,15 +153,20 @@ describe("database transaction functions", () => {
   })
 
   describe("update transaction", () => {
-    it("should work and convert the value", async () => {
-      const transaction = await insertTransaction({
+    let transaction: TransactionWithCategories
+
+    beforeEach(async () => {
+      transaction = await insertTransaction(user, {
         description: "Update transaction test",
         value: 420,
         date: new Date(2020, 0, 1),
         categories_ids: [],
       })
+    })
 
+    it("should work and convert the value", async () => {
       const result = await updateTransaction(
+        user,
         transaction.id,
         S.decodeSync(UpdateTransactionInput)({
           description: "Updated transaction test",
@@ -176,15 +188,14 @@ describe("database transaction functions", () => {
       expect(rawResult.rows[0].value).toBe(840)
     })
 
-    it("should update categories", async () => {
-      const transaction = await insertTransaction({
-        description: "Update transaction with categories test",
-        value: 420,
-        date: new Date(2020, 0, 1),
-        categories_ids: [categories[0]!.id],
-      })
+    it("should not allow to update transactions of other users", async () => {
+      await expect(
+        async () => await updateTransaction(culprit, transaction.id, {}),
+      ).rejects.toBeTruthy()
+    })
 
-      const result = await updateTransaction(transaction.id, {
+    it("should update categories", async () => {
+      const result = await updateTransaction(user, transaction.id, {
         categories_ids: [categories[1]!.id],
       })
 
@@ -192,14 +203,7 @@ describe("database transaction functions", () => {
     })
 
     it("should work with an empty update", async () => {
-      const transaction = await insertTransaction({
-        description: "Update transaction test",
-        value: 420,
-        date: new Date(2020, 0, 1),
-        categories_ids: [],
-      })
-
-      const result = await updateTransaction(transaction.id, {})
+      const result = await updateTransaction(user, transaction.id, {})
 
       expect(result.id).toEqual(transaction.id)
       expect(result.description).toBe(transaction.description)
@@ -209,23 +213,27 @@ describe("database transaction functions", () => {
   })
 
   describe("bulk transactions update", () => {
-    it("should work and convert the values", async () => {
-      const transactions = await insertTransactions([
+    let transactions: readonly TransactionWithCategories[]
+
+    beforeEach(async () => {
+      transactions = await insertTransactions(user, [
         {
           description: "Bulk transactions update test 1",
           value: 150,
           date: new Date(2020, 0, 1),
-          categories_ids: [],
+          categories_ids: [categories[0]!.id],
         },
         {
           description: "Bulk transactions update test 2",
           value: 300,
           date: new Date(2020, 0, 2),
-          categories_ids: [],
+          categories_ids: [categories[0]!.id],
         },
       ])
+    })
 
-      const result = await updateTransactions({
+    it("should work and convert the values", async () => {
+      const result = await updateTransactions(user, {
         ids: transactions.map((t) => t.id),
         description: "Bulk updated transaction test",
         value: 420,
@@ -254,23 +262,17 @@ describe("database transaction functions", () => {
       expect(rawResult.rows[1].value).toBe(420)
     })
 
-    it("should replace categories", async () => {
-      const transactions = await insertTransactions([
-        {
-          description: "Bulk transactions update replace categories test 1",
-          value: 150,
-          date: new Date(2020, 0, 1),
-          categories_ids: [categories[0]!.id],
-        },
-        {
-          description: "Bulk transactions update replace categories test 2",
-          value: 300,
-          date: new Date(2020, 0, 2),
-          categories_ids: [categories[0]!.id],
-        },
-      ])
+    it("should not allow to update transactions of other users", async () => {
+      await expect(
+        async () =>
+          await updateTransactions(culprit, {
+            ids: transactions.map((t) => t.id),
+          }),
+      ).rejects.toBeTruthy()
+    })
 
-      const result = await updateTransactions({
+    it("should replace categories", async () => {
+      const result = await updateTransactions(user, {
         ids: transactions.map((t) => t.id),
         categories_mode: "replace",
         categories_ids: [categories[1]!.id],
@@ -281,22 +283,7 @@ describe("database transaction functions", () => {
     })
 
     it("should add categories", async () => {
-      const transactions = await insertTransactions([
-        {
-          description: "Bulk transactions update add categories test 1",
-          value: 150,
-          date: new Date(2020, 0, 1),
-          categories_ids: [categories[0]!.id],
-        },
-        {
-          description: "Bulk transactions update add categories test 2",
-          value: 300,
-          date: new Date(2020, 0, 2),
-          categories_ids: [categories[0]!.id],
-        },
-      ])
-
-      const result = await updateTransactions({
+      const result = await updateTransactions(user, {
         ids: transactions.map((t) => t.id),
         categories_mode: "add",
         categories_ids: [categories[1]!.id],
@@ -307,22 +294,7 @@ describe("database transaction functions", () => {
     })
 
     it("should work with an empty update", async () => {
-      const transactions = await insertTransactions([
-        {
-          description: "Bulk transactions update test 1",
-          value: 150,
-          date: new Date(2020, 0, 1),
-          categories_ids: [],
-        },
-        {
-          description: "Bulk transactions update test 2",
-          value: 300,
-          date: new Date(2020, 0, 2),
-          categories_ids: [],
-        },
-      ])
-
-      const result = await updateTransactions({
+      const result = await updateTransactions(user, {
         ids: transactions.map((t) => t.id),
       })
 
@@ -340,15 +312,19 @@ describe("database transaction functions", () => {
   })
 
   describe("delete transaction", () => {
-    it("should work", async () => {
-      const transaction = await insertTransaction({
+    let transaction: TransactionWithCategories
+
+    beforeEach(async () => {
+      transaction = await insertTransaction(user, {
         description: "Delete transaction test",
         value: 42,
         date: new Date(2020, 0, 1),
         categories_ids: [],
       })
+    })
 
-      const result = await deleteTransaction(transaction.id)
+    it("should work", async () => {
+      const result = await deleteTransaction(user, transaction.id)
 
       expect(result.id).toBe(transaction.id)
 
@@ -359,6 +335,12 @@ describe("database transaction functions", () => {
       )
 
       expect(Either.isLeft(transactionAfterDeletion)).toBe(true)
+    })
+
+    it("should not allow to delete transactions of other users", async () => {
+      await expect(
+        async () => await deleteTransaction(culprit, transaction.id),
+      ).rejects.toBeTruthy()
     })
 
     it("should cascade on categories", async () => {
@@ -374,7 +356,7 @@ describe("database transaction functions", () => {
         keywords: [],
       })
 
-      const transaction = await insertTransaction({
+      const transaction = await insertTransaction(user, {
         description: "Relationship with categories test",
         value: 690,
         date: new Date(2020, 0, 1),
@@ -389,7 +371,7 @@ describe("database transaction functions", () => {
 
       expect(Either.getOrThrow(relationshipBefore).length).toBe(1)
 
-      await deleteTransaction(transaction.id)
+      await deleteTransaction(user, transaction.id)
 
       const relationshipAfter = await db.getMany(
         TransactionsCategories,
@@ -408,7 +390,7 @@ describe("database transaction functions", () => {
 
     describe("with empty table", () => {
       it("should work", async () => {
-        const result = await listTransactions({
+        const result = await listTransactions(user, {
           direction: "forward",
           count: 10,
           subject: "description",
@@ -435,7 +417,7 @@ describe("database transaction functions", () => {
       let transactions: readonly TransactionWithCategories[]
 
       beforeAll(async () => {
-        transactions = await insertTransactions([
+        transactions = await insertTransactions(user, [
           {
             description: "AX",
             value: -10000,
@@ -481,9 +463,32 @@ describe("database transaction functions", () => {
         ])
       })
 
+      it("should not allow to list transactions of other users", async () => {
+        const result = await listTransactions(culprit, {
+          direction: "forward",
+          count: 10,
+          subject: "description",
+          search_query: "",
+          categories: "all",
+          date_since: new Date(2020, 0, 1),
+          date_until: new Date(2020, 11, 31),
+        })
+
+        expect(result).toEqual({
+          page_info: {
+            total_count: 0,
+            start_cursor: null,
+            end_cursor: null,
+            has_previous_page: false,
+            has_next_page: false,
+          },
+          edges: [],
+        })
+      })
+
       describe("pagination", () => {
         it("should work", async () => {
-          const result = await listTransactions({
+          const result = await listTransactions(user, {
             direction: "forward",
             count: 10,
             subject: "description",
@@ -509,7 +514,7 @@ describe("database transaction functions", () => {
         })
 
         it("should work in forward direction, first page", async () => {
-          const result = await listTransactions({
+          const result = await listTransactions(user, {
             direction: "forward",
             count: 3,
             subject: "description",
@@ -535,7 +540,7 @@ describe("database transaction functions", () => {
         })
 
         it("should work in forward direction, middle page", async () => {
-          const result = await listTransactions({
+          const result = await listTransactions(user, {
             direction: "forward",
             count: 3,
             target: transactions[1]?.id,
@@ -562,7 +567,7 @@ describe("database transaction functions", () => {
         })
 
         it("should work in forward direction, last page", async () => {
-          const result = await listTransactions({
+          const result = await listTransactions(user, {
             direction: "forward",
             count: 3,
             target: transactions[3]?.id,
@@ -589,7 +594,7 @@ describe("database transaction functions", () => {
         })
 
         it("should work in backward direction, first page", async () => {
-          const result = await listTransactions({
+          const result = await listTransactions(user, {
             direction: "backward",
             count: 3,
             target: transactions[3]?.id,
@@ -616,7 +621,7 @@ describe("database transaction functions", () => {
         })
 
         it("should work in backward direction, middle page", async () => {
-          const result = await listTransactions({
+          const result = await listTransactions(user, {
             direction: "backward",
             count: 3,
             target: transactions[5]?.id,
@@ -643,7 +648,7 @@ describe("database transaction functions", () => {
         })
 
         it("should work in backward direction, last page", async () => {
-          const result = await listTransactions({
+          const result = await listTransactions(user, {
             direction: "backward",
             count: 3,
             subject: "description",
@@ -672,7 +677,7 @@ describe("database transaction functions", () => {
       describe("filters", () => {
         describe("subject", () => {
           it("should search in description", async () => {
-            const result = await listTransactions({
+            const result = await listTransactions(user, {
               direction: "forward",
               count: 10,
               subject: "description",
@@ -698,7 +703,7 @@ describe("database transaction functions", () => {
           })
 
           it("should find by value", async () => {
-            const result = await listTransactions({
+            const result = await listTransactions(user, {
               direction: "forward",
               count: 10,
               subject: "value",
@@ -725,7 +730,7 @@ describe("database transaction functions", () => {
           })
 
           it("should handle min greater than max", async () => {
-            const result = await listTransactions({
+            const result = await listTransactions(user, {
               direction: "forward",
               count: 10,
               subject: "value",
@@ -751,7 +756,7 @@ describe("database transaction functions", () => {
 
         describe("categories", () => {
           it("should find uncategorized only", async () => {
-            const result = await listTransactions({
+            const result = await listTransactions(user, {
               direction: "forward",
               count: 10,
               subject: "description",
@@ -777,7 +782,7 @@ describe("database transaction functions", () => {
           })
 
           it("should find by specific categories", async () => {
-            const result = await listTransactions({
+            const result = await listTransactions(user, {
               direction: "forward",
               count: 10,
               subject: "description",
@@ -811,7 +816,7 @@ describe("database transaction functions", () => {
 
         describe("date range", () => {
           it("should find by date range", async () => {
-            const result = await listTransactions({
+            const result = await listTransactions(user, {
               direction: "forward",
               count: 10,
               subject: "description",
@@ -837,7 +842,7 @@ describe("database transaction functions", () => {
           })
 
           it("should handle inverse date ranges", async () => {
-            const result = await listTransactions({
+            const result = await listTransactions(user, {
               direction: "forward",
               count: 10,
               subject: "description",
@@ -877,7 +882,7 @@ describe("database transaction functions", () => {
     })
 
     it("should work and order by category name", async () => {
-      await insertTransactions([
+      await insertTransactions(user, [
         {
           description: "Aggregate transactions by category test 1",
           value: 200,
@@ -951,7 +956,7 @@ describe("database transaction functions", () => {
     })
 
     it("should work", async () => {
-      await insertTransactions([
+      await insertTransactions(user, [
         {
           description: "Aggregate transactions by month test 1",
           value: 200,
@@ -1044,7 +1049,7 @@ describe("database transaction functions", () => {
         }),
       ]
 
-      await insertTransactions([
+      await insertTransactions(user, [
         {
           description: "Category-time aggregation test 1",
           date: new Date(2020, 0, 1),

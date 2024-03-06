@@ -2,10 +2,17 @@ import type * as S from "@effect/schema/Schema"
 import * as db from "../../db"
 import { type FunctionTemplate } from "../template"
 import { Transaction } from "./domain"
+import { type User } from "../user/domain"
 
 export default {
   name: "delete_transaction",
   args: [
+    {
+      mode: "IN",
+      type: "uuid",
+      name: "owner_id",
+      defaultExpr: null,
+    },
     {
       mode: "IN",
       type: "uuid",
@@ -21,7 +28,8 @@ export default {
 } satisfies FunctionTemplate
 
 export async function deleteTransaction(
+  user: User,
   id: S.Schema.To<typeof S.UUID>,
 ): Promise<Transaction> {
-  return await db.callFunction("delete_transaction", Transaction, id)
+  return await db.callFunction("delete_transaction", Transaction, user.id, id)
 }

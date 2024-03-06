@@ -5,10 +5,17 @@ import {
   type UpdateTransactionsInput,
 } from "./domain"
 import * as db from "../../db"
+import { type User } from "../user/domain"
 
 export default {
   name: "update_transactions",
   args: [
+    {
+      mode: "IN",
+      type: "uuid",
+      name: "owner_id",
+      defaultExpr: null,
+    },
     {
       mode: "IN",
       type: "uuid[]",
@@ -30,6 +37,7 @@ export default {
 } satisfies FunctionTemplate
 
 export async function updateTransactions(
+  user: User,
   input: UpdateTransactionsInput,
 ): Promise<readonly TransactionWithCategories[]> {
   const { ids, ...body } = input
@@ -37,6 +45,7 @@ export async function updateTransactions(
   return await db.callFunction(
     "update_transactions",
     S.array(TransactionWithCategories),
+    user.id,
     `{${ids.join(", ")}}`,
     body,
   )

@@ -31,7 +31,8 @@ declare c cursor for
 	from transaction t
 	left join transactions_categories tc on tc.transaction_id = t.id
 	where
-		case
+		t.user_id = owner_id
+		and case
 			when p.direction = 'forward' and p.target is not null
 			then t.date < (
 				select date
@@ -93,7 +94,8 @@ from (
 	from transaction t
 	left join transactions_categories tc on tc.transaction_id = t.id
 	where
-		case
+		t.user_id = owner_id
+		and case
 			when f.subject = 'description' and f.search_query != ''
 			then lower(t.description) like concat('%', lower(f.search_query), '%')
 			when f.subject = 'value'
@@ -119,7 +121,8 @@ select id
 from transaction t
 left join transactions_categories tc on tc.transaction_id = t.id
 where
-	t.date = min_date
+	t.user_id = owner_id
+	and t.date = min_date
 	and case
 		when f.subject = 'description' and f.search_query != ''
 		then lower(t.description) like concat('%', lower(f.search_query), '%')
@@ -142,7 +145,8 @@ select id
 from transaction t
 left join transactions_categories tc on tc.transaction_id = t.id
 where
-	t.date = max_date
+	t.user_id = owner_id
+	and t.date = max_date
 	and case
 		when f.subject = 'description' and f.search_query != ''
 		then lower(t.description) like concat('%', lower(f.search_query), '%')
@@ -160,9 +164,6 @@ where
 		else false
 		end
 into max_cursor;
-
-raise notice 'min_cursor: %', min_cursor;
-raise notice 'max_cursor: %', max_cursor;
 
 open c;
 
