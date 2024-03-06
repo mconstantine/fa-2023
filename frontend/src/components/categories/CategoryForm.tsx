@@ -31,6 +31,7 @@ export default function CategoryForm(props: Props) {
       name: props.category?.name ?? "",
       keywords: props.category?.keywords ?? ([] as string[]),
       is_meta: props.category?.is_meta ?? false,
+      is_projectable: props.category?.is_meta ?? false,
     },
     validators: {
       name: S.Trim.pipe(
