@@ -1444,15 +1444,32 @@ export function useCommand<
       flow(
         Exit.match({
           onFailure(cause) {
-            if (cause._tag === "Fail") {
-              return Either.left(cause.error)
-            } else {
-              return Either.left({
-                code: 500,
-                message: "The command process failed",
-                extras: { cause },
-              })
-            }
+            const error = (() => {
+              if (cause._tag === "Fail") {
+                return cause.error
+              } else {
+                return {
+                  code: 500,
+                  message: "The command process failed",
+                  extras: { cause },
+                }
+              }
+            })()
+
+            setResponse(
+              NetworkResponse.flatMatch<
+                HttpError,
+                ResponseTo,
+                NetworkResponse.NetworkResponse<HttpError, ResponseTo>
+              >({
+                onIdle: identity,
+                onSuccess: identity,
+                onFailure: identity,
+                onLoading: NetworkResponse.fail(error),
+              }),
+            )
+
+            return Either.left(error)
           },
           onSuccess(data) {
             setResponse(
@@ -1588,15 +1605,32 @@ export function useFormDataCommand<
       flow(
         Exit.match({
           onFailure(cause) {
-            if (cause._tag === "Fail") {
-              return Either.left(cause.error)
-            } else {
-              return Either.left({
-                code: 500,
-                message: "The command process failed",
-                extras: { cause },
-              })
-            }
+            const error = (() => {
+              if (cause._tag === "Fail") {
+                return cause.error
+              } else {
+                return {
+                  code: 500,
+                  message: "The command process failed",
+                  extras: { cause },
+                }
+              }
+            })()
+
+            setResponse(
+              NetworkResponse.flatMatch<
+                HttpError,
+                ResponseTo,
+                NetworkResponse.NetworkResponse<HttpError, ResponseTo>
+              >({
+                onIdle: identity,
+                onSuccess: identity,
+                onFailure: identity,
+                onLoading: NetworkResponse.fail(error),
+              }),
+            )
+
+            return Either.left(error)
           },
           onSuccess(data) {
             setResponse(
