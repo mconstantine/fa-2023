@@ -10,7 +10,7 @@ set
 	year = coalesce(update.year, year),
 	value = coalesce(update.value, value),
 	category_id = coalesce(update.category_id, category_id)
-where id = target_id
+where id = target_id and user_id = owner_id
 returning id into updated_id;
 
 return (

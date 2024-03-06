@@ -165,7 +165,7 @@ describe("database category functions", () => {
     })
 
     it("should cascade on budgets", async () => {
-      const budget = await insertBudget({
+      const budget = await insertBudget(user, {
         year: 2020,
         value: 4200,
         category_id: category.id,

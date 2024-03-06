@@ -1,14 +1,17 @@
+declare created_id uuid;
 declare created_ids uuid[];
 
 begin
 
-with created as (
-  insert into budget (year, value, category_id)
-  select year, value, category_id
-  from jsonb_populate_recordset(null::budget, body)
-  returning id
-)
-select array_agg(created.id) from created into created_ids;
+for i in 1 .. jsonb_array_length(body)
+loop
+  insert into budget (year, value, category_id, user_id)
+  select year, value, category_id, user_id
+  from jsonb_populate_record(null::budget, body->(i - 1) || jsonb_build_object('user_id', owner_id))
+  returning id into created_id;
+
+  created_ids := array_append(created_ids, created_id);
+end loop;
 
 return (
   select json_arrayagg(r.*) from (

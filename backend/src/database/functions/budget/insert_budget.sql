@@ -2,9 +2,9 @@ declare created_id uuid;
 
 begin
 
-insert into budget (year, value, category_id)
-select year, value, category_id
-from jsonb_populate_record(null::budget, body)
+insert into budget (year, value, category_id, user_id)
+select year, value, category_id, user_id
+from jsonb_populate_record(null::budget, body || jsonb_build_object('user_id', owner_id))
 returning id into created_id;
 
 return (
