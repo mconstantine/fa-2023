@@ -1,3 +1,4 @@
+import * as NetworkResponse from "../../network/NetworkResponse"
 import { Either, pipe } from "effect"
 import { useCommand, useQuery, useRequestData } from "../../hooks/network"
 import CategoriesList from "./CategoriesList"
@@ -10,6 +11,7 @@ import {
 import { Category, InsertCategoryInput, ListCategoriesInput } from "./domain"
 import { constFalse } from "effect/Function"
 import * as paginationResponse from "../../network/PaginationResponse"
+import Query from "../Query"
 
 export default function CategoriesPage() {
   const [filters, setFilters] = useRequestData<typeof listCategoriesRequest>(
@@ -86,16 +88,25 @@ export default function CategoriesPage() {
   }
 
   return (
-    <CategoriesList
-      filters={filters.query}
-      categories={categories}
-      insertionResponse={newCategory}
-      updateResponse={updatedCategory}
-      deletionResponse={deletedCategory}
-      onFiltersChange={onFiltersChange}
-      onCategoryInsert={onCategoryInsert}
-      onCategoryUpdate={onCategoryUpdate}
-      onCategoryDelete={onCategoryDelete}
+    <Query
+      response={pipe(
+        categories,
+        NetworkResponse.withErrorFrom(newCategory),
+        NetworkResponse.withErrorFrom(updatedCategory),
+        NetworkResponse.withErrorFrom(deletedCategory),
+      )}
+      render={(categories) => (
+        <CategoriesList
+          filters={filters.query}
+          categories={categories}
+          insertionResponse={newCategory}
+          updateResponse={updatedCategory}
+          onFiltersChange={onFiltersChange}
+          onCategoryInsert={onCategoryInsert}
+          onCategoryUpdate={onCategoryUpdate}
+          onCategoryDelete={onCategoryDelete}
+        />
+      )}
     />
   )
 }

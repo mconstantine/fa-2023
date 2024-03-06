@@ -13,7 +13,6 @@ import {
 import CategoryCard from "./CategoryCard"
 import { Category, ListCategoriesInput } from "./domain"
 import * as NetworkResponse from "../../network/NetworkResponse"
-import Query from "../Query"
 import { PaginationResponse } from "../../globalDomain"
 import { useState } from "react"
 import CategoryForm from "./CategoryForm"
@@ -23,7 +22,6 @@ import { useDebounce } from "../../hooks/useDebounce"
 import { usePagination } from "../../hooks/usePagination"
 import Pagination from "../Pagination"
 import { HttpError } from "../../hooks/network"
-import { pipe } from "effect"
 
 interface ListingMode {
   type: "listing"
@@ -42,16 +40,9 @@ type Mode = ListingMode | InsertingMode | UpdatingMode
 
 interface Props {
   filters: ListCategoriesInput
-  categories: NetworkResponse.NetworkResponse<
-    HttpError,
-    PaginationResponse<Category>
-  >
+  categories: PaginationResponse<Category>
   insertionResponse: NetworkResponse.NetworkResponse<HttpError, Category>
   updateResponse: NetworkResponse.NetworkResponse<HttpError, Category>
-  deletionResponse: NetworkResponse.NetworkResponse<
-    HttpError,
-    Omit<Category, "id">
-  >
   onFiltersChange(filters: ListCategoriesInput): void
   onCategoryInsert(category: Category): Promise<boolean>
   onCategoryUpdate(category: Category): Promise<boolean>
@@ -159,20 +150,12 @@ export default function CategoriesList(props: Props) {
               }
             />
           </FormControl>
-          <Query
-            response={pipe(
-              props.categories,
-              NetworkResponse.withErrorFrom(props.deletionResponse),
-            )}
-            render={(categories) => (
-              <List
-                categories={categories}
-                filters={props.filters}
-                onFiltersChange={props.onFiltersChange}
-                onEditCategoryButtonClick={onEditCategoryButtonClick}
-                onDeleteCategoryButtonClick={onDeleteCategoryButtonClick}
-              />
-            )}
+          <List
+            categories={props.categories}
+            filters={props.filters}
+            onFiltersChange={props.onFiltersChange}
+            onEditCategoryButtonClick={onEditCategoryButtonClick}
+            onDeleteCategoryButtonClick={onDeleteCategoryButtonClick}
           />
         </Stack>
         <Backdrop open={isBackdropOpen}>
