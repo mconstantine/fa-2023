@@ -15,21 +15,30 @@ import { updateBudgets } from "../functions/budget/update_budgets"
 import { deleteBudget } from "../functions/budget/delete_budget"
 import { listBudgets } from "../functions/budget/list_budgets"
 import { Either } from "effect"
+import { insertUser } from "../functions/user/insert_user"
+import { type User } from "../functions/user/domain"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
 describe("database budget functions", () => {
+  let user: User
   let categories: Category[]
 
   beforeAll(async () => {
+    user = await insertUser({
+      name: "Budget Tests",
+      email: "budget.tests@example.com",
+      password: "P4ssw0rd!",
+    })
+
     categories = [
-      await insertCategory({
+      await insertCategory(user, {
         name: "Budget tests category 1",
         is_meta: false,
         is_projectable: false,
         keywords: [],
       }),
-      await insertCategory({
+      await insertCategory(user, {
         name: "Budget tests category 2",
         is_meta: false,
         is_projectable: false,

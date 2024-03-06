@@ -2,10 +2,17 @@ import { PaginationResponse } from "../../domain"
 import * as db from "../../db"
 import { type FunctionTemplate } from "../template"
 import { Category, type ListCategoriesInput } from "./domain"
+import { type User } from "../user/domain"
 
 export default {
   name: "list_categories",
   args: [
+    {
+      mode: "IN",
+      type: "uuid",
+      name: "owner_id",
+      defaultExpr: null,
+    },
     {
       mode: "IN",
       type: "jsonb",
@@ -33,6 +40,7 @@ export default {
 } satisfies FunctionTemplate
 
 export async function listCategories(
+  user: User,
   input: ListCategoriesInput,
 ): Promise<PaginationResponse<Category>> {
   const {
@@ -44,6 +52,7 @@ export async function listCategories(
   return await db.callFunction(
     "list_categories",
     PaginationResponse(Category),
+    user.id,
     paginationQuery,
     searchQuery ?? "",
     isMeta ?? null,

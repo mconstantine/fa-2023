@@ -13,15 +13,35 @@ import { insertTransaction } from "../functions/transaction/insert_transaction"
 import { insertBudget } from "../functions/budget/insert_budget"
 import { Budget } from "../functions/budget/domain"
 import { Either } from "effect"
+import { insertUser } from "../functions/user/insert_user"
+import { type User } from "../functions/user/domain"
 
 describe("database category functions", () => {
+  let user: User
+  let culprit: User
+
+  beforeAll(async () => {
+    user = await insertUser({
+      name: "Category Test",
+      email: "category.test@example.com",
+      password: "P4ssw0rd!",
+    })
+
+    culprit = await insertUser({
+      name: "Category Test Culprit",
+      email: "category.test.culprit@example.com",
+      password: "P4ssw0rd!",
+    })
+  })
+
   afterAll(async () => {
+    await db.query('delete from "user"')
     await db.query("delete from category")
   })
 
   describe("insert category", () => {
     it("should work with all data", async () => {
-      const result = await insertCategory({
+      const result = await insertCategory(user, {
         name: "Insert category test",
         is_meta: false,
         is_projectable: false,
@@ -33,7 +53,7 @@ describe("database category functions", () => {
     })
 
     it("should work with empty keywords array", async () => {
-      const result = await insertCategory({
+      const result = await insertCategory(user, {
         name: "Insert category test empty keywords",
         is_meta: true,
         is_projectable: false,
@@ -46,15 +66,19 @@ describe("database category functions", () => {
   })
 
   describe("update category", () => {
-    it("should work", async () => {
-      const category = await insertCategory({
+    let category: Category
+
+    beforeAll(async () => {
+      category = await insertCategory(user, {
         name: "Update category test",
         is_meta: false,
         is_projectable: false,
         keywords: ["keyword"],
       })
+    })
 
-      const result = await updateCategory(category.id, {
+    it("should work", async () => {
+      const result = await updateCategory(user, category.id, {
         is_meta: true,
         keywords: [],
       })
@@ -63,18 +87,32 @@ describe("database category functions", () => {
       expect(result.is_meta).toBe(true)
       expect(result.keywords).toEqual([])
     })
+
+    it("should not allow to update categories of other users", async () => {
+      await expect(
+        async () =>
+          await updateCategory(culprit, category.id, {
+            is_meta: true,
+            keywords: [],
+          }),
+      ).rejects.toBeTruthy()
+    })
   })
 
   describe("delete category", () => {
-    it("should work", async () => {
-      const category = await insertCategory({
+    let category: Category
+
+    beforeEach(async () => {
+      category = await insertCategory(user, {
         name: "Delete category test",
         is_meta: false,
         is_projectable: false,
         keywords: ["keyword"],
       })
+    })
 
-      const result = await deleteCategory(category.id)
+    it("should work", async () => {
+      const result = await deleteCategory(user, category.id)
 
       expect(result.id).toBe(category.id)
 
@@ -87,17 +125,16 @@ describe("database category functions", () => {
       expect(Either.isLeft(categoryAfterDeletion)).toBe(true)
     })
 
+    it("should not allow to delete categories of other users", async () => {
+      await expect(
+        async () => await deleteCategory(culprit, category.id),
+      ).rejects.toBeTruthy()
+    })
+
     it("should cascade on transactions", async () => {
       const TransactionsCategories = S.struct({
         transaction_id: S.UUID,
         category_id: S.UUID,
-      })
-
-      const category = await insertCategory({
-        name: "Relationship with transactions test",
-        is_meta: false,
-        is_projectable: false,
-        keywords: [],
       })
 
       const transaction = await insertTransaction({
@@ -115,7 +152,7 @@ describe("database category functions", () => {
 
       expect(Either.getOrThrow(relationshipBefore).length).toBe(1)
 
-      await deleteCategory(category.id)
+      await deleteCategory(user, category.id)
 
       const relationshipAfter = await db.getMany(
         TransactionsCategories,
@@ -127,20 +164,13 @@ describe("database category functions", () => {
     })
 
     it("should cascade on budgets", async () => {
-      const category = await insertCategory({
-        name: "Relationship with budgets test",
-        is_meta: false,
-        is_projectable: false,
-        keywords: [],
-      })
-
       const budget = await insertBudget({
         year: 2020,
         value: 4200,
         category_id: category.id,
       })
 
-      await deleteCategory(category.id)
+      await deleteCategory(user, category.id)
 
       const budgetAfterDeletion = await db.getOne(
         Budget,
@@ -160,7 +190,7 @@ describe("database category functions", () => {
 
       it("should work", async () => {
         const result = S.encodeSync(PaginationResponse(Category))(
-          await listCategories({
+          await listCategories(user, {
             search_query: "",
             direction: "forward",
             count: 10,
@@ -230,13 +260,13 @@ describe("database category functions", () => {
                 keywords: [],
               },
             ] satisfies InsertCategoryInput[]
-          ).map(async (category) => await insertCategory(category)),
+          ).map(async (category) => await insertCategory(user, category)),
         )
       })
 
       it("should work", async () => {
         const result = S.encodeSync(PaginationResponse(Category))(
-          await listCategories({
+          await listCategories(user, {
             search_query: "x",
             direction: "forward",
             count: 2,
@@ -264,9 +294,29 @@ describe("database category functions", () => {
         })
       })
 
+      it("should not allow to list categories of other users", async () => {
+        const result = S.encodeSync(PaginationResponse(Category))(
+          await listCategories(culprit, {
+            direction: "forward",
+            count: 10,
+          }),
+        )
+
+        expect(result).toEqual({
+          page_info: {
+            total_count: 0,
+            start_cursor: null,
+            end_cursor: null,
+            has_previous_page: false,
+            has_next_page: false,
+          },
+          edges: [],
+        })
+      })
+
       it("should work in forward direction, first page", async () => {
         const result = S.encodeSync(PaginationResponse(Category))(
-          await listCategories({
+          await listCategories(user, {
             search_query: "",
             direction: "forward",
             count: 3,
@@ -300,7 +350,7 @@ describe("database category functions", () => {
 
       it("should work in forward direction, middle page", async () => {
         const result = S.encodeSync(PaginationResponse(Category))(
-          await listCategories({
+          await listCategories(user, {
             search_query: "",
             direction: "forward",
             count: 3,
@@ -336,7 +386,7 @@ describe("database category functions", () => {
 
       it("should work in forward direction, last page", async () => {
         const result = S.encodeSync(PaginationResponse(Category))(
-          await listCategories({
+          await listCategories(user, {
             search_query: "",
             direction: "forward",
             count: 3,
@@ -372,7 +422,7 @@ describe("database category functions", () => {
 
       it("should work in backward direction, first page", async () => {
         const result = S.encodeSync(PaginationResponse(Category))(
-          await listCategories({
+          await listCategories(user, {
             search_query: "",
             direction: "backward",
             count: 3,
@@ -408,7 +458,7 @@ describe("database category functions", () => {
 
       it("should work in backward direction, middle page", async () => {
         const result = S.encodeSync(PaginationResponse(Category))(
-          await listCategories({
+          await listCategories(user, {
             search_query: "",
             direction: "backward",
             count: 3,
@@ -444,7 +494,7 @@ describe("database category functions", () => {
 
       it("should work in backward direction, last page", async () => {
         const result = S.encodeSync(PaginationResponse(Category))(
-          await listCategories({
+          await listCategories(user, {
             search_query: "",
             direction: "backward",
             count: 3,
@@ -478,7 +528,7 @@ describe("database category functions", () => {
 
       it("should filter meta categories if needed", async () => {
         const result = S.encodeSync(PaginationResponse(Category))(
-          await listCategories({
+          await listCategories(user, {
             search_query: "",
             direction: "forward",
             count: 10,

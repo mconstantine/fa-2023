@@ -10,7 +10,7 @@ set
 	is_meta = coalesce(result.is_meta, is_meta),
 	is_projectable = coalesce(result.is_projectable, is_projectable),
 	keywords = coalesce(result.keywords, keywords)
-where id = target_id
+where id = target_id and user_id = owner_id
 returning * into result;
 
 return to_jsonb(result);

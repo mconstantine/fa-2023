@@ -14,7 +14,8 @@ declare result jsonb := '[]'::jsonb;
 declare c cursor for
 	select *
 	from category
-	where case
+	where user_id = owner_id
+	and case
 		when p.direction = 'forward' and p.target is not null
 		then name > (
 			select name
@@ -58,7 +59,8 @@ select
 	max(name)
 from category
 where
-	case
+	user_id = owner_id
+	and case
 		when search_query != ''
 		then lower(name) like concat('%', lower(search_query), '%')
 		else true
@@ -72,12 +74,12 @@ into total_count, min_name, max_name;
 
 select id
 from category
-where name = min_name
+where name = min_name and user_id = owner_id
 into min_cursor;
 
 select id
 from category
-where name = max_name
+where name = max_name and user_id = owner_id
 into max_cursor;
 
 open c;

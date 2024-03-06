@@ -18,21 +18,30 @@ import { aggregateTransactionsByCategory } from "../functions/transaction/aggreg
 import { aggregateTransactionsByMonth } from "../functions/transaction/aggregate_transactions_by_month"
 import { aggregateTransactionsByTimeAndCategory } from "../functions/transaction/aggregate_transactions_by_time_and_category"
 import { Either } from "effect"
+import { type User } from "../functions/user/domain"
+import { insertUser } from "../functions/user/insert_user"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
 describe("database transaction functions", () => {
+  let user: User
   let categories: Category[]
 
   beforeAll(async () => {
+    user = await insertUser({
+      name: "Transaction Tests",
+      email: "transaction.tests@example.com",
+      password: "P4ssw0rd!",
+    })
+
     categories = await Promise.all([
-      await insertCategory({
+      await insertCategory(user, {
         name: "Transaction tests category 1",
         is_meta: false,
         is_projectable: false,
         keywords: [],
       }),
-      await insertCategory({
+      await insertCategory(user, {
         name: "Transaction tests category 2",
         is_meta: false,
         is_projectable: false,
@@ -358,7 +367,7 @@ describe("database transaction functions", () => {
         category_id: S.UUID,
       })
 
-      const category = await insertCategory({
+      const category = await insertCategory(user, {
         name: "Relationship with transactions test",
         is_meta: false,
         is_projectable: false,
@@ -1009,25 +1018,25 @@ describe("database transaction functions", () => {
       await db.query("delete from transaction")
 
       categories = [
-        await insertCategory({
+        await insertCategory(user, {
           name: "Category-time aggregation test root category",
           is_meta: false,
           is_projectable: false,
           keywords: [],
         }),
-        await insertCategory({
+        await insertCategory(user, {
           name: "Category-time aggregation test category 1",
           is_meta: true,
           is_projectable: false,
           keywords: [],
         }),
-        await insertCategory({
+        await insertCategory(user, {
           name: "Category-time aggregation test category 2",
           is_meta: true,
           is_projectable: false,
           keywords: [],
         }),
-        await insertCategory({
+        await insertCategory(user, {
           name: "Category-time aggregation test category 3",
           is_meta: true,
           is_projectable: false,
