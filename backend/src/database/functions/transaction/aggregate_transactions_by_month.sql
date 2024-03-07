@@ -20,7 +20,9 @@ return (
       ) as outcome,
       sum(t.value) as total
     from transaction t
-    where extract('year' from t.date) = year
+    where
+      t.user_id = owner_id
+      and extract('year' from t.date) = year
     group by extract('month' from t.date)
     order by month
   ) r

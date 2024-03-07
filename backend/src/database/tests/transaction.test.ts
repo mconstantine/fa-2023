@@ -873,72 +873,86 @@ describe("database transaction functions", () => {
       await db.query("delete from transaction")
     })
 
-    it("should work with no data", async () => {
-      const result = await aggregateTransactionsByCategory({
-        year: 2020,
-      })
+    describe("with no data", () => {
+      it("should work", async () => {
+        const result = await aggregateTransactionsByCategory(user, {
+          year: 2020,
+        })
 
-      expect(result).toEqual([])
+        expect(result).toEqual([])
+      })
     })
 
-    it("should work and order by category name", async () => {
-      await insertTransactions(user, [
-        {
-          description: "Aggregate transactions by category test 1",
-          value: 200,
-          date: new Date(2020, 0, 1),
-          categories_ids: [categories[0]!.id],
-        },
-        {
-          description: "Aggregate transactions by category test 2",
-          value: 300,
-          date: new Date(2020, 11, 31),
-          categories_ids: [categories[1]!.id],
-        },
-        {
-          description: "Aggregate transactions by category test 3",
-          value: 450,
-          date: new Date(2020, 0, 1),
-          categories_ids: [categories[0]!.id, categories[1]!.id],
-        },
-        {
-          description: "Aggregate transactions by category test 4",
-          value: 500,
-          date: new Date(2020, 0, 1),
-          categories_ids: [],
-        },
-        {
-          description: "Aggregate transactions by category test 4",
-          value: 1000,
-          date: new Date(2021, 0, 1),
-          categories_ids: [categories[0]!.id, categories[1]!.id],
-        },
-      ])
-
-      const result = await aggregateTransactionsByCategory({
-        year: 2020,
+    describe("with data", () => {
+      beforeEach(async () => {
+        await insertTransactions(user, [
+          {
+            description: "Aggregate transactions by category test 1",
+            value: 200,
+            date: new Date(2020, 0, 1),
+            categories_ids: [categories[0]!.id],
+          },
+          {
+            description: "Aggregate transactions by category test 2",
+            value: 300,
+            date: new Date(2020, 11, 31),
+            categories_ids: [categories[1]!.id],
+          },
+          {
+            description: "Aggregate transactions by category test 3",
+            value: 450,
+            date: new Date(2020, 0, 1),
+            categories_ids: [categories[0]!.id, categories[1]!.id],
+          },
+          {
+            description: "Aggregate transactions by category test 4",
+            value: 500,
+            date: new Date(2020, 0, 1),
+            categories_ids: [],
+          },
+          {
+            description: "Aggregate transactions by category test 4",
+            value: 1000,
+            date: new Date(2021, 0, 1),
+            categories_ids: [categories[0]!.id, categories[1]!.id],
+          },
+        ])
       })
 
-      expect(result).toEqual([
-        {
-          category_id: categories[0]?.id,
-          category_name: categories[0]?.name,
-          category_is_projectable: categories[0]?.is_projectable,
-          transactions_total: 6.5,
-        },
-        {
-          category_id: categories[1]?.id,
-          category_name: categories[1]?.name,
-          category_is_projectable: categories[1]?.is_projectable,
-          transactions_total: 7.5,
-        },
-        {
-          category_id: null,
-          category_name: null,
-          category_is_projectable: null,
-          transactions_total: 5,
-        },
-      ])
+      it("should work and order by category name", async () => {
+        const result = await aggregateTransactionsByCategory(user, {
+          year: 2020,
+        })
+
+        expect(result).toEqual([
+          {
+            category_id: categories[0]?.id,
+            category_name: categories[0]?.name,
+            category_is_projectable: categories[0]?.is_projectable,
+            transactions_total: 6.5,
+          },
+          {
+            category_id: categories[1]?.id,
+            category_name: categories[1]?.name,
+            category_is_projectable: categories[1]?.is_projectable,
+            transactions_total: 7.5,
+          },
+          {
+            category_id: null,
+            category_name: null,
+            category_is_projectable: null,
+            transactions_total: 5,
+          },
+        ])
+      })
+
+      it("should allow access to transactions of other users", async () => {
+        const result = await aggregateTransactionsByCategory(culprit, {
+          year: 2020,
+        })
+
+        expect(result).toEqual([])
+      })
     })
   })
 
@@ -947,72 +961,86 @@ describe("database transaction functions", () => {
       await db.query("delete from transaction")
     })
 
-    it("should work with no data", async () => {
-      const result = await aggregateTransactionsByMonth({
-        year: 2020,
-      })
+    describe("with no data", () => {
+      it("should work", async () => {
+        const result = await aggregateTransactionsByMonth(user, {
+          year: 2020,
+        })
 
-      expect(result).toEqual([])
+        expect(result).toEqual([])
+      })
     })
 
-    it("should work", async () => {
-      await insertTransactions(user, [
-        {
-          description: "Aggregate transactions by month test 1",
-          value: 200,
-          date: new Date(2020, 0, 1),
-          categories_ids: [],
-        },
-        {
-          description: "Aggregate transactions by month test 2",
-          value: -300,
-          date: new Date(2020, 11, 31),
-          categories_ids: [],
-        },
-        {
-          description: "Aggregate transactions by month test 3",
-          value: -450,
-          date: new Date(2020, 0, 1),
-          categories_ids: [],
-        },
-        {
-          description: "Aggregate transactions by month test 4",
-          value: 500,
-          date: new Date(2020, 1, 1),
-          categories_ids: [],
-        },
-        {
-          description: "Aggregate transactions by month test 4",
-          value: 1000,
-          date: new Date(2021, 0, 1),
-          categories_ids: [],
-        },
-      ])
-
-      const result = await aggregateTransactionsByMonth({
-        year: 2020,
+    describe("with data", () => {
+      beforeEach(async () => {
+        await insertTransactions(user, [
+          {
+            description: "Aggregate transactions by month test 1",
+            value: 200,
+            date: new Date(2020, 0, 1),
+            categories_ids: [],
+          },
+          {
+            description: "Aggregate transactions by month test 2",
+            value: -300,
+            date: new Date(2020, 11, 31),
+            categories_ids: [],
+          },
+          {
+            description: "Aggregate transactions by month test 3",
+            value: -450,
+            date: new Date(2020, 0, 1),
+            categories_ids: [],
+          },
+          {
+            description: "Aggregate transactions by month test 4",
+            value: 500,
+            date: new Date(2020, 1, 1),
+            categories_ids: [],
+          },
+          {
+            description: "Aggregate transactions by month test 4",
+            value: 1000,
+            date: new Date(2021, 0, 1),
+            categories_ids: [],
+          },
+        ])
       })
 
-      expect(result).toEqual([
-        {
-          month: 1,
-          income: 2,
-          outcome: -4.5,
-          total: -2.5,
-        },
-        {
-          month: 2,
-          income: 5,
-          outcome: 0,
-          total: 5,
-        },
-        {
-          month: 12,
-          income: 0,
-          outcome: -3,
-          total: -3,
-        },
-      ])
+      it("should work", async () => {
+        const result = await aggregateTransactionsByMonth(user, {
+          year: 2020,
+        })
+
+        expect(result).toEqual([
+          {
+            month: 1,
+            income: 2,
+            outcome: -4.5,
+            total: -2.5,
+          },
+          {
+            month: 2,
+            income: 5,
+            outcome: 0,
+            total: 5,
+          },
+          {
+            month: 12,
+            income: 0,
+            outcome: -3,
+            total: -3,
+          },
+        ])
+      })
+
+      it("should not aggregated subcategories if not needed", async () => {
+        const result = await aggregateTransactionsByMonth(culprit, {
+          year: 2020,
+        })
+
+        expect(result).toEqual([])
+      })
     })
   })
 
@@ -1021,213 +1049,243 @@ describe("database transaction functions", () => {
 
     beforeAll(async () => {
       await db.query("delete from transaction")
+    })
 
-      categories = [
-        await insertCategory(user, {
-          name: "Category-time aggregation test root category",
-          is_meta: false,
-          is_projectable: false,
-          keywords: [],
-        }),
-        await insertCategory(user, {
-          name: "Category-time aggregation test category 1",
-          is_meta: true,
-          is_projectable: false,
-          keywords: [],
-        }),
-        await insertCategory(user, {
-          name: "Category-time aggregation test category 2",
-          is_meta: true,
-          is_projectable: false,
-          keywords: [],
-        }),
-        await insertCategory(user, {
-          name: "Category-time aggregation test category 3",
-          is_meta: true,
-          is_projectable: false,
-          keywords: [],
-        }),
-      ]
+    describe("with no data", () => {
+      it("should work", async () => {
+        const result = await aggregateTransactionsByTimeAndCategory(user, {
+          time_range: "monthly",
+          year: 2020,
+        })
 
-      await insertTransactions(user, [
-        {
-          description: "Category-time aggregation test 1",
-          date: new Date(2020, 0, 1),
-          value: -2500,
-          categories_ids: [
-            categories[0]!.id,
-            categories[1]!.id,
-            categories[2]!.id,
-          ],
-        },
-        {
-          description: "Category-time aggregation test 2",
-          date: new Date(2020, 0, 15),
-          value: -2500,
-          categories_ids: [
-            categories[0]!.id,
-            categories[1]!.id,
-            categories[2]!.id,
-          ],
-        },
-        {
-          description: "Category-time aggregation test 3",
-          date: new Date(2020, 5, 1),
-          value: -2500,
-          categories_ids: [
-            categories[0]!.id,
-            categories[1]!.id,
-            categories[3]!.id,
-          ],
-        },
-        {
-          description: "Category-time aggregation test 4",
-          date: new Date(2020, 5, 15),
-          value: -2500,
+        expect(result).toEqual({
+          categories: [],
+          time: [],
+        })
+      })
+    })
+
+    describe("with data", () => {
+      beforeAll(async () => {
+        categories = [
+          await insertCategory(user, {
+            name: "Category-time aggregation test root category",
+            is_meta: false,
+            is_projectable: false,
+            keywords: [],
+          }),
+          await insertCategory(user, {
+            name: "Category-time aggregation test category 1",
+            is_meta: true,
+            is_projectable: false,
+            keywords: [],
+          }),
+          await insertCategory(user, {
+            name: "Category-time aggregation test category 2",
+            is_meta: true,
+            is_projectable: false,
+            keywords: [],
+          }),
+          await insertCategory(user, {
+            name: "Category-time aggregation test category 3",
+            is_meta: true,
+            is_projectable: false,
+            keywords: [],
+          }),
+        ]
+
+        await insertTransactions(user, [
+          {
+            description: "Category-time aggregation test 1",
+            date: new Date(2020, 0, 1),
+            value: -2500,
+            categories_ids: [
+              categories[0]!.id,
+              categories[1]!.id,
+              categories[2]!.id,
+            ],
+          },
+          {
+            description: "Category-time aggregation test 2",
+            date: new Date(2020, 0, 15),
+            value: -2500,
+            categories_ids: [
+              categories[0]!.id,
+              categories[1]!.id,
+              categories[2]!.id,
+            ],
+          },
+          {
+            description: "Category-time aggregation test 3",
+            date: new Date(2020, 5, 1),
+            value: -2500,
+            categories_ids: [
+              categories[0]!.id,
+              categories[1]!.id,
+              categories[3]!.id,
+            ],
+          },
+          {
+            description: "Category-time aggregation test 4",
+            date: new Date(2020, 5, 15),
+            value: -2500,
+            categories_ids: [],
+          },
+          {
+            description: "Category-time aggregation test 5",
+            date: new Date(2021, 0, 1),
+            value: -2500,
+            categories_ids: [],
+          },
+        ])
+      })
+
+      it("should not allow to access transactions of other users", async () => {
+        const result = await aggregateTransactionsByTimeAndCategory(culprit, {
+          time_range: "monthly",
+          year: 2020,
+        })
+
+        expect(result).toEqual({
+          categories: [],
+          time: [],
+        })
+      })
+
+      it("should allow to group monthly", async () => {
+        const result = await aggregateTransactionsByTimeAndCategory(user, {
+          time_range: "monthly",
+          year: 2020,
+        })
+
+        expect(result.time).toEqual([
+          {
+            time: 1,
+            total: -50,
+          },
+          {
+            time: 6,
+            total: -50,
+          },
+        ])
+      })
+
+      it("should allow to group weekly", async () => {
+        const result = await aggregateTransactionsByTimeAndCategory(user, {
+          time_range: "weekly",
+          year: 2020,
+        })
+
+        expect(result.time).toEqual([
+          {
+            time: 1,
+            total: -25,
+          },
+          {
+            time: 3,
+            total: -25,
+          },
+          {
+            time: 23,
+            total: -25,
+          },
+          {
+            time: 25,
+            total: -25,
+          },
+        ])
+      })
+
+      it("should allow to group daily", async () => {
+        const result = await aggregateTransactionsByTimeAndCategory(user, {
+          time_range: "daily",
+          year: 2020,
           categories_ids: [],
-        },
-        {
-          description: "Category-time aggregation test 5",
-          date: new Date(2021, 0, 1),
-          value: -2500,
+        })
+
+        expect(result.time).toEqual([
+          {
+            time: 1,
+            total: -25,
+          },
+          {
+            time: 15,
+            total: -25,
+          },
+          {
+            time: 153,
+            total: -25,
+          },
+          {
+            time: 167,
+            total: -25,
+          },
+        ])
+      })
+
+      it("should aggregate subcategories", async () => {
+        const result = await aggregateTransactionsByTimeAndCategory(user, {
+          time_range: "monthly",
+          year: 2020,
+          categories_ids: [categories[0]!.id],
+        })
+
+        expect(result.time).toEqual([
+          {
+            time: 1,
+            total: -50,
+          },
+          {
+            time: 6,
+            total: -25,
+          },
+        ])
+
+        expect(result.categories).toEqual([
+          {
+            id: categories[0]!.id,
+            name: categories[0]!.name,
+            is_meta: false,
+            min_transaction_value: -25,
+            max_transaction_value: -25,
+            total: -75,
+          },
+          {
+            id: categories[1]!.id,
+            name: categories[1]!.name,
+            is_meta: true,
+            min_transaction_value: -25,
+            max_transaction_value: -25,
+            total: -75,
+          },
+          {
+            id: categories[2]!.id,
+            name: categories[2]!.name,
+            is_meta: true,
+            min_transaction_value: -25,
+            max_transaction_value: -25,
+            total: -50,
+          },
+          {
+            id: categories[3]!.id,
+            name: categories[3]!.name,
+            is_meta: true,
+            min_transaction_value: -25,
+            max_transaction_value: -25,
+            total: -25,
+          },
+        ])
+      })
+
+      it("should not aggregated subcategories if not needed", async () => {
+        const result = await aggregateTransactionsByTimeAndCategory(user, {
+          time_range: "monthly",
+          year: 2020,
           categories_ids: [],
-        },
-      ])
-    })
+        })
 
-    it("should allow to group monthly", async () => {
-      const result = await aggregateTransactionsByTimeAndCategory({
-        time_range: "monthly",
-        year: 2020,
+        expect(result.categories).toEqual([])
       })
-
-      expect(result.time).toEqual([
-        {
-          time: 1,
-          total: -50,
-        },
-        {
-          time: 6,
-          total: -50,
-        },
-      ])
-    })
-
-    it("should allow to group weekly", async () => {
-      const result = await aggregateTransactionsByTimeAndCategory({
-        time_range: "weekly",
-        year: 2020,
-      })
-
-      expect(result.time).toEqual([
-        {
-          time: 1,
-          total: -25,
-        },
-        {
-          time: 3,
-          total: -25,
-        },
-        {
-          time: 23,
-          total: -25,
-        },
-        {
-          time: 25,
-          total: -25,
-        },
-      ])
-    })
-
-    it("should allow to group daily", async () => {
-      const result = await aggregateTransactionsByTimeAndCategory({
-        time_range: "daily",
-        year: 2020,
-        categories_ids: [],
-      })
-
-      expect(result.time).toEqual([
-        {
-          time: 1,
-          total: -25,
-        },
-        {
-          time: 15,
-          total: -25,
-        },
-        {
-          time: 153,
-          total: -25,
-        },
-        {
-          time: 167,
-          total: -25,
-        },
-      ])
-    })
-
-    it("should aggregate subcategories", async () => {
-      const result = await aggregateTransactionsByTimeAndCategory({
-        time_range: "monthly",
-        year: 2020,
-        categories_ids: [categories[0]!.id],
-      })
-
-      expect(result.time).toEqual([
-        {
-          time: 1,
-          total: -50,
-        },
-        {
-          time: 6,
-          total: -25,
-        },
-      ])
-
-      expect(result.categories).toEqual([
-        {
-          id: categories[0]!.id,
-          name: categories[0]!.name,
-          is_meta: false,
-          min_transaction_value: -25,
-          max_transaction_value: -25,
-          total: -75,
-        },
-        {
-          id: categories[1]!.id,
-          name: categories[1]!.name,
-          is_meta: true,
-          min_transaction_value: -25,
-          max_transaction_value: -25,
-          total: -75,
-        },
-        {
-          id: categories[2]!.id,
-          name: categories[2]!.name,
-          is_meta: true,
-          min_transaction_value: -25,
-          max_transaction_value: -25,
-          total: -50,
-        },
-        {
-          id: categories[3]!.id,
-          name: categories[3]!.name,
-          is_meta: true,
-          min_transaction_value: -25,
-          max_transaction_value: -25,
-          total: -25,
-        },
-      ])
-    })
-
-    it("should not aggregated subcategories if not needed", async () => {
-      const result = await aggregateTransactionsByTimeAndCategory({
-        time_range: "monthly",
-        year: 2020,
-        categories_ids: [],
-      })
-
-      expect(result.categories).toEqual([])
     })
   })
 })

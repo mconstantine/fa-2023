@@ -11,7 +11,8 @@ return (
     left join transactions_categories tc on tc.transaction_id = t.id
     left join category c on tc.category_id = c.id
     where
-      (c.id is null or c.is_meta = false)
+      t.user_id = owner_id
+      and (c.id is null or c.is_meta = false)
       and extract('year' from t.date) = year
     group by c.id
     order by c.name

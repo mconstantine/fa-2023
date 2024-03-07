@@ -27,7 +27,8 @@ return jsonb_build_object(
         left join transactions_categories tc on tc.transaction_id = t.id
         left join category c on tc.category_id = c.id
         where
-          extract(year from t.date) = (filters->>'year')::integer
+          t.user_id = owner_id
+          and extract(year from t.date) = (filters->>'year')::integer
           and case
             when coalesce(array_length(categories_ids, 1), 0) = 0
             then true
@@ -64,7 +65,8 @@ return jsonb_build_object(
       join transactions_categories tc on tc.transaction_id = t.id
       join category c on tc.category_id = c.id
       where
-        extract(year from t.date) = (filters->>'year')::integer
+        s.user_id = owner_id
+        and extract(year from t.date) = (filters->>'year')::integer
         and s.id = any(categories_ids)
       group by c.id
       order by total asc, is_meta asc
