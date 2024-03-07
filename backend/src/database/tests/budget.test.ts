@@ -171,9 +171,11 @@ describe("database budget functions", () => {
     })
   })
 
-  describe.only("bulk budgets update", () => {
-    it("should work and convert the values", async () => {
-      const budgets = await insertBudgets(user, [
+  describe("bulk budgets update", () => {
+    let budgets: readonly BudgetWithCategory[]
+
+    beforeEach(async () => {
+      budgets = await insertBudgets(user, [
         {
           year: 2020,
           value: 4200,
@@ -185,8 +187,11 @@ describe("database budget functions", () => {
           category_id: categories[1]!.id,
         },
       ])
+    })
 
+    it("should work and convert the values", async () => {
       const result = await updateBudgets(
+        user,
         S.decodeSync(UpdateBudgetsInput)([
           {
             id: budgets[0]!.id,
@@ -203,29 +208,20 @@ describe("database budget functions", () => {
       expect(result[1]?.value).toBe(4.2)
     })
 
-    it.todo("should not allowa to update budgets of other users")
+    it("should not allow to update budgets of other users", async () => {
+      await expect(
+        async () =>
+          await updateBudgets(culprit, [
+            { id: budgets[0]!.id },
+            { id: budgets[1]!.id },
+          ]),
+      ).rejects.toBeTruthy()
+    })
 
     it("should work with an empty update", async () => {
-      const budgets = await insertBudgets(user, [
-        {
-          year: 2020,
-          value: 4200,
-          category_id: categories[0]!.id,
-        },
-        {
-          year: 2020,
-          value: 6900,
-          category_id: categories[1]!.id,
-        },
-      ])
-
-      const result = await updateBudgets([
-        {
-          id: budgets[0]!.id,
-        },
-        {
-          id: budgets[1]!.id,
-        },
+      const result = await updateBudgets(user, [
+        { id: budgets[0]!.id },
+        { id: budgets[1]!.id },
       ])
 
       expect(result[0]?.value).toBe(budgets[0]?.value)
@@ -234,14 +230,18 @@ describe("database budget functions", () => {
   })
 
   describe("delete budget", () => {
-    it("should work", async () => {
-      const budget = await insertBudget(user, {
+    let budget: BudgetWithCategory
+
+    beforeEach(async () => {
+      budget = await insertBudget(user, {
         year: 2020,
         value: 10000,
         category_id: null,
       })
+    })
 
-      const result = await deleteBudget(budget.id)
+    it("should work", async () => {
+      const result = await deleteBudget(user, budget.id)
 
       expect(result.id).toBe(budget.id)
 
@@ -253,41 +253,60 @@ describe("database budget functions", () => {
 
       expect(Either.isLeft(budgetAfterDeletion)).toBe(true)
     })
+
+    it("should not allow to delete budgets of other users", async () => {
+      await expect(
+        async () => await deleteBudget(culprit, budget.id),
+      ).rejects.toBeTruthy()
+    })
   })
 
   describe("list budgets", () => {
-    it("should work with empty table", async () => {
-      await db.query("delete from budget")
-      const result = await listBudgets({ year: 2020 })
-      expect(result).toEqual([])
+    describe("with no data", () => {
+      it("should work", async () => {
+        await db.query("delete from budget")
+        const result = await listBudgets(user, { year: 2020 })
+        expect(result).toEqual([])
+      })
     })
 
-    it("should work and filter by year", async () => {
-      const budgets = await insertBudgets(user, [
-        {
-          year: 2020,
-          value: 4200,
-          category_id: categories[0]!.id,
-        },
-        {
-          year: 2020,
-          value: 6900,
-          category_id: categories[1]!.id,
-        },
-        {
-          year: 2021,
-          value: 4200,
-          category_id: categories[0]!.id,
-        },
-        {
-          year: 2021,
-          value: 6900,
-          category_id: categories[1]!.id,
-        },
-      ])
+    describe("with data", () => {
+      let budgets: readonly BudgetWithCategory[]
 
-      const result = await listBudgets({ year: 2021 })
-      expect(result).toEqual(budgets.slice(2))
+      beforeEach(async () => {
+        budgets = await insertBudgets(user, [
+          {
+            year: 2020,
+            value: 4200,
+            category_id: categories[0]!.id,
+          },
+          {
+            year: 2020,
+            value: 6900,
+            category_id: categories[1]!.id,
+          },
+          {
+            year: 2021,
+            value: 4200,
+            category_id: categories[0]!.id,
+          },
+          {
+            year: 2021,
+            value: 6900,
+            category_id: categories[1]!.id,
+          },
+        ])
+      })
+
+      it("should work and filter by year", async () => {
+        const result = await listBudgets(user, { year: 2021 })
+        expect(result).toEqual(budgets.slice(2))
+      })
+
+      it("should not allow to list budgets of other users", async () => {
+        const result = await listBudgets(culprit, { year: 2021 })
+        expect(result).toEqual([])
+      })
     })
   })
 })

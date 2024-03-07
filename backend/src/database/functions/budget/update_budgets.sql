@@ -9,7 +9,7 @@ select array_agg(r.*) from jsonb_populate_recordset(null::budget, body) r into u
 for i in 1 .. array_upper(update, 1)
 loop
   update budget set value = coalesce(update[i].value, value)
-  where id = update[i].id
+  where id = update[i].id and user_id = owner_id
   returning id into updated_id;
 
   updated_ids := array_append(updated_ids, updated_id);
