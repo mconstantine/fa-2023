@@ -17,15 +17,16 @@ export const categoryRouter = Router.withMiddleware(authMiddleware)
     codecs: {
       query: ListCategoriesInput,
     },
-    handler: async ({ query }) => {
-      return await listCategories(query)
+    handler: async ({ query, locals }) => {
+      return await listCategories(locals.user, query)
     },
   })
   .post("/", {
     codecs: {
       body: InsertCategoryInput,
     },
-    handler: async ({ body }) => await insertCategory(body),
+    handler: async ({ body, locals }) =>
+      await insertCategory(locals.user, body),
   })
   .patch("/:id", {
     codecs: {
@@ -34,9 +35,9 @@ export const categoryRouter = Router.withMiddleware(authMiddleware)
       }),
       body: UpdateCategoryInput,
     },
-    handler: async ({ params, body }) => {
+    handler: async ({ params, body, locals }) => {
       try {
-        return await updateCategory(params.id, body)
+        return await updateCategory(locals.user, params.id, body)
       } catch (e) {
         throw new HttpError(404, "Category not found")
       }
@@ -48,9 +49,9 @@ export const categoryRouter = Router.withMiddleware(authMiddleware)
         id: S.UUID,
       }),
     },
-    handler: async ({ params }) => {
+    handler: async ({ params, locals }) => {
       try {
-        return await deleteCategory(params.id)
+        return await deleteCategory(locals.user, params.id)
       } catch (e) {
         throw new HttpError(404, "Category not found")
       }

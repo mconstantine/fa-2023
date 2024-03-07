@@ -21,15 +21,15 @@ export const budgetRouter = Router.withMiddleware(authMiddleware)
         year: S.NumberFromString.pipe(S.int()),
       }),
     },
-    handler: async ({ query }) => await listBudgets(query),
+    handler: async ({ query, locals }) => await listBudgets(locals.user, query),
   })
   .post("/", {
     codecs: {
       body: InsertBudgetInput,
     },
-    handler: async ({ body }) => {
+    handler: async ({ body, locals }) => {
       try {
-        return await insertBudget(body)
+        return await insertBudget(locals.user, body)
       } catch (e) {
         throw new HttpError(
           409,
@@ -42,9 +42,9 @@ export const budgetRouter = Router.withMiddleware(authMiddleware)
     codecs: {
       body: S.array(InsertBudgetInput),
     },
-    handler: async ({ body }) => {
+    handler: async ({ body, locals }) => {
       try {
-        return await insertBudgets(body)
+        return await insertBudgets(locals.user, body)
       } catch (e) {
         throw new HttpError(
           409,
@@ -57,7 +57,7 @@ export const budgetRouter = Router.withMiddleware(authMiddleware)
     codecs: {
       body: UpdateBudgetsInput,
     },
-    handler: async ({ body }) => await updateBudgets(body),
+    handler: async ({ body, locals }) => await updateBudgets(locals.user, body),
   })
   .patch("/:id", {
     codecs: {
@@ -66,7 +66,8 @@ export const budgetRouter = Router.withMiddleware(authMiddleware)
       }),
       body: UpdateBudgetInput,
     },
-    handler: async ({ params, body }) => await updateBudget(params.id, body),
+    handler: async ({ params, body, locals }) =>
+      await updateBudget(locals.user, params.id, body),
   })
   .delete("/:id", {
     codecs: {
@@ -74,6 +75,7 @@ export const budgetRouter = Router.withMiddleware(authMiddleware)
         id: S.UUID,
       }),
     },
-    handler: async ({ params }) => await deleteBudget(params.id),
+    handler: async ({ params, locals }) =>
+      await deleteBudget(locals.user, params.id),
   })
   .toExpressRouter()
