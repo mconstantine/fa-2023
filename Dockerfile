@@ -18,9 +18,8 @@ COPY --from=build /app/backend/build server
 COPY ./backend/.env .env
 COPY ./backend/package.json package.json
 COPY ./backend/package-lock.json package-lock.json
-COPY --from=build /app/backend/src/database/*.sql server/database
-COPY --from=build /app/backend/src/database/**/*.sql server/database
+COPY --from=build /app/backend/src/database/init.sql server/database/init.sql
+COPY --from=build /app/backend/src/database/sql server/database/sql
 
 RUN npm ci --production
-CMD /bin/sh -c "while sleep 1000; do :; done"
-# CMD node --env-file=.env ./server
+CMD node --env-file=.env ./server
