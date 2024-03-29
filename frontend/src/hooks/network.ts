@@ -1150,21 +1150,25 @@ export function useLazyQuery<
               }
             })()
 
-            setResponse(
-              NetworkResponse.flatMatch<
-                HttpError,
-                ResponseTo,
-                NetworkResponse.NetworkResponse<HttpError, ResponseTo>
-              >({
-                onIdle: identity,
-                onSuccess: identity,
-                onFailure: identity,
-                onLoading: (response) => {
-                  console.log(error.extras)
-                  return NetworkResponse.fail(error)(response)
-                },
-              }),
-            )
+            if (error.code === 403 && authContext.type === "Authenticated") {
+              authContext.logout()
+            } else {
+              setResponse(
+                NetworkResponse.flatMatch<
+                  HttpError,
+                  ResponseTo,
+                  NetworkResponse.NetworkResponse<HttpError, ResponseTo>
+                >({
+                  onIdle: identity,
+                  onSuccess: identity,
+                  onFailure: identity,
+                  onLoading: (response) => {
+                    console.log(error.extras)
+                    return NetworkResponse.fail(error)(response)
+                  },
+                }),
+              )
+            }
           },
           onSuccess(data) {
             setResponse(
@@ -1282,21 +1286,25 @@ export function useQuery<
               }
             })()
 
-            setResponse(
-              NetworkResponse.flatMatch<
-                HttpError,
-                ResponseTo,
-                NetworkResponse.NetworkResponse<HttpError, ResponseTo>
-              >({
-                onIdle: identity,
-                onSuccess: identity,
-                onFailure: identity,
-                onLoading: (response) => {
-                  console.log(error.extras)
-                  return NetworkResponse.fail(error)(response)
-                },
-              }),
-            )
+            if (error.code === 403 && authContext.type === "Authenticated") {
+              authContext.logout()
+            } else {
+              setResponse(
+                NetworkResponse.flatMatch<
+                  HttpError,
+                  ResponseTo,
+                  NetworkResponse.NetworkResponse<HttpError, ResponseTo>
+                >({
+                  onIdle: identity,
+                  onSuccess: identity,
+                  onFailure: identity,
+                  onLoading: (response) => {
+                    console.log(error.extras)
+                    return NetworkResponse.fail(error)(response)
+                  },
+                }),
+              )
+            }
           },
           onSuccess(data) {
             setResponse(
@@ -1456,18 +1464,22 @@ export function useCommand<
               }
             })()
 
-            setResponse(
-              NetworkResponse.flatMatch<
-                HttpError,
-                ResponseTo,
-                NetworkResponse.NetworkResponse<HttpError, ResponseTo>
-              >({
-                onIdle: identity,
-                onSuccess: identity,
-                onFailure: identity,
-                onLoading: NetworkResponse.fail(error),
-              }),
-            )
+            if (error.code === 403 && authContext.type === "Authenticated") {
+              authContext.logout()
+            } else {
+              setResponse(
+                NetworkResponse.flatMatch<
+                  HttpError,
+                  ResponseTo,
+                  NetworkResponse.NetworkResponse<HttpError, ResponseTo>
+                >({
+                  onIdle: identity,
+                  onSuccess: identity,
+                  onFailure: identity,
+                  onLoading: NetworkResponse.fail(error),
+                }),
+              )
+            }
 
             return Either.left(error)
           },
@@ -1617,18 +1629,22 @@ export function useFormDataCommand<
               }
             })()
 
-            setResponse(
-              NetworkResponse.flatMatch<
-                HttpError,
-                ResponseTo,
-                NetworkResponse.NetworkResponse<HttpError, ResponseTo>
-              >({
-                onIdle: identity,
-                onSuccess: identity,
-                onFailure: identity,
-                onLoading: NetworkResponse.fail(error),
-              }),
-            )
+            if (error.code === 403 && authContext.type === "Authenticated") {
+              authContext.logout()
+            } else {
+              setResponse(
+                NetworkResponse.flatMatch<
+                  HttpError,
+                  ResponseTo,
+                  NetworkResponse.NetworkResponse<HttpError, ResponseTo>
+                >({
+                  onIdle: identity,
+                  onSuccess: identity,
+                  onFailure: identity,
+                  onLoading: NetworkResponse.fail(error),
+                }),
+              )
+            }
 
             return Either.left(error)
           },
