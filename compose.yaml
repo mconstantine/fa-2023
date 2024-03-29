@@ -1,0 +1,23 @@
+services:
+  app:
+    image: registry.mconst.it/finance
+    build:
+      context: .
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+    depends_on:
+      - postgres
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: fa_2023
+    ports:
+      - "5432:5432"
+    volumes:
+      - fa_2023_db:/var/lib/postgresql/data
+volumes:
+  fa_2023_db:
+    external: true
