@@ -34,7 +34,7 @@ export async function initDatabase(): Promise<void> {
   const migrationNames = migrations.right.map((m) => m.name)
 
   const migrationFiles = fs
-    .readdirSync(path.join(__dirname, "migrations"))
+    .readdirSync(path.join(__dirname, "sql/migrations"))
     .filter((file) => path.extname(file) === ".sql")
     .filter((file) => upMigrationPattern.test(file))
 
@@ -43,7 +43,7 @@ export async function initDatabase(): Promise<void> {
 
     if (!migrationNames.includes(migrationName)) {
       const sql = fs.readFileSync(
-        path.join(__dirname, "migrations", file),
+        path.join(__dirname, "sql/migrations", file),
         "utf8",
       )
 
@@ -66,20 +66,32 @@ export async function initDatabase(): Promise<void> {
     },
   })
 
-  await Promise.all(
-    functionFiles.map(async (file) => {
-      const ts = await import(file)
-      const filePath = path.dirname(file)
-      const fileName = path.basename(file, ".ts")
+  const functions = functionFiles.map((file) => {
+    const filePath = path.dirname(file)
+    const fileName = path.basename(file, ".ts")
 
-      const f = pipe(ts.default, S.decodeUnknownSync(FunctionTemplate))
+    const [root = null, functionsPath = null] = filePath.split("database")
 
-      const sql = fs.readFileSync(
-        path.join(filePath, `${fileName}.sql`),
-        "utf8",
+    if (root === null || functionsPath === null) {
+      throw new Error(
+        `Unable to connect TS file of function with SQL file. TS file path: ${file}`,
       )
+    }
 
-      const query = template({ ...f, body: sql })
+    return {
+      ts: file,
+      sql: path.join(root, "database/sql", functionsPath, `${fileName}.sql`),
+    }
+  })
+
+  await Promise.all(
+    functions.map(async ({ sql, ts }) => {
+      const code = await import(ts)
+      const f = pipe(code.default, S.decodeUnknownSync(FunctionTemplate))
+
+      const sqlCode = fs.readFileSync(sql, "utf8")
+
+      const query = template({ ...f, body: sqlCode })
       return await db.query(query)
     }),
   )
