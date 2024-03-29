@@ -15,7 +15,7 @@ This project is designed to work with Docker, without dirtying the local develop
 
 Once you do that, you can clone the repo, `cd` into it, and run:
 
-- `docker volume create fa_2023_db` to create a local volume for your data, so destroying the container won't make you loose it. Deleting the volume will though, in case you _want_ to loose your data
+- `docker volume create finance_db` to create a local volume for your data, so destroying the container won't make you loose it. Deleting the volume will though, in case you _want_ to loose your data
 - `docker compose -f compose.dev.yaml up -d --build` to spin up all the things
 
 Once it's done, you can click on your Docker tab in VSCode, find the `fa-2023` container, right click on it and select "Attach Visual Studio Code". Open the `app` directory.
