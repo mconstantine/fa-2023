@@ -45,9 +45,11 @@ export class DateTimeRange {
 
   public static fromRelativeTimeRange(rtr: RelativeTimeRange): DateTimeRange {
     const startOfDay = new Date(
-      rtr.since.getFullYear(),
-      rtr.since.getMonth(),
-      rtr.since.getDate(),
+      Date.UTC(
+        rtr.since.getFullYear(),
+        rtr.since.getMonth(),
+        rtr.since.getDate(),
+      ),
     )
 
     const startDate: Date = (() => {
@@ -58,15 +60,19 @@ export class DateTimeRange {
           return new Date(startOfDay.getTime() - WEEK_IN_MS * rtr.last)
         case "months":
           return new Date(
-            startOfDay.getFullYear(),
-            startOfDay.getMonth() - rtr.last,
-            startOfDay.getDate(),
+            Date.UTC(
+              startOfDay.getFullYear(),
+              startOfDay.getMonth() - rtr.last,
+              startOfDay.getDate(),
+            ),
           )
         case "years":
           return new Date(
-            startOfDay.getFullYear() - rtr.last,
-            startOfDay.getMonth(),
-            startOfDay.getDate(),
+            Date.UTC(
+              startOfDay.getFullYear() - rtr.last,
+              startOfDay.getMonth(),
+              startOfDay.getDate(),
+            ),
           )
       }
     })()
