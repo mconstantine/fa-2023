@@ -16,6 +16,8 @@ const app = express()
 
   if (env.NODE_ENV === "development") {
     app.use(cors())
+  } else if (env.NODE_ENV === "production") {
+    app.use("/", express.static("client"))
   }
 
   app.use(

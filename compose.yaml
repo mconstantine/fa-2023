@@ -1,5 +1,5 @@
 services:
-  app:
+  server:
     image: registry.mconst.it/finance
     build:
       context: .
