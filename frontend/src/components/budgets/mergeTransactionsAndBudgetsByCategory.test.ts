@@ -44,16 +44,19 @@ describe("mergeTransactionsAndBudgetsByCategory", () => {
         category_id: Option.some(category1.id),
         category_name: Option.some(category1.name),
         transactions_total: 100.42,
+        category_is_projectable: false,
       },
       {
         category_id: Option.some(category2.id),
         category_name: Option.some(category2.name),
         transactions_total: 69.66,
+        category_is_projectable: false,
       },
       {
         category_id: Option.none(),
         category_name: Option.none(),
         transactions_total: 666.66,
+        category_is_projectable: false,
       },
     ]
 
@@ -62,16 +65,19 @@ describe("mergeTransactionsAndBudgetsByCategory", () => {
         category_id: Option.some(category1.id),
         category_name: Option.some(category1.name),
         transactions_total: 149.58,
+        category_is_projectable: false,
       },
       {
         category_id: Option.some(category2.id),
         category_name: Option.some(category2.name),
         transactions_total: 30.34,
+        category_is_projectable: false,
       },
       {
         category_id: Option.none(),
         category_name: Option.none(),
         transactions_total: 333.34,
+        category_is_projectable: false,
       },
     ]
 
@@ -112,6 +118,7 @@ describe("mergeTransactionsAndBudgetsByCategory", () => {
         totalTransactionsYearBefore: 100.42,
         totalTransactionsChosenYear: 149.58,
         budget: Option.some(budgets[0]!),
+        categoryIsProjectable: false,
       },
       {
         categoryId: Option.some(category2.id),
@@ -119,6 +126,7 @@ describe("mergeTransactionsAndBudgetsByCategory", () => {
         totalTransactionsYearBefore: 69.66,
         totalTransactionsChosenYear: 30.34,
         budget: Option.some(budgets[1]!),
+        categoryIsProjectable: false,
       },
       {
         categoryId: Option.none(),
@@ -126,6 +134,7 @@ describe("mergeTransactionsAndBudgetsByCategory", () => {
         totalTransactionsYearBefore: 666.66,
         totalTransactionsChosenYear: 333.34,
         budget: Option.some(budgets[2]!),
+        categoryIsProjectable: false,
       },
     ]
 
@@ -162,16 +171,19 @@ describe("mergeTransactionsAndBudgetsByCategory", () => {
         category_id: Option.some(category1.id),
         category_name: Option.some(category1.name),
         transactions_total: 10,
+        category_is_projectable: false,
       },
       {
         category_id: Option.some(category2.id),
         category_name: Option.some(category2.name),
         transactions_total: 10,
+        category_is_projectable: false,
       },
       {
         category_id: Option.none(),
         category_name: Option.none(),
         transactions_total: 15,
+        category_is_projectable: false,
       },
     ]
 
@@ -180,16 +192,19 @@ describe("mergeTransactionsAndBudgetsByCategory", () => {
         category_id: Option.some(category2.id),
         category_name: Option.some(category2.name),
         transactions_total: 10,
+        category_is_projectable: false,
       },
       {
         category_id: Option.some(category3.id),
         category_name: Option.some(category3.name),
         transactions_total: 10,
+        category_is_projectable: false,
       },
       {
         category_id: Option.none(),
         category_name: Option.none(),
         transactions_total: 15,
+        category_is_projectable: false,
       },
     ]
 
@@ -208,6 +223,7 @@ describe("mergeTransactionsAndBudgetsByCategory", () => {
         totalTransactionsYearBefore: 10,
         totalTransactionsChosenYear: 0,
         budget: Option.none(),
+        categoryIsProjectable: false,
       },
       {
         categoryId: Option.some(category2.id),
@@ -215,6 +231,7 @@ describe("mergeTransactionsAndBudgetsByCategory", () => {
         totalTransactionsYearBefore: 10,
         totalTransactionsChosenYear: 10,
         budget: Option.none(),
+        categoryIsProjectable: false,
       },
       {
         categoryId: Option.some(category3.id),
@@ -222,6 +239,7 @@ describe("mergeTransactionsAndBudgetsByCategory", () => {
         totalTransactionsYearBefore: 0,
         totalTransactionsChosenYear: 10,
         budget: Option.none(),
+        categoryIsProjectable: false,
       },
       {
         categoryId: Option.none(),
@@ -229,6 +247,7 @@ describe("mergeTransactionsAndBudgetsByCategory", () => {
         totalTransactionsYearBefore: 15,
         totalTransactionsChosenYear: 15,
         budget: Option.none(),
+        categoryIsProjectable: false,
       },
     ]
 
@@ -265,6 +284,7 @@ describe("mergeTransactionsAndBudgetsByCategory", () => {
         category_id: Option.some(category1.id),
         category_name: Option.some(category1.name),
         transactions_total: 10,
+        category_is_projectable: false,
       },
     ]
 
@@ -273,6 +293,7 @@ describe("mergeTransactionsAndBudgetsByCategory", () => {
         category_id: Option.some(category2.id),
         category_name: Option.some(category2.name),
         transactions_total: 10,
+        category_is_projectable: false,
       },
     ]
 
@@ -299,6 +320,7 @@ describe("mergeTransactionsAndBudgetsByCategory", () => {
         totalTransactionsYearBefore: 10,
         totalTransactionsChosenYear: 0,
         budget: Option.none(),
+        categoryIsProjectable: false,
       },
       {
         categoryId: Option.some(category2.id),
@@ -306,6 +328,7 @@ describe("mergeTransactionsAndBudgetsByCategory", () => {
         totalTransactionsYearBefore: 0,
         totalTransactionsChosenYear: 10,
         budget: Option.none(),
+        categoryIsProjectable: false,
       },
       {
         categoryId: Option.some(category3.id),
@@ -313,6 +336,7 @@ describe("mergeTransactionsAndBudgetsByCategory", () => {
         totalTransactionsYearBefore: 0,
         totalTransactionsChosenYear: 0,
         budget: Option.some(budgets[0]!),
+        categoryIsProjectable: false,
       },
     ]
 
