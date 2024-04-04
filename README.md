@@ -66,3 +66,25 @@ Things you can do with Docker:
 - `docker compose up -d --build` to spin up the container and rebuild the image. This is usually used if you changed the Dockerfile
 
 For more interesting powers, refer to the Docker documentation.
+
+### Known issues
+
+#### Connection rejected by the database
+
+In production, the server could not start because of an error like this:
+
+```
+error: pg_hba.conf rejects connection for host "IP_ADDRESS", user "postgres", database "finance", no encryption
+```
+
+The current solution is to go into the Postgres container, at `/var/lib/postgresql/data/pg_hba.conf`, and add this line at the end:
+
+```
+host all all IP_ADDRESS/24 trust
+```
+
+With `IP_ADDRESS` being the one shown in the error.
+
+#### Manual database creation
+
+In production, the `finance` database will not probably be there. The current solution is to go into the Postgres container, run `psql postgresql://USER:PASSWORD@localhost:5432` (use the ones you chose in the `compose.yml` file). The run `CREATE DATABASE finance;`, then `\q`.
