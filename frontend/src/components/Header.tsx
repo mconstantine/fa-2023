@@ -12,6 +12,7 @@ import {
   Stack,
   Toolbar,
   Typography,
+  useTheme,
 } from "@mui/material"
 import { useState } from "react"
 import { Link } from "react-router-dom"
@@ -21,6 +22,7 @@ import { useAuthContext } from "../contexts/AuthContext"
 export default function Header() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const authContext = useAuthContext()
+  const theme = useTheme()
 
   return (
     <AppBar position="sticky">
@@ -56,7 +58,14 @@ export default function Header() {
                 case "Anonymous":
                   return null
                 case "Authenticated":
-                  return <Button onClick={authContext.logout}>Logout</Button>
+                  return (
+                    <Button
+                      sx={{ color: theme.palette.text.primary }}
+                      onClick={authContext.logout}
+                    >
+                      Logout
+                    </Button>
+                  )
               }
             })()}
           </Stack>
