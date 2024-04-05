@@ -101,7 +101,18 @@ export async function initDatabase(): Promise<void> {
   await Promise.all(
     functions.map(async ({ sql, script }) => {
       const code = await import(script)
-      const f = pipe(code.default, S.decodeUnknownSync(FunctionTemplate))
+
+      const functionCode = (() => {
+        switch (env.NODE_ENV) {
+          case "development":
+          case "test":
+            return code.default
+          case "production":
+            return code.default.default
+        }
+      })()
+
+      const f = pipe(functionCode, S.decodeUnknownSync(FunctionTemplate))
 
       const sqlCode = fs.readFileSync(sql, "utf8")
 

@@ -8,6 +8,7 @@ services:
     restart: unless-stopped
     depends_on:
       - postgres
+    # command: /bin/sh -c "while sleep 1000; do :; done"
   postgres:
     image: postgres:16
     environment:
