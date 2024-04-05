@@ -5,6 +5,7 @@ import path from "path"
 import { FunctionTemplate, template } from "./functions/template"
 import { glob } from "glob"
 import { Either, pipe } from "effect"
+import { env } from "../env"
 
 const upMigrationPattern = /^\d+_up/
 
@@ -57,36 +58,49 @@ export async function initDatabase(): Promise<void> {
     }
   }
 
-  const functionFiles = await glob(path.join(__dirname, "functions/**/*.ts"), {
-    ignore: {
-      ignored: (path) =>
-        typeof path.parent === "undefined" ||
-        path.parent.isNamed("functions") ||
-        path.isNamed("domain.ts"),
+  const scriptExtension = (() => {
+    switch (env.NODE_ENV) {
+      case "development":
+      case "test":
+        return "ts"
+      case "production":
+        return "js"
+    }
+  })()
+
+  const functionFiles = await glob(
+    path.join(__dirname, `functions/**/*.${scriptExtension}`),
+    {
+      ignore: {
+        ignored: (path) =>
+          typeof path.parent === "undefined" ||
+          path.parent.isNamed("functions") ||
+          path.isNamed(`domain.${scriptExtension}`),
+      },
     },
-  })
+  )
 
   const functions = functionFiles.map((file) => {
     const filePath = path.dirname(file)
-    const fileName = path.basename(file, ".ts")
+    const fileName = path.basename(file, `.${scriptExtension}`)
 
     const [root = null, functionsPath = null] = filePath.split("database")
 
     if (root === null || functionsPath === null) {
       throw new Error(
-        `Unable to connect TS file of function with SQL file. TS file path: ${file}`,
+        `Unable to connect ${scriptExtension} file of function with SQL file. ${scriptExtension} file path: ${file}`,
       )
     }
 
     return {
-      ts: file,
+      script: file,
       sql: path.join(root, "database/sql", functionsPath, `${fileName}.sql`),
     }
   })
 
   await Promise.all(
-    functions.map(async ({ sql, ts }) => {
-      const code = await import(ts)
+    functions.map(async ({ sql, script }) => {
+      const code = await import(script)
       const f = pipe(code.default, S.decodeUnknownSync(FunctionTemplate))
 
       const sqlCode = fs.readFileSync(sql, "utf8")

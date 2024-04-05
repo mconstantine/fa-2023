@@ -24,12 +24,7 @@ Once inside the container, VSCode should prompt you to install all required exte
 
 #### Backend
 
-The backend runs on Node and Postgres, with TypeORM and routing-controllers over Express. You'll need to run database migrations in order to bring it up to speed, can't do this with Docker as the database is in another container:
-
-- `cd backend`
-- `npm run migration:run`
-
-To use it:
+The backend runs on Express over Node and Postgres. To use it:
 
 - `cd backend`
 - `npm start` to run the server
@@ -38,6 +33,12 @@ To use it:
 - `npx tsc` to compile
 
 > Don't build anything, you'd just waste precious memory. Docker will build for deploy when needed, from outside the container.
+
+You will need an environment file, and you should keep it inside the container, as you'll probably have the production environment outside. You can use the schema at `backend/src/env.ts` as a reference. Keep this in mind:
+
+- `NODE_ENV` should be `development`
+- `DB_HOST` should be `db`, as it's the name of the Docker service
+- You can generate a `JWT_SECRET` by running `Buffer.from(require('crypto').randomBytes(24)).toString('hex')` on a Node CLI
 
 #### Frontend
 
@@ -52,6 +53,8 @@ The frontend runs on React and uses Storybook for components development and ana
 - `npx tsc` to compile
 
 > Don't build anything, you'd just waste precious memory. Docker will build for deploy when needed, from outside the container.
+
+You will need an environment file, and you should keep it inside the container, as you'll probably have the production environment outside. You can use the schema at `backend/src/env.ts` as a reference. `VITE_API_URL` should point to `localhost`.
 
 ### Development
 
@@ -87,4 +90,4 @@ With `IP_ADDRESS` being the one shown in the error.
 
 #### Manual database creation
 
-In production, the `finance` database will not probably be there. The current solution is to go into the Postgres container, run `psql postgresql://USER:PASSWORD@localhost:5432` (use the ones you chose in the `compose.yml` file). The run `CREATE DATABASE finance;`, then `\q`.
+In production, the `finance` database will not probably be there. The current solution is to go into the Postgres container, run `psql postgresql://USER:PASSWORD@localhost:5432` (use the ones you chose in the `compose.yml` file). The run `CREATE DATABASE finance;`, then `\q`. You can use `psql postgresql://USER:PASSWORD@localhost:5432 -f path/to/file.sql` if you want to restore the database from a file. In pgAdmin, use "Plain" as the file name and skip the `migration` table.
